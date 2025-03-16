@@ -2,14 +2,15 @@
 
 import { useNavigate } from "react-router-dom";
 import qrImage from "../assets/qr.png";
+import logo from "../assets/logo.png";
 
 const LoginQR = () => {
   const navigate = useNavigate();
 
   return (
     <div className="layout-container">
-      <h1 className="text-7xl font-bold text-blue-600 text-center">Zalo</h1>
-      <p className="text-gray-600 text-center mt-2">Đăng nhập tài khoản Zalo để kết nối với Zalo Web</p>
+      <img src={logo} alt="Echo Logo" className="w-32 h-32 mb-4" />
+      <p className="text-gray-600 text-center mt-2">Đăng nhập tài khoản Echo để kết nối với Echo Web</p>
 
       <div className="container mt-4">
         <div className="flex justify-between items-center">
