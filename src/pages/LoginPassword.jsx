@@ -2,12 +2,10 @@
 
 
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
 import { useState } from "react";
 import axios from "axios";
-=======
 import logo from "../assets/logo.png";
->>>>>>> 56e2dd7f01f8305642d1493a31fe082271dc0e2f
+
 
 const LoginPassword = () => {
   const navigate = useNavigate();
