@@ -1,5 +1,5 @@
 import React from "react";
-import AppRoutes from "./routes.jsx"; // Đổi đuôi từ .js thành .jsx
+import AppRoutes from "./routes/AppRoutes"; // Đổi đuôi từ .js thành .jsx
 
 const App = () => {
   return <AppRoutes />;

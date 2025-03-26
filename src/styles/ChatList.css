@@ -1,0 +1,115 @@
+.chat-list {
+    width: 300px;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  .tab-menu {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .tab-menu span {
+    cursor: pointer;
+    padding: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    color: black;
+  }
+  
+  .tab-menu .active-tab {
+    color: #007bff;
+    border-bottom: 3px solid #007bff;
+  }
+  
+  .chat-items {
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  
+  .chat-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .chat-item:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: #ddd;
+    margin-right: 12px;
+  }
+  
+  .chat-info {
+    flex-grow: 1;
+  }
+  
+  .chat-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .chat-message {
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .chat-time {
+    font-size: 12px;
+    color: #999;
+  }
+  .search-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: white;
+    padding: 8px;
+    width: 300px;
+    height: 60px; /* Hoặc chỉnh theo ý muốn */
+  }
+  
+  .search-box {
+    display: flex;
+    align-items: center;
+    background-color: #f3f3f3;
+    padding: 5px 10px;
+    flex-grow: 1;
+    border-radius: 4px;
+  }
+  
+  .search-icon {
+    color: black;
+    margin-right: 5px;
+  }
+  
+  .search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .search-icons {
+    margin-left: 10px;
+    display: flex;
+    gap: 12px;
+    color: black;
+    cursor: pointer;
+  }
+  
