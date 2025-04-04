@@ -17,7 +17,7 @@ const LoginPassword = () => {
     e.preventDefault(); // Ngăn reload trang
 
     try {
-      const response = await axios.post("http://localhost:5000/api/login", {
+      const response = await axios.post("https://echoapp-rho.vercel.app/api/login", {
         sdt,
         matKhau,
       });
