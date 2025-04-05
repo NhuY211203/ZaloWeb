@@ -1,35 +1,80 @@
-import React from "react";
+import React, { useState } from "react";
+import ChatItem from "./ChatItem";
 import "../styles/ChatList.css";
 import * as FaIcons from "react-icons/fa";
 
 const SearchBar = () => {
   return (
     <div className="search-bar">
-      {/* Ô tìm kiếm */}
       <div className="search-box">
-        <span className="search-icon"><FaIcons.FaSearch /></span>
+        <span className="search-icon">
+          <FaIcons.FaSearch />
+        </span>
         <input
           type="text"
           className="search-input"
           placeholder="Tìm kiếm"
         />
       </div>
-
-      {/* Icon bên phải */}
       <div className="search-icons">
-        <span className="add-friend-icon"><FaIcons.FaUserPlus /></span>
-        <span className="add-group-icon"><FaIcons.FaUsers /></span>
+        <span className="add-friend-icon">
+          <FaIcons.FaUserPlus />
+        </span>
+        <span className="add-group-icon">
+          <FaIcons.FaUsers />
+        </span>
       </div>
     </div>
   );
 };
 
 const ChatList = ({ onSelectChat }) => {
+  const [selectedChatId, setSelectedChatId] = useState(1); // Mặc định chọn chat đầu tiên
+
   const chats = [
-    { id: 1, name: "Người Dùng 1", message: "Xin chào!", time: "16 phút" , image: "../assets/logo.png", thoigiantruycap: "5 phút" },
-    { id: 2, name: "Người Dùng 2", message: "Bạn khỏe không?", time: "10 phút", image: "../assets/logo.png", thoigiantruycap: "6 phút" },
-    { id: 3, name: "Người Dùng 3", message: "Hẹn gặp bạn sau!", time: "5 phút", image: "../assets/logo.png", thoigiantruycap: "7 phút"}
+    {
+      id: 1,
+      name: "PTCNM",
+      message: "Xin chào!",
+      time: "16 phút",
+      unreadCount: 1,
+      avatar: "", // Placeholder
+      thoigiantruycap: "5 phút",
+      trangthai: "online",
+      messages: [
+        { id: 1, sender: "PTCNM", content: "Xin chào!", time: "10:00", type: "received" },
+      ],
+    },
+    {
+      id: 2,
+      name: "Văn A",
+      message: "Xin chào!",
+      time: "16 phút",
+      unreadCount: 0,
+      avatar: "",
+      thoigiantruycap: "5 phút",
+      trangthai: "offline",
+      messages: [
+        { id: 1, sender: "Văn A", content: "Xin chào!", time: "10:00", type: "received" },
+      ],
+    },
+    {
+      id: 3,
+      name: "Cloud của tôi",
+      message: "Chưa có tin nhắn",
+      time: "",
+      unreadCount: 0,
+      avatar: "",
+      thoigiantruycap: "",
+      trangthai: "offline",
+      messages: [],
+    },
   ];
+
+  const handleSelectChat = (chat) => {
+    setSelectedChatId(chat.id);
+    onSelectChat(chat);
+  };
 
   return (
     <div className="chat-list">
@@ -41,28 +86,18 @@ const ChatList = ({ onSelectChat }) => {
         <button className="btn-icon">
           <FaIcons.FaAngleDown />
         </button>
-
         <button className="btn-icon">
           <FaIcons.FaEllipsisH />
         </button>
       </div>
-
-      {/* Danh sách chat */}
       <div className="chat-items">
         {chats.map((chat) => (
-          <div 
-            key={chat.id} 
-            className="chat-item" 
-            onClick={() => onSelectChat(chat)} 
-            style={{ cursor: "pointer" }}
-          >
-            <div className="avatar"></div>
-            <div className="chat-info">
-              <p className="chat-name">{chat.name}</p>
-              <p className="chat-message">{chat.message}</p>
-            </div>
-            <span className="chat-time">{chat.time}</span>
-          </div>
+          <ChatItem
+            key={chat.id}
+            chat={chat}
+            onSelectChat={handleSelectChat}
+            isSelected={chat.id === selectedChatId}
+          />
         ))}
       </div>
     </div>

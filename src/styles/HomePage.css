@@ -1,34 +1,11 @@
-/* Sidebar */
-.sidebar {
-    width: 80px;
-    background-color: #0056d2;
-    min-height: 100vh;
-}
-
 .main {
     display: flex;
     height: 100vh;
     width: 100vw;
-}
-
-.chat-container {
+  }
+  
+  .chat-container {
     flex: 1;
     display: flex;
-    flex-direction: row; /* Để tạo 2 cột */
-}
-
-.chat-list {
-    width: 21%;
-    height: 100%;
-    background-color: #fff;
-    border-right: 1px solid #ddd;
-    overflow-y: auto;
-}
-
-.chat-window {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: rgb(244, 211, 211);
-}
+    flex-direction: row;
+  }

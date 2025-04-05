@@ -1,57 +1,402 @@
 .sidebar {
-    width: 70px;
-    height: 100vh;
-    background-color: #2563eb; /* Màu xanh */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 16px 0;
-  }
-  
-  .avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 24px;
-  }
-  
-  .icon-group {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .icon {
-    width: 45px;
-    height: 45px;
-    background-color: transparent;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.3s;
-    color: white;
-  }
-  
-  .iconn{
-    width: 30px;
-    height:30px;
-  }
-  
-  .icon:hover {
-    background-color: rgb(8, 8, 218);
-  }
-  
-  .icon.active {
-    background-color:rgb(8, 8, 218);
-  }
-  
-  .bottom-icons {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  
+  width: 70px;
+  height: 100vh;
+  background-color: #79DFFF; /* Màu xanh của Zalo */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #ddd; /* Placeholder cho avatar */
+  margin-bottom: 40px; /* Tăng khoảng cách giữa avatar và icon */
+}
+
+.icon-group {
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* Tăng khoảng cách giữa các icon trong nhóm */
+}
+
+.icon {
+  width: 45px;
+  height: 45px;
+  background-color: transparent;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s;
+  color: white;
+}
+
+.iconn {
+  width: 30px;
+  height: 30px;
+}
+
+.icon:hover {
+  background-color: #1e40af; /* Màu xanh đậm hơn khi hover */
+}
+
+.icon.active {
+  background-color: #1e40af; /* Màu xanh đậm khi active */
+}
+
+.bottom-icons {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* Tăng khoảng cách giữa các icon ở dưới */
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: transparent; /* Bỏ nền mờ để giống giao diện Zalo */
+  display: flex;
+  justify-content: flex-start; /* Đặt modal ở bên trái */
+  align-items: flex-start; /* Đặt modal ở phía trên */
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: auto; /* Chiều rộng tự động vừa nội dung */
+  min-width: 200px; /* Chiều rộng tối thiểu */
+  height: auto; /* Chiều cao tự động vừa nội dung */
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 60px; /* Đặt modal ngay dưới avatar hoặc icon */
+  left: 80px; /* Đặt modal ngay bên phải sidebar */
+}
+
+/* Điều chỉnh modal "Thông tin tài khoản" lớn hơn */
+.profile-info-modal .modal-content {
+  width: 450px; /* Tăng kích thước modal "Thông tin tài khoản" lên 450px */
+}
+
+/* Modal của avatar */
+.profile-modal .modal-content {
+  top: 60px; /* Đặt ngay dưới avatar */
+  left: 80px;
+}
+
+/* Modal của cài đặt */
+.settings-modal .modal-content {
+  top: auto;
+  bottom: 80px; /* Đặt ngay trên icon cài đặt */
+  left: 80px;
+}
+
+/* Modal thông tin tài khoản */
+.profile-info-modal .modal-content {
+  top: 60px;
+  left: 80px;
+}
+
+/* Style cho modal cài đặt lớn (Cài đặt chung, Quyền riêng tư) */
+.settings-content {
+  width: 90vw; /* Gần full màn hình theo chiều ngang */
+  height: 80vh; /* Gần full màn hình theo chiều dọc */
+  max-width: 1000px; /* Giới hạn chiều rộng tối đa */
+  max-height: 600px; /* Giới hạn chiều cao tối đa */
+  overflow-y: auto; /* Thanh cuộn nếu nội dung dài */
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+
+.modal-header h2 {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.modal-header .avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #ddd;
+  margin-right: 10px;
+}
+
+.modal-header .close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+}
+
+.modal-body {
+  padding: 15px;
+}
+
+.modal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.modal-item:hover {
+  background-color: #f1f1f1;
+}
+
+.modal-item.logout {
+  color: #ff4d4f;
+}
+
+.modal-icon {
+  font-size: 18px;
+  color: #666;
+}
+
+.modal-item span {
+  font-size: 14px;
+}
+
+/* Profile Info Modal */
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.profile-info .avatar.large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #ddd;
+  margin-bottom: 10px;
+}
+
+.profile-info h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.profile-info .info-section {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.profile-info .info-section h4 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.profile-info .info-section p {
+  font-size: 14px;
+  color: #666;
+  margin: 5px 0;
+}
+
+.update-btn {
+  background-color: #f5f5f5;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+.update-icon {
+  font-size: 16px;
+}
+
+/* Style cho input khi chỉnh sửa */
+.edit-input {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+  margin-left: 10px;
+  width: 200px;
+  font-size: 14px;
+}
+
+/* Style cho nhóm nút Lưu/Hủy */
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.save-btn, .cancel-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.save-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.cancel-btn {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+/* Style cho biểu tượng mũi tên */
+.chevron-icon {
+  margin-left: auto;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Style cho modal cài đặt */
+.settings-content {
+  width: 90vw; /* Gần full màn hình theo chiều ngang */
+  height: 80vh; /* Gần full màn hình theo chiều dọc */
+  max-width: 1000px; /* Giới hạn chiều rộng tối đa để không quá lớn trên màn hình lớn */
+  max-height: 600px; /* Giới hạn chiều cao tối đa */
+  overflow-y: auto; /* Thanh cuộn nếu nội dung dài */
+}
+
+.settings-body {
+  padding: 0;
+}
+
+.settings-tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 15px;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.settings-tabs .tab {
+  font-size: 14px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.settings-tabs .tab.active {
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+}
+
+.settings-section {
+  padding: 15px;
+}
+
+.settings-section h4 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+.settings-item .switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.settings-item .switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.settings-item .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 20px;
+}
+
+.settings-item .slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+.settings-item input:checked + .slider {
+  background-color: #007bff;
+}
+
+.settings-item input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.language-option, .option {
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Style cho modal Ngôn ngữ */
+.language-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  font-size: 14px;
+  border-bottom: 1px solid #ddd;
+}
+
+.language-item .check-icon {
+  color: #007bff;
+}
+
+/* Style cho modal Hỗ trợ */
+.support-item {
+  padding: 10px 15px;
+  font-size: 14px;
+  border-bottom: 1px solid #ddd;
+}
