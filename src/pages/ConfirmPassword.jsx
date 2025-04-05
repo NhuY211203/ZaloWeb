@@ -34,11 +34,11 @@ const isValidPassword = (password) => {
       console.log("Số điện thoại:", sdt);
       console.log("Mật khẩu mới:", newPassword);
       console.log("Xác nhận mật khẩu:", confirmPassword);
-
+      const matKhau = newPassword; // Đặt lại tên biến cho dễ hiểu
       // Gửi yêu cầu cập nhật mật khẩu mới đến server
       const response = await axios.post(
-        "https://echoapp-rho.vercel.app/api/users/update-password",
-        { email, sdt, newPassword }, // Thêm email và sdt vào payload
+        "https://echoapp-rho.vercel.app/api/users/doimatkhau",
+        {sdt, matKhau }, // Thêm email và sdt vào payload
         { headers: { "Content-Type": "application/json" } }
       ).catch((err) => {
         throw new Error(`Lỗi khi cập nhật mật khẩu: ${err.message}`);
@@ -46,7 +46,7 @@ const isValidPassword = (password) => {
 
       console.log("Kết quả cập nhật mật khẩu:", response.data);
 
-      if (response.data.success) {
+      if (response.data) {
         console.log("Cập nhật mật khẩu thành công!");
         // Chuyển hướng về trang đăng nhập sau 2 giây
         setTimeout(() => {

@@ -10,7 +10,7 @@ const HomePage = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const location = useLocation();
   const user = location.state?.user; // Dữ liệu user từ trang đăng nhập
-
+  console.log("User from HomePage:", user); // Kiểm tra dữ liệu user
   return (
     <div className="main">
       <Sidebar user={user} />

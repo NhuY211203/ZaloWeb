@@ -12,7 +12,7 @@ const VerifyCode = () => {
   useEffect(() => {
     if (isSignInWithEmailLink(authentication, window.location.href)) {
       let emailStored = window.localStorage.getItem("emailForSignIn");
-
+      let sdtStored = window.localStorage.getItem("sdt"); // 
       if (!emailStored) {
         emailStored = prompt("Nhập email của bạn để xác thực:");
       }
@@ -26,7 +26,7 @@ const VerifyCode = () => {
 
             // Chuyển hướng sang trang đổi mật khẩu
             setTimeout(() => {
-              navigate("/confirm-password", { state: { email: emailStored } });
+              navigate("/confirm-password", { state: { email: emailStored ,sdt:sdtStored} });
             }, 2000); // Chờ 2 giây rồi chuyển hướng
           })
           .catch((error) => {

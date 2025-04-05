@@ -220,20 +220,25 @@ const DataModal = ({ onClose }) => {
 };
 
 
-
-const ProfileModal = ({ onClose, onOpenProfile }) => {
+// hien thong tin khi nhap anh dai dien
+const ProfileModal = ({ onClose, onOpenProfile,user }) => {
   return (
     <div className="modal-overlay profile-modal">
       <div className="modal-content">
         <div className="modal-header">
-          <div className="avatar"></div>
-          <h2>User</h2>
+          <div className="avatar"><img
+              src={user?.anhDaiDien || "/default-avatar.png"}
+              alt="Avatar"
+              width="100"
+              height="100"
+            /></div>
+          <h2>{user.name|| "User"}</h2>
           <button onClick={onClose} className="close-btn">
             <FaIcons.FaTimes />
           </button>
         </div>
         <div className="modal-body">
-          <div className="modal-item" onClick={onOpenProfile}>
+          <div className="modal-item" onClick={onOpenProfile} user={user}>
             <FaIcons.FaUser className="modal-icon" />
             <span>Hồ sơ của bạn</span>
           </div>
@@ -251,7 +256,7 @@ const ProfileModal = ({ onClose, onOpenProfile }) => {
   );
 };
 
-const UserProfileModal = ({ onClose }) => {
+const UserProfileModal = ({ onClose ,user}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
     gender: "Nữ",
@@ -360,7 +365,7 @@ const UserProfileModal = ({ onClose }) => {
   );
 };
 
-const Sidebar = () => {
+const Sidebar = ({user}) => {
   const [activeButton, setActiveButton] = useState("chat");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -449,7 +454,7 @@ const Sidebar = () => {
   return (
     <div className="sidebar">
       {/* Avatar */}
-      <div className="avatar" onClick={openProfileModal}></div>
+      <div className="avatar" onClick={openProfileModal} user={user}><img src={user.anhDaiDien} alt="Avatar"  /> </div>
 
       {/* Icons */}
       <div className="icon-group">
@@ -478,6 +483,7 @@ const Sidebar = () => {
         <div
           className={`icon ${activeButton === "settings" ? "active" : ""}`}
           onClick={openSettingsModal}
+          user={user}
         >
           <FaIcons.FaCog className="iconn" />
         </div>
@@ -492,12 +498,15 @@ const Sidebar = () => {
           onOpenLanguage={openLanguageModal}
           onOpenSupport={openSupportModal}
           onOpenData={openDataModal}
+          user={user}
         />
       )}
       {isProfileOpen && (
         <ProfileModal
           onClose={closeProfileModal}
           onOpenProfile={openUserProfileModal}
+          user={user}
+
         />
       )}
       {isUserProfileOpen && <UserProfileModal onClose={closeUserProfileModal} />}
@@ -505,12 +514,14 @@ const Sidebar = () => {
         <GeneralSettingsModal
           onClose={closeGeneralSettingsModal}
           onSwitchToPrivacy={openPrivacySettingsModal}
+          user={user}
         />
       )}
       {isPrivacySettingsOpen && (
         <PrivacySettingsModal
           onClose={closePrivacySettingsModal}
           onSwitchToGeneral={closePrivacySettingsModal}
+          user={user}
         />
       )}
       {isLanguageOpen && <LanguageModal onClose={closeLanguageModal} />}
