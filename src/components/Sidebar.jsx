@@ -255,7 +255,6 @@ const ProfileModal = ({ onClose, onOpenProfile,user }) => {
     </div>
   );
 };
-const UserProfileModal = ({ onClose ,user}) => {
 // Kiểm tra tính hợp lệ của số điện thoại (tối thiểu 8 chữ số, có thể có tiền tố +84 hoặc 0)
 const isValidPhoneNumber = (phoneNumber) => {
   const phoneRegex = /^(0[3|5|7|8|9][0-9]{8}|(\+84)[3|5|7|8|9][0-9]{8})$/;
@@ -284,8 +283,7 @@ const isValidImageURL = (url) => {
   const imageRegex = /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|bmp|svg))$/i;
   return imageRegex.test(url);
 };
-
-const UserProfileModal = ({ onClose }) => {
+const UserProfileModal = ({ onClose,user }) => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(() => {
