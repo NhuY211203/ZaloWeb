@@ -9,8 +9,6 @@ const isValidPhoneNumber = (phoneNumber) => {
   const phoneRegex = /^(0[3,5,7,8,9])[0-9]{8}$/;
   return phoneRegex.test(phoneNumber);
 };
-
-
 // Kiểm tra mật khẩu (tối thiểu 8 ký tự, phải có ít nhất 1 chữ cái và 1 chữ số)
 const isValidPassword = (password) => {
   const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;  // ít nhất 1 chữ cái, 1 số, và 8 ký tự
@@ -21,12 +19,7 @@ const LoginPassword = () => {
   const navigate = useNavigate();
   const [sdt, setSDT] = useState("");
   const [matKhau, setPassword] = useState("");
-<<<<<<< HEAD
-  
-=======
   const [error, setError] = useState(null);
-
->>>>>>> cba3ace0b185b93c55c4ce20ec7be6d1995afd06
   const handleLogin = async (e) => {
     e.preventDefault(); // Ngăn reload trang
     setError(null); // Reset lỗi trước khi kiểm tra

@@ -27,8 +27,6 @@ const ForgotPassword = () => {
   const kiemtraEmail = async (e) => {
     e.preventDefault(); // Ngăn reload trang
     setErrorMessage(""); // Xóa lỗi cũ
-
-<<<<<<< HEAD
     // Kiểm tra số điện thoại
     const responseSDT = await axios.post('https://echoapp-rho.vercel.app/api/users/checksdt', 
       { sdt },
@@ -62,12 +60,11 @@ const ForgotPassword = () => {
     } else {
       console.log("Số điện thoại và email không tồn tại!");
       return;
-=======
+    }
     // Kiểm tra tính hợp lệ của email và số điện thoại
     if (!isValidEmail(email)) {
       setErrorMessage("Email không hợp lệ");
       return;
->>>>>>> cba3ace0b185b93c55c4ce20ec7be6d1995afd06
     }
 
     if (!isValidPhoneNumber(sdt)) {
@@ -129,6 +126,7 @@ const ForgotPassword = () => {
       await sendSignInLinkToEmail(authentication, email, actionCodeSettings);
       console.log("Email xác thực đã gửi!");
       window.localStorage.setItem("emailForSignIn", email);
+      window.localStorage.setItem("sdt", sdt); 
       // Đóng trang sau 2 giây
       setTimeout(() => {
         navigate("/");
@@ -176,6 +174,5 @@ const ForgotPassword = () => {
       </div>
     </div>
   );
-};
-
+  };
 export default ForgotPassword;

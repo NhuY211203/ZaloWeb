@@ -10,10 +10,18 @@ const ConfirmPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+// Kiểm tra mật khẩu (tối thiểu 8 ký tự, phải có ít nhất 1 chữ cái và 1 chữ số)
+const isValidPassword = (password) => {
+  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;  // ít nhất 1 chữ cái, 1 số, và 8 ký tự
+  return passwordRegex.test(password);
+};
 
   const handleConfirmPassword = async (e) => {
     e.preventDefault(); // Ngăn reload trang
-
+    if (!isValidPassword(newPassword)) {
+      setError("Mật khẩu không hợp lệ! (Tối thiểu 8 ký tự, bao gồm cả chữ cái và chữ số)");
+      return;
+    }   
     // Kiểm tra mật khẩu có khớp không
     if (newPassword !== confirmPassword) {
       setError("Mật khẩu mới và xác nhận mật khẩu không khớp!");
