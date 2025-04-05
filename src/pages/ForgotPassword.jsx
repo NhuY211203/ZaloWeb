@@ -27,7 +27,40 @@ const ForgotPassword = () => {
   const kiemtraEmail = async (e) => {
     e.preventDefault(); // Ngăn reload trang
     setErrorMessage(""); // Xóa lỗi cũ
+    // Kiểm tra số điện thoại
+    const responseSDT = await axios.post('https://echoapp-rho.vercel.app/api/users/checksdt', 
+      { sdt },
+      { headers: { 'Content-Type': 'application/json' } }
+    ).catch(err => {
+      throw new Error(`Lỗi kiểm tra số điện thoại: ${err.message}`);
+    });
 
+    // Kiểm tra email
+    const responseEmail = await axios.post('https://echoapp-rho.vercel.app/api/users/email', 
+      { email },
+      { headers: { 'Content-Type': 'application/json' } }
+    ).catch(err => {
+      throw new Error(`Lỗi kiểm tra email: ${err.message}`);
+    });
+    console.log("Kết quả kiểm tra số điện thoại:");
+    console.log("Kết quả kiểm tra số điện thoại:", responseSDT.data);
+    console.log("Kết quả kiểm tra email:", responseEmail.data);
+
+    if (responseSDT.data.exists && responseEmail.data.exists) {
+      console.log("Đã gửi xác thực về gmail!");
+      await sendEmailVerification();
+
+      return;
+    } else if (responseSDT.data.exists && !responseEmail.data.exists) {
+      console.log("Email không tồn tại nhưng Số điện thoại đã đăng ký!");
+      return;
+    } else if (!responseSDT.data.exists && responseEmail.data.exists) {
+      console.log("Số điện thoại không tồn tại nhưng Gmail đã đăng ký!");
+      return;
+    } else {
+      console.log("Số điện thoại và email không tồn tại!");
+      return;
+    }
     // Kiểm tra tính hợp lệ của email và số điện thoại
     if (!isValidEmail(email)) {
       setErrorMessage("Email không hợp lệ");
@@ -93,6 +126,7 @@ const ForgotPassword = () => {
       await sendSignInLinkToEmail(authentication, email, actionCodeSettings);
       console.log("Email xác thực đã gửi!");
       window.localStorage.setItem("emailForSignIn", email);
+      window.localStorage.setItem("sdt", sdt); 
       // Đóng trang sau 2 giây
       setTimeout(() => {
         navigate("/");
@@ -107,7 +141,6 @@ const ForgotPassword = () => {
     <div className="flex flex-col items-center justify-center h-screen bg-[#DEF7FF]">
       <img src={logo} alt="Echo Logo" className="w-32 h-32 mb-4" />
       <p className="text-gray-600">Khôi phục mật khẩu Echo</p>
-
       <div className="bg-white p-6 mt-4 rounded-lg shadow-lg w-96">
         <h2 className="text-lg font-bold">Nhập số điện thoại</h2>
         <input
@@ -141,6 +174,5 @@ const ForgotPassword = () => {
       </div>
     </div>
   );
-};
-
+  };
 export default ForgotPassword;
