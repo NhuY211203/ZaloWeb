@@ -26,7 +26,7 @@ const VerifyCode = () => {
 
             // Chuyển hướng sang trang đổi mật khẩu
             setTimeout(() => {
-              navigate("/", { state: { email: emailStored } });
+              navigate("/confirm-password", { state: { email: emailStored } });
             }, 2000); // Chờ 2 giây rồi chuyển hướng
           })
           .catch((error) => {

@@ -39,7 +39,9 @@ const ForgotPassword = () => {
     console.log("Kết quả kiểm tra email:", responseEmail.data);
 
     if (responseSDT.data.exists && responseEmail.data.exists) {
-      console.log("Số điện thoại và Email đã được đăng ký!");
+      console.log("Đã gửi xác thực về gmail!");
+      await sendEmailVerification();
+
       return;
     } else if (responseSDT.data.exists && !responseEmail.data.exists) {
       console.log("Email không tồn tại nhưng Số điện thoại đã đăng ký!");
@@ -48,8 +50,8 @@ const ForgotPassword = () => {
       console.log("Số điện thoại không tồn tại nhưng Gmail đã đăng ký!");
       return;
     } else {
-      console.log("Đã gửi xác thực về gmail!");
-      await sendEmailVerification();
+      console.log("Số điện thoại và email không tồn tại!");
+      return;
     }
 
   } catch (err) {
@@ -85,7 +87,6 @@ const ForgotPassword = () => {
     <div className="flex flex-col items-center justify-center h-screen bg-[#DEF7FF]">
       <img src={logo} alt="Echo Logo" className="w-32 h-32 mb-4" />
       <p className="text-gray-600">Khôi phục mật khẩu Echo</p>
-
       <div className="bg-white p-6 mt-4 rounded-lg shadow-lg w-96">
         <h2 className="text-lg font-bold">Nhập số điện thoại</h2>
         <input

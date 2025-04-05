@@ -400,3 +400,7 @@
   font-size: 14px;
   border-bottom: 1px solid #ddd;
 }
+.Avatar img {
+  border-radius: 50%;
+  object-fit: cover;
+}

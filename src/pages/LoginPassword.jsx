@@ -11,7 +11,6 @@ const LoginPassword = () => {
   const navigate = useNavigate();
   const [sdt, setSDT] = useState("");
   const [matKhau, setPassword] = useState("");
-  const [error, setError] = useState(null);
   
   const handleLogin = async (e) => {
     e.preventDefault(); // Ngăn reload trang
@@ -22,12 +21,11 @@ const LoginPassword = () => {
         matKhau,
       });
 
-      console.log("Đăng nhập thành công!", response.data);
+      console.log("Đăng nhập thành công!", response.data.user);
       alert("Đăng nhập thành công!");
-      navigate("/forgot-password");
+      navigate("/home",{state:{user:response.data.user}}); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
     } catch (err) {
-      console.error("Lỗi đăng nhập:", err.response?.data || err.message);
-      setError("Email hoặc mật khẩu không đúng!");
+      console.error("Lỗi đăng nhập:", err.message);
     }
   };
 
