@@ -9,12 +9,12 @@ const AppRoutes = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LoginQR />} />
+        <Route path="/" element={<ForgotPassword/>} />
         <Route path="/login-password" element={<LoginPassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-code" element={<VerifyCode />} />
         <Route path="/home" element={<HomePage />} /> {/* ✅ Thêm đường dẫn trang chính */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/forgot-password" />} />
       </Routes>
     </Router>
   );
