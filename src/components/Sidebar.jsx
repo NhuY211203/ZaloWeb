@@ -255,14 +255,53 @@ const ProfileModal = ({ onClose, onOpenProfile,user }) => {
     </div>
   );
 };
-
 const UserProfileModal = ({ onClose ,user}) => {
+// Kiểm tra tính hợp lệ của số điện thoại (tối thiểu 8 chữ số, có thể có tiền tố +84 hoặc 0)
+const isValidPhoneNumber = (phoneNumber) => {
+  const phoneRegex = /^(0[3|5|7|8|9][0-9]{8}|(\+84)[3|5|7|8|9][0-9]{8})$/;
+  return phoneRegex.test(phoneNumber);
+};
+// Kiểm tra tính hợp lệ của email
+const isValidEmail = (email) => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
+};
+
+// Kiểm tra tính hợp lệ của ngày sinh (định dạng dd-mm-yyyy hoặc dd/mm/yyyy)
+const isValidDOB = (dob) => {
+  const dobRegex = /^(0[1-9]|[12][0-9]|3[01])[-/](0[1-9]|1[0-2])[-/]\d{4}$/;
+  return dobRegex.test(dob);
+};
+
+// Kiểm tra tính hợp lệ của mật khẩu (tối thiểu 8 ký tự, phải có ít nhất 1 chữ cái và 1 chữ số)
+const isValidPassword = (password) => {
+  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  return passwordRegex.test(password);
+};
+
+// Kiểm tra tính hợp lệ của URL (ảnh đại diện)
+const isValidImageURL = (url) => {
+  const imageRegex = /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|bmp|svg))$/i;
+  return imageRegex.test(url);
+};
+
+const UserProfileModal = ({ onClose }) => {
+
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    gender: "Nữ",
-    dob: "01 tháng 12, 2003",
-    phone: "+84 367 222 555",
+  const [profile, setProfile] = useState(() => {
+    const storedProfile = localStorage.getItem('profile');
+    return storedProfile ? JSON.parse(storedProfile) : {
+      name: "Nguyen Thanh Quyen",
+      email: "user001@example.com",
+      avatar: "https://res.cloudinary.com/dgqppqcbd/image/upload/v1741595806/anh-dai-dien-hai-1_b33sa3.jpg",
+      dob: "22-05-1998",
+      gender: "Nam", // Mặc định là Nam
+      phone: "0977654319",
+      password: "Password123",
+    };
   });
+  const [errorMessage, setErrorMessage] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false); // Điều khiển hiển thị mật khẩu
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
@@ -276,8 +315,57 @@ const UserProfileModal = ({ onClose ,user}) => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfile((prev) => ({
+          ...prev,
+          avatar: reader.result, // Cập nhật ảnh đại diện từ file được chọn
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = () => {
+    // Kiểm tra tính hợp lệ của thông tin
+    if (!profile.name) {
+      setErrorMessage("Tên không được để trống!");
+      return;
+    }
+
+    if (!isValidEmail(profile.email)) {
+      setErrorMessage("Email không hợp lệ!");
+      return;
+    }
+
+    if (!isValidPhoneNumber(profile.phone)) {
+      setErrorMessage("Số điện thoại không hợp lệ!");
+      return;
+    }
+
+    if (!isValidDOB(profile.dob)) {
+      setErrorMessage("Ngày sinh không hợp lệ! Vui lòng nhập đúng định dạng dd-mm-yyyy.");
+      return;
+    }
+
+    if (!isValidPassword(profile.password)) {
+      setErrorMessage("Mật khẩu không hợp lệ! (Tối thiểu 8 ký tự, bao gồm chữ cái và chữ số)");
+      return;
+    }
+
+    if (!isValidImageURL(profile.avatar) && !profile.avatar.startsWith("data:image")) {
+      setErrorMessage("URL ảnh đại diện không hợp lệ!");
+      return;
+    }
+
+    // Lưu profile vào localStorage để đảm bảo khi thoát modal sẽ vẫn giữ lại giá trị
+    localStorage.setItem('profile', JSON.stringify(profile));
+
     setIsEditing(false);
+    setErrorMessage(""); // Reset lỗi khi lưu thành công
     console.log("Profile saved:", profile);
   };
 
@@ -291,6 +379,20 @@ const UserProfileModal = ({ onClose ,user}) => {
           </button>
         </div>
         <div className="modal-body profile-info">
+          <div className="avatar-section">
+            <img src={profile.avatar} alt="Avatar" className="avatar-img" />
+            <div className="file-upload">
+              {isEditing && (
+                <input
+                  type="file"
+                  name="avatar"
+                  onChange={handleImageChange}
+                  className="edit-input"
+                />
+              )}
+            </div>
+          </div>
+          <h3>{profile.name}</h3>
         <div className="avatar large">
             <img
               src={user?.anhDaiDien || "/default-avatar.png"}
@@ -304,28 +406,64 @@ const UserProfileModal = ({ onClose ,user}) => {
             <h4>Thông tin cá nhân</h4>
             {isEditing ? (
               <>
-                <p>
-                  Giới tính:
+                <div className="input-group">
+                  <label>Tên:</label>
                   <input
                     type="text"
-                    name="gender"
-                    value={profile.gender}
+                    name="name"
+                    value={profile.name}
                     onChange={handleInputChange}
                     className="edit-input"
                   />
-                </p>
-                <p>
-                  Ngày sinh:
+                </div>
+                <div className="input-group">
+                  <label>Email:</label>
+                  <input
+                    type="text"
+                    name="email"
+                    value={profile.email}
+                    onChange={handleInputChange}
+                    className="edit-input"
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Ngày sinh:</label>
                   <input
                     type="text"
                     name="dob"
                     value={profile.dob}
                     onChange={handleInputChange}
                     className="edit-input"
+                    placeholder="dd-mm-yyyy"
                   />
-                </p>
-                <p>
-                  Điện thoại:
+                </div>
+                <div className="input-group">
+                  <label>Giới tính:</label>
+                  <div>
+                    <label>
+                      <input
+                        type="radio"
+                        name="gender"
+                        value="Nam"
+                        checked={profile.gender === "Nam"}
+                        onChange={handleInputChange}
+                      />
+                      Nam
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="gender"
+                        value="Nữ"
+                        checked={profile.gender === "Nữ"}
+                        onChange={handleInputChange}
+                      />
+                      Nữ
+                    </label>
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label>Số điện thoại:</label>
                   <input
                     type="text"
                     name="phone"
@@ -333,17 +471,41 @@ const UserProfileModal = ({ onClose ,user}) => {
                     onChange={handleInputChange}
                     className="edit-input"
                   />
-                </p>
+                </div>
+                <div className="input-group">
+                  <label>Mật khẩu:</label>
+                  <div className="password-input-container">
+                    <input
+                      type={passwordVisible ? "text" : "password"}
+                      name="password"
+                      value={profile.password}
+                      onChange={handleInputChange}
+                      className="edit-input"
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password-btn"
+                      onClick={() => setPasswordVisible(!passwordVisible)}
+                    >
+                      {passwordVisible ? <FaIcons.FaEyeSlash /> : <FaIcons.FaEye />}
+                    </button>
+                  </div>
+                </div>
               </>
             ) : (
               <>
-                <p>Giới tính: {profile.gender}</p>
+                <p>Tên: {profile.name}</p>
+                <p>Email: {profile.email}</p>
                 <p>Ngày sinh: {profile.dob}</p>
-                <p>Điện thoại: {profile.phone}</p>
-                <p>Chỉ bạn bè có lưu số của bạn trong danh bạ máy xem được số này</p>
+                <p>Giới tính: {profile.gender}</p>
+                <p>Số điện thoại: {profile.phone}</p>
               </>
             )}
           </div>
+
+          {/* Hiển thị thông báo lỗi */}
+          {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+
           {isEditing ? (
             <div className="button-group">
               <button className="save-btn" onClick={handleSave}>
@@ -365,7 +527,9 @@ const UserProfileModal = ({ onClose ,user}) => {
   );
 };
 
+
 const Sidebar = ({user}) => {
+
   const [activeButton, setActiveButton] = useState("chat");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -530,6 +694,4 @@ const Sidebar = ({user}) => {
     </div>
   );
 };
-
 export default Sidebar;
-

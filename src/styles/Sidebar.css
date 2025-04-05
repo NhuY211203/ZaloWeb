@@ -116,6 +116,98 @@
   overflow-y: auto; /* Thanh cuộn nếu nội dung dài */
 }
 
+.info-section {
+  margin-top: 20px;
+}
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.password-input-container {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-password-btn {
+  background: none;
+  border: none;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.avatar-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.avatar-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.file-upload input {
+  margin-top: 10px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.save-btn, .cancel-btn, .update-btn {
+  padding: 10px 20px;
+  border: none;
+  background-color: #007BFF;
+  color: white;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.save-btn:hover, .cancel-btn:hover, .update-btn:hover {
+  background-color: #0056b3;
+}
+
+.cancel-btn {
+  background-color: #dc3545;
+}
+
+.cancel-btn:hover {
+  background-color: #c82333;
+}
+
+.update-btn {
+  background-color: #28a745;
+}
+
+.update-btn:hover {
+  background-color: #218838;
+}
+
+.text-red-500 {
+  color: red;
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -187,8 +279,8 @@
 }
 
 .profile-info .avatar.large {
-  width: 80px;
-  height: 80px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background-color: #ddd;
   margin-bottom: 10px;
