@@ -46,7 +46,7 @@ const isValidPassword = (password) => {
 
       console.log("Kết quả cập nhật mật khẩu:", response.data);
 
-      if (response.data) {
+      if (response.data.success) {
         console.log("Cập nhật mật khẩu thành công!");
         // Chuyển hướng về trang đăng nhập sau 2 giây
         setTimeout(() => {

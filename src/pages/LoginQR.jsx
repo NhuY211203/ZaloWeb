@@ -7,14 +7,6 @@ const LoginQR = () => {
   const navigate = useNavigate();
   const [isScanning, setIsScanning] = useState(false);
 
-  useEffect(() => {
-    if (isScanning) {
-      // Giả lập quét mã QR trong 3 giây rồi chuyển hướng
-      setTimeout(() => {
-        navigate("/home");
-      }, 3000);
-    }
-  }, [isScanning, navigate]);
 
   return (
     <div className="layout-container">
@@ -36,7 +28,7 @@ const LoginQR = () => {
           )}
         </div>
 
-        {/* Nút giả lập quét mã QR */}
+        {/* Nút giả lập quét mã QR
         {!isScanning ? (
           <button
             className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
@@ -46,7 +38,7 @@ const LoginQR = () => {
           </button>
         ) : (
           <p className="text-green-500 mt-4">Đang quét mã QR... Vui lòng chờ</p>
-        )}
+        )} */}
 
         <p className="text-blue-500 mt-4 text-center cursor-pointer">Chỉ dùng để đăng nhập</p>
       </div>

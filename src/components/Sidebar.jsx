@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import "../styles/Sidebar.css";
 import * as FaIcons from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
 
-const SettingsModal = ({ onClose, onOpenProfile, onOpenSettings, onOpenLanguage, onOpenSupport, onOpenData }) => {
+const SettingsModal = ({ onClose, onOpenProfile, onOpenSettings, onOpenLanguage, onOpenSupport, onOpenData ,user}) => {
   return (
     <div className="modal-overlay settings-modal">
       <div className="modal-content">
@@ -94,7 +95,7 @@ const GeneralSettingsModal = ({ onClose, onSwitchToPrivacy }) => {
   );
 };
 
-const PrivacySettingsModal = ({ onClose, onSwitchToGeneral }) => {
+const PrivacySettingsModal = ({ onClose, onSwitchToGeneral,user }) => {
   return (
     <div className="modal-overlay settings-modal">
       <div className="modal-content settings-content">
@@ -221,7 +222,8 @@ const DataModal = ({ onClose }) => {
 
 
 // hien thong tin khi nhap anh dai dien
-const ProfileModal = ({ onClose, onOpenProfile,user }) => {
+const ProfileModal = ({onClose, onOpenProfile,user,navigate}) => {
+  console.log(user);
   return (
     <div className="modal-overlay profile-modal">
       <div className="modal-content">
@@ -232,13 +234,13 @@ const ProfileModal = ({ onClose, onOpenProfile,user }) => {
               width="100"
               height="100"
             /></div>
-          <h2>{user.name|| "User"}</h2>
+          <h2>{user?.name|| "User"}</h2>
           <button onClick={onClose} className="close-btn">
             <FaIcons.FaTimes />
           </button>
         </div>
         <div className="modal-body">
-          <div className="modal-item" onClick={onOpenProfile} user={user}>
+          <div className="modal-item" onClick={()=>onOpenProfile()} >
             <FaIcons.FaUser className="modal-icon" />
             <span>Hồ sơ của bạn</span>
           </div>
@@ -246,7 +248,7 @@ const ProfileModal = ({ onClose, onOpenProfile,user }) => {
             <FaIcons.FaCog className="modal-icon" />
             <span>Cài đặt</span>
           </div>
-          <div className="modal-item logout">
+          <div className="modal-item logout"onClick={()=>navigate("/login-password")} >
             <FaIcons.FaSignOutAlt className="modal-icon" />
             <span>Đăng xuất</span>
           </div>
@@ -284,20 +286,20 @@ const isValidImageURL = (url) => {
   return imageRegex.test(url);
 };
 const UserProfileModal = ({ onClose,user }) => {
-
+  console.log(user)
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState(() => {
-    const storedProfile = localStorage.getItem('profile');
-    return storedProfile ? JSON.parse(storedProfile) : {
-      name: "Nguyen Thanh Quyen",
-      email: "user001@example.com",
-      avatar: "https://res.cloudinary.com/dgqppqcbd/image/upload/v1741595806/anh-dai-dien-hai-1_b33sa3.jpg",
-      dob: "22-05-1998",
-      gender: "Nam", // Mặc định là Nam
-      phone: "0977654319",
-      password: "Password123",
-    };
-  });
+  const [profile, setProfile] = useState('');
+  useEffect(() => {
+    setProfile({
+      name: user?.name || "Nguyen Thanh Quyen",
+      email: user?.email || "user001@example.com",
+      avatar: user?.anhDaiDien || "https://res.cloudinary.com/dgqppqcbd/image/upload/v1741595806/anh-dai-dien-hai-1_b33sa3.jpg",
+      dob: user?.ngaySinh || "22-05-1998",
+      gender: user?.gioTinh || "Nam",
+      phone: user?.sdt || "0977654319",
+      password: user?.matKhau || "Password123"
+    });
+  }, [user]);
   const [errorMessage, setErrorMessage] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false); // Điều khiển hiển thị mật khẩu
 
@@ -391,15 +393,8 @@ const UserProfileModal = ({ onClose,user }) => {
             </div>
           </div>
           <h3>{profile.name}</h3>
-        <div className="avatar large">
-            <img
-              src={user?.anhDaiDien || "/default-avatar.png"}
-              alt="Avatar"
-              width="100"
-              height="100"
-            />
-        </div>
-          <h3>User</h3>
+        {/* <div className="avatar large">
+        </div> */}
           <div className="info-section">
             <h4>Thông tin cá nhân</h4>
             {isEditing ? (
@@ -527,7 +522,8 @@ const UserProfileModal = ({ onClose,user }) => {
 
 
 const Sidebar = ({user}) => {
-
+   console.log(user);
+  const navigate = useNavigate();
   const [activeButton, setActiveButton] = useState("chat");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -616,7 +612,7 @@ const Sidebar = ({user}) => {
   return (
     <div className="sidebar">
       {/* Avatar */}
-      <div className="avatar" onClick={openProfileModal} user={user}><img src={user.anhDaiDien} alt="Avatar"  /> </div>
+      <div className="avatar" onClick={()=>openProfileModal()} ><img src={user.anhDaiDien} alt="Avatar"  /> </div>
 
       {/* Icons */}
       <div className="icon-group">
@@ -668,10 +664,10 @@ const Sidebar = ({user}) => {
           onClose={closeProfileModal}
           onOpenProfile={openUserProfileModal}
           user={user}
-
+          navigate={navigate}
         />
       )}
-      {isUserProfileOpen && <UserProfileModal onClose={closeUserProfileModal} />}
+      {isUserProfileOpen && <UserProfileModal onClose={closeUserProfileModal} user={user} />}
       {isGeneralSettingsOpen && (
         <GeneralSettingsModal
           onClose={closeGeneralSettingsModal}
@@ -686,9 +682,9 @@ const Sidebar = ({user}) => {
           user={user}
         />
       )}
-      {isLanguageOpen && <LanguageModal onClose={closeLanguageModal} />}
-      {isSupportOpen && <SupportModal onClose={closeSupportModal} />}
-      {isDataOpen && <DataModal onClose={closeDataModal} />}
+      {isLanguageOpen && <LanguageModal onClose={closeLanguageModal} user={user} />}
+      {isSupportOpen && <SupportModal onClose={closeSupportModal} user={user} />}
+      {isDataOpen && <DataModal onClose={closeDataModal} user={user} />}
     </div>
   );
 };
