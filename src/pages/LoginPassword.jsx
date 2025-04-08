@@ -43,7 +43,7 @@ const LoginPassword = () => {
 
       console.log("Đăng nhập thành công!", response.data.user);
       alert("Đăng nhập thành công!");
-      navigate("/home",{state:{user:response.data.user}}); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
+      navigate("/home",{state:{user:response.data.user}}); 
     } catch (err) {
       console.error("Lỗi đăng nhập:", err.message);
     }
@@ -71,7 +71,6 @@ const LoginPassword = () => {
           value={matKhau}
           onChange={(e) => setPassword(e.target.value)}
         />
-        
         {error && <p className="text-red-500 text-center mt-2">{error}</p>} {/* Hiển thị thông báo lỗi */}
 
         <button className="btn-primary" onClick={handleLogin}>Đăng nhập với mật khẩu</button>
