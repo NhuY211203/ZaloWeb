@@ -3,12 +3,12 @@ import { useState } from "react";
 import axios from "axios";
 import logo from "../assets/logo.png";
 
-
 // Bắt đầu 03, 05, 07, 08, 09 và có 10 chữ số
 const isValidPhoneNumber = (phoneNumber) => {
   const phoneRegex = /^(0[3,5,7,8,9])[0-9]{8}$/;
   return phoneRegex.test(phoneNumber);
 };
+
 // Kiểm tra mật khẩu (tối thiểu 8 ký tự, phải có ít nhất 1 chữ cái và 1 chữ số)
 const isValidPassword = (password) => {
   const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;  // ít nhất 1 chữ cái, 1 số, và 8 ký tự
@@ -20,13 +20,14 @@ const LoginPassword = () => {
   const [sdt, setSDT] = useState("");
   const [matKhau, setPassword] = useState("");
   const [error, setError] = useState(null);
+
   const handleLogin = async (e) => {
     e.preventDefault(); // Ngăn reload trang
     setError(null); // Reset lỗi trước khi kiểm tra
 
     // Kiểm tra tính hợp lệ của số điện thoại và mật khẩu
     if (!isValidPhoneNumber(sdt)) {
-      setError("Số điện thoại không hợp lệ! (Tối thiểu 8 chữ số)");
+      setError("Số điện thoại không hợp lệ!");
       return;
     }
 
@@ -41,11 +42,22 @@ const LoginPassword = () => {
         matKhau,
       });
 
+      // Kiểm tra xem tài khoản có tồn tại và mật khẩu đúng hay không
+      if (!response.data.success) {
+        setError("Sai số điện thoại hoặc mật khẩu!");
+        return;
+      }
+
       console.log("Đăng nhập thành công!", response.data.user);
       alert("Đăng nhập thành công!");
+<<<<<<< HEAD
       navigate("/home",{state:{user:response.data.user}}); 
+=======
+      navigate("/home", { state: { user: response.data.user } }); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
+>>>>>>> fca227ef755c3097a5916c623ca69e4768d7565a
     } catch (err) {
       console.error("Lỗi đăng nhập:", err.message);
+      setError("Tên đăng nhập hoặc mật khẩu không khớp, vui lòng nhập lại!");
     }
   };
 
@@ -71,7 +83,13 @@ const LoginPassword = () => {
           value={matKhau}
           onChange={(e) => setPassword(e.target.value)}
         />
+<<<<<<< HEAD
         {error && <p className="text-red-500 text-center mt-2">{error}</p>} {/* Hiển thị thông báo lỗi */}
+=======
+        
+        {/* Hiển thị thông báo lỗi */}
+        {error && <p className="text-red-500 text-center mt-2 mb-3 error-message">{error}</p>}
+>>>>>>> fca227ef755c3097a5916c623ca69e4768d7565a
 
         <button className="btn-primary" onClick={handleLogin}>Đăng nhập với mật khẩu</button>
         <p className="text-blue-500 mt-4 text-center cursor-pointer" onClick={() => navigate("/forgot-password")}>Quên mật khẩu</p>
