@@ -289,6 +289,7 @@ const UserProfileModal = ({ onClose,user }) => {
   console.log(user)
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState('');
+  const [fileupload, setFileUpload] = useState(null);
   useEffect(() => {
     setProfile({
       name: user?.name || "Nguyen Thanh Quyen",
@@ -302,7 +303,7 @@ const UserProfileModal = ({ onClose,user }) => {
   }, [user]);
   const [errorMessage, setErrorMessage] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false); // Điều khiển hiển thị mật khẩu
-
+  
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
   };
@@ -315,20 +316,45 @@ const UserProfileModal = ({ onClose,user }) => {
     }));
   };
 
-  const handleImageChange = (e) => {
+  // utils/uploadToCloudinary.js
+ const uploadToCloudinary = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append("image", file); // "image" phải đúng với `upload.single("image")`
+
+    const response = await fetch("http://localhost:5000/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Upload ảnh thất bại");
+    }
+
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error("❌ Upload error:", error);
+    return null;
+  }
+};
+
+  const handleImageChange = async(e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfile((prev) => ({
-          ...prev,
-          avatar: reader.result, // Cập nhật ảnh đại diện từ file được chọn
-        }));
-      };
-      reader.readAsDataURL(file);
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Chỉ cho phép ảnh định dạng PNG, JPEG, JPG hoặc WEBP');
+        return;
+      }
+      setFileUpload(file);
+
     }
   };
-
+  const uploadImage = async () => {
+    const url = await uploadToCloudinary(fileupload);
+    console.log(url);
+  }
   const handleSave = () => {
     // Kiểm tra tính hợp lệ của thông tin
     if (!profile.name) {
@@ -386,6 +412,7 @@ const UserProfileModal = ({ onClose,user }) => {
                 <input
                   type="file"
                   name="avatar"
+                   accept="image/png, image/jpeg, image/jpg, image/webp"
                   onChange={handleImageChange}
                   className="edit-input"
                 />
@@ -509,7 +536,8 @@ const UserProfileModal = ({ onClose,user }) => {
               </button>
             </div>
           ) : (
-            <button className="update-btn" onClick={handleEditToggle}>
+            <button className="update-btn" onClick={()=>{handleEditToggle();
+              uploadImage()}}> 
               <FaIcons.FaPen className="update-icon" />
               Cập nhật
             </button>

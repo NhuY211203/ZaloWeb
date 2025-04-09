@@ -27,7 +27,7 @@ const LoginPassword = () => {
 
     // Kiểm tra tính hợp lệ của số điện thoại và mật khẩu
     if (!isValidPhoneNumber(sdt)) {
-      setError("Số điện thoại không hợp lệ!");
+      setError("Số điện thoại không hợp lệ! (Tối thiểu 8 chữ số)");
       return;
     }
 
@@ -42,22 +42,12 @@ const LoginPassword = () => {
         matKhau,
       });
 
-      // Kiểm tra xem tài khoản có tồn tại và mật khẩu đúng hay không
-      if (!response.data.success) {
-        setError("Sai số điện thoại hoặc mật khẩu!");
-        return;
-      }
 
       console.log("Đăng nhập thành công!", response.data.user);
       alert("Đăng nhập thành công!");
-<<<<<<< HEAD
-      navigate("/home",{state:{user:response.data.user}}); 
-=======
-      navigate("/home", { state: { user: response.data.user } }); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
->>>>>>> fca227ef755c3097a5916c623ca69e4768d7565a
+      navigate("/home",{state:{user:response.data.user}}); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
     } catch (err) {
       console.error("Lỗi đăng nhập:", err.message);
-      setError("Tên đăng nhập hoặc mật khẩu không khớp, vui lòng nhập lại!");
     }
   };
 
@@ -83,13 +73,9 @@ const LoginPassword = () => {
           value={matKhau}
           onChange={(e) => setPassword(e.target.value)}
         />
-<<<<<<< HEAD
-        {error && <p className="text-red-500 text-center mt-2">{error}</p>} {/* Hiển thị thông báo lỗi */}
-=======
         
         {/* Hiển thị thông báo lỗi */}
-        {error && <p className="text-red-500 text-center mt-2 mb-3 error-message">{error}</p>}
->>>>>>> fca227ef755c3097a5916c623ca69e4768d7565a
+        {error && <p className="text-red-500 text-center mt-2">{error}</p>} {/* Hiển thị thông báo lỗi */}
 
         <button className="btn-primary" onClick={handleLogin}>Đăng nhập với mật khẩu</button>
         <p className="text-blue-500 mt-4 text-center cursor-pointer" onClick={() => navigate("/forgot-password")}>Quên mật khẩu</p>
