@@ -27,6 +27,17 @@ const ForgotPassword = () => {
   const kiemtraEmail = async (e) => {
     e.preventDefault(); // Ngăn reload trang
     setErrorMessage(""); // Xóa lỗi cũ
+    // Kiểm tra tính hợp lệ của email và số điện thoại
+    if (!isValidEmail(email)) {
+      setErrorMessage("Email không hợp lệ");
+      return;
+    }
+
+    if (!isValidPhoneNumber(sdt)) {
+      setErrorMessage("Số điện thoại không hợp lệ");
+      return;
+    }
+
     // Kiểm tra số điện thoại
     const responseSDT = await axios.post('https://echoapp-rho.vercel.app/api/users/checksdt', 
       { sdt },
@@ -60,59 +71,6 @@ const ForgotPassword = () => {
     } else {
       console.log("Số điện thoại và email không tồn tại!");
       return;
-    }
-    // Kiểm tra tính hợp lệ của email và số điện thoại
-    if (!isValidEmail(email)) {
-      setErrorMessage("Email không hợp lệ");
-      return;
-    }
-
-    if (!isValidPhoneNumber(sdt)) {
-      setErrorMessage("Số điện thoại không hợp lệ");
-      return;
-    }
-
-    try {
-      console.log("Đang kiểm tra số điện thoại và email...");
-      console.log("Số điện thoại:", sdt);
-      console.log("Email:", email);
-
-      // Kiểm tra số điện thoại
-      const responseSDT = await axios.post('https://echoapp-rho.vercel.app/api/users/checksdt', 
-        { sdt },
-        { headers: { 'Content-Type': 'application/json' } }
-      ).catch(err => {
-        throw new Error(`Lỗi kiểm tra số điện thoại: ${err.message}`);
-      });
-
-      // Kiểm tra email
-      const responseEmail = await axios.post('https://echoapp-rho.vercel.app/api/users/email', 
-        { email },
-        { headers: { 'Content-Type': 'application/json' } }
-      ).catch(err => {
-        throw new Error(`Lỗi kiểm tra email: ${err.message}`);
-      });
-
-      console.log("Kết quả kiểm tra số điện thoại:", responseSDT.data);
-      console.log("Kết quả kiểm tra email:", responseEmail.data);
-
-      if (responseSDT.data.exists && responseEmail.data.exists) {
-        console.log("Số điện thoại và Email đã được đăng ký!");
-        return;
-      } else if (responseSDT.data.exists && !responseEmail.data.exists) {
-        console.log("Email không tồn tại nhưng Số điện thoại đã đăng ký!");
-        return;
-      } else if (!responseSDT.data.exists && responseEmail.data.exists) {
-        console.log("Số điện thoại không tồn tại nhưng Gmail đã đăng ký!");
-        return;
-      } else {
-        console.log("Đã gửi xác thực về gmail!");
-        await sendEmailVerification();
-      }
-
-    } catch (err) {
-      setErrorMessage(`Lỗi kiểm tra email và số điện thoại: ${err.message}`);
-      console.error(err);
     }
   };
 

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import logo from "../assets/logo.png";
+import { authentication } from "../config/firebase";
+import { sendSignInLinkToEmail } from "firebase/auth";
 
 const SignUpScreen = () => {
   const navigate = useNavigate();
@@ -20,37 +22,57 @@ const SignUpScreen = () => {
       setError("Vui lòng nhập email!");
       return;
     }
-
     try {
-      // Kiểm tra email và số điện thoại đã tồn tại chưa
-      const checkEmailResponse = await axios.get(
-        `https://echoapp-rho.vercel.app/api/users/check-email?email=${email}`
-      );
-      const checkSDTResponse = await axios.get(
-        `https://echoapp-rho.vercel.app/api/users/check-sdt?sdt=${sdt}`
-      );
-
-      if (checkEmailResponse.data.exists || checkSDTResponse.data.exists) {
-        setError("Email hoặc Số điện thoại đã tồn tại!");
-        return;
-      }
-
-      // Gửi yêu cầu lấy OTP
-      const otpResponse = await axios.post(
-        "https://echoapp-rho.vercel.app/api/users/get-otp",
-        { email }
-      );
-
-      // Chuyển đến màn hình xác thực OTP
-      navigate("/verify-otp", {
-        state: { email, sdt, data: otpResponse.data },
+      const responseSDT = await axios.post('https://echoapp-rho.vercel.app/api/users/checksdt', 
+        { sdt },
+        { headers: { 'Content-Type': 'application/json' } }
+      ).catch(err => {
+        throw new Error(`Lỗi kiểm tra số điện thoại: ${err.message}`);
       });
-    } catch (err) {
-      console.error("Lỗi khi đăng ký:", err.message);
-      setError("Có lỗi xảy ra. Vui lòng thử lại!");
+  
+      // Kiểm tra email
+      const responseEmail = await axios.post('https://echoapp-rho.vercel.app/api/users/email', 
+        { email },
+        { headers: { 'Content-Type': 'application/json' } }
+      ).catch(err => {
+        throw new Error(`Lỗi kiểm tra email: ${err.message}`);
+      });
+      console.log("Kết quả kiểm tra số điện thoại:");
+      console.log("Kết quả kiểm tra số điện thoại:", responseSDT.data);
+      console.log("Kết quả kiểm tra email:", responseEmail.data);
+  
+      if (responseSDT.data.exists) {
+        console.log("Số điện thoại đã được đăng ký!");
+        return;
+      } else {
+        console.log("Đã gửi xác thực về gmail!");
+        await sendEmailVerification();
+      }
+    } catch (error) {
+      console.error("Lỗi khi gửi yêu cầu:", error.message);
+      setError("Có lỗi xảy ra khi gửi yêu cầu!");
     }
   };
+const sendEmailVerification = async () => {
+    const actionCodeSettings = {
+      url: "http://localhost:5173/verify-otp", // Đổi thành URL ứng dụng của bạn
+      handleCodeInApp: true,
+    };
 
+    try {
+      await sendSignInLinkToEmail(authentication, email, actionCodeSettings);
+      console.log("Email xác thực đã gửi!");
+      window.localStorage.setItem("emailForSignIn", email);
+      window.localStorage.setItem("sdt", sdt); 
+      // Đóng trang sau 2 giây
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+    } catch (error) {
+      setErrorMessage("Lỗi khi gửi email xác thực!");
+      console.error("Lỗi khi gửi email:", error);
+    }
+  };
   useEffect(() => {
     // Kiểm tra định dạng email và số điện thoại
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
