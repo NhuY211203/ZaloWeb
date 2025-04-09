@@ -35,15 +35,9 @@ const SignUpScreen = () => {
         return;
       }
 
-      // Gửi yêu cầu lấy OTP
-      const otpResponse = await axios.post(
-        "https://echoapp-rho.vercel.app/api/users/get-otp",
-        { email }
-      );
-
-      // Chuyển đến màn hình xác thực OTP
-      navigate("/verify-otp", {
-        state: { email, sdt, data: otpResponse.data },
+      // Chuyển đến màn hình nhập thông tin bổ sung (SignUpInfoScreen)
+      navigate("/signup-info", {
+        state: { email, sdt },
       });
     } catch (err) {
       console.error("Lỗi khi đăng ký:", err.message);
@@ -52,7 +46,6 @@ const SignUpScreen = () => {
   };
 
   useEffect(() => {
-    // Kiểm tra định dạng email và số điện thoại
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^(0[3,5,7,8,9])[0-9]{8}$/;
 
