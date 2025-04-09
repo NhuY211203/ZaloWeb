@@ -7,7 +7,7 @@ import logo from "../assets/logo.png";
 const VerifyOtpDK = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { email, sdt, data } = location.state || {};
+  const { email, sdt, name, birth, password, gender, data } = location.state || {};
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
 
@@ -18,20 +18,31 @@ const VerifyOtpDK = () => {
     }
 
     try {
-      // Gửi yêu cầu xác thực OTP và đăng ký tài khoản
-      const response = await axios.post(
+      // Gửi yêu cầu xác thực OTP
+      const otpResponse = await axios.post(
         "https://echoapp-rho.vercel.app/api/users/verify-otp-signup",
         { email, sdt, otp }
       );
 
-      if (response.data.success) {
+      if (!otpResponse.data.success) {
+        setError("Mã OTP không đúng. Vui lòng thử lại!");
+        return;
+      }
+
+      // Nếu OTP hợp lệ, gọi API đăng ký
+      const registerResponse = await axios.post(
+        "https://echoapp-rho.vercel.app/api/users/register",
+        { sdt, name, birth, password, email, gender }
+      );
+
+      if (registerResponse.data.success) {
         alert("Đăng ký thành công! Vui lòng đăng nhập.");
         navigate("/login-password");
       } else {
-        setError("Mã OTP không đúng. Vui lòng thử lại!");
+        setError("Đăng ký không thành công. Vui lòng thử lại!");
       }
     } catch (err) {
-      console.error("Lỗi khi xác thực OTP:", err.message);
+      console.error("Lỗi khi xác thực OTP hoặc đăng ký:", err.message);
       setError("Có lỗi xảy ra. Vui lòng thử lại!");
     }
   };
@@ -63,8 +74,8 @@ const VerifyOtpDK = () => {
         </button>
 
         <p
-          className="text-gray-500 text-center cursor-pointer mt-2"
-          onClick={() => navigate("/signup")}
+          className="text-gray-500 text-center cursor-pointer mt-2 hover:text-gray-700 transition-colors"
+          onClick={() => navigate("/signup-info", { state: { email, sdt } })}
         >
           Quay lại
         </p>

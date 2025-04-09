@@ -22,14 +22,6 @@ const SignUpScreen = () => {
       setError("Vui lòng nhập email!");
       return;
     }
-    try {
-      const responseSDT = await axios.post('https://echoapp-rho.vercel.app/api/users/checksdt', 
-        { sdt },
-        { headers: { 'Content-Type': 'application/json' } }
-      ).catch(err => {
-        throw new Error(`Lỗi kiểm tra số điện thoại: ${err.message}`);
-      });
-  
       // Kiểm tra email
       const responseEmail = await axios.post('https://echoapp-rho.vercel.app/api/users/email', 
         { email },
@@ -48,10 +40,6 @@ const SignUpScreen = () => {
         console.log("Đã gửi xác thực về gmail!");
         await sendEmailVerification();
       }
-    } catch (error) {
-      console.error("Lỗi khi gửi yêu cầu:", error.message);
-      setError("Có lỗi xảy ra khi gửi yêu cầu!");
-    }
   };
 const sendEmailVerification = async () => {
     const actionCodeSettings = {
@@ -74,7 +62,6 @@ const sendEmailVerification = async () => {
     }
   };
   useEffect(() => {
-    // Kiểm tra định dạng email và số điện thoại
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^(0[3,5,7,8,9])[0-9]{8}$/;
 
