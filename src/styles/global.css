@@ -28,8 +28,9 @@ body {
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 480px; /* Kích thước mặc định cho desktop */
+  max-width: 480px;
   margin: 0 auto;
+  position: relative; /* Thêm position: relative */
 }
 
 /* Layout chính responsive */
@@ -137,6 +138,72 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* styles/global.css */
+
+/* Định vị modal */
+.absolute {
+  position: absolute;
+}
+
+.top-8 {
+  top: 2rem; /* Khoảng cách từ nút 3 gạch xuống modal */
+}
+
+.right-0 {
+  right: 0; /* Sát viền phải của container */
+}
+
+.bg-white {
+  background-color: white;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.shadow-lg {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.z-10 {
+  z-index: 10;
+}
+
+.w-48 {
+  width: 12rem; /* Chiều rộng của modal */
+}
+
+/* Style cho các nút trong modal */
+.block {
+  display: block;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: #f7fafc;
 }
 
 @media (max-width: 640px) {
