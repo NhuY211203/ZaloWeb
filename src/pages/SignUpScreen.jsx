@@ -23,16 +23,15 @@ const SignUpScreen = () => {
       return;
     }
       // Kiểm tra email
-      const responseEmail = await axios.post('https://echoapp-rho.vercel.app/api/users/email', 
-        { email },
+      const responseSDT = await axios.post('https://echoapp-rho.vercel.app/api/users/checksdt', 
+        { sdt },
         { headers: { 'Content-Type': 'application/json' } }
       ).catch(err => {
         throw new Error(`Lỗi kiểm tra email: ${err.message}`);
       });
       console.log("Kết quả kiểm tra số điện thoại:");
       console.log("Kết quả kiểm tra số điện thoại:", responseSDT.data);
-      console.log("Kết quả kiểm tra email:", responseEmail.data);
-  
+
       if (responseSDT.data.exists) {
         console.log("Số điện thoại đã được đăng ký!");
         return;

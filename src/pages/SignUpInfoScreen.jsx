@@ -37,24 +37,31 @@ const SignUpInfoScreen = () => {
       setError("Mật khẩu không khớp!");
       return;
     }
-
     try {
-      // Gửi yêu cầu lấy OTP
-      const otpResponse = await axios.post(
-        "https://echoapp-rho.vercel.app/api/users/get-otp",
-        { email }
-      );
-
-      // Chuyển đến màn hình xác thực OTP (VerifyOtpDK)
-      navigate("/verify-otp", {
-        state: { email, sdt, name, birth, password, gender, data: otpResponse.data },
+      const response = await fetch("https://echoapp-rho.vercel.app/api/registerUser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          sdt: sdt,
+          name: name,
+          ngaySinh: birth,
+          matKhau: password,
+          email: email,
+          gioTinh:gender
+        }),
       });
-    } catch (err) {
-      console.error("Lỗi khi lấy OTP:", err.message);
-      setError("Có lỗi xảy ra. Vui lòng thử lại!");
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      
+      navigate("/login-password");
+    } catch (error) {
+      console.error("Error during register:", error);
+      throw error;
     }
   };
-
   useEffect(() => {
     if (name.length > 0 && birth.length > 0 && password.length >= 6 && rePassword.length > 0) {
       setEnabled(true);
