@@ -6,6 +6,7 @@ import ForgotPassword from "../pages/ForgotPassword.jsx";
 import VerifyCode from "../pages/VerifyCode.jsx";
 import ConfirmPassword from "../pages/ConfirmPassword.jsx";
 import SignUpScreen from "../pages/SignUpScreen.jsx";
+import SignUpInfoScreen from "../pages/SignUpInfoScreen.jsx";
 import VerifyOtpDK from "../pages/VerifyOtpDK.jsx";
 import HomePage from "../components/HomePage.jsx";
 
@@ -19,6 +20,7 @@ const AppRoutes = () => {
         <Route path="/verify-code" element={<VerifyCode />} />
         <Route path="/confirm-password" element={<ConfirmPassword />} />
         <Route path="/signup" element={<SignUpScreen />} />
+        <Route path="/signup-info" element={<SignUpInfoScreen />} />
         <Route path="/verify-otp" element={<VerifyOtpDK />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="*" element={<Navigate to="/" />} />
