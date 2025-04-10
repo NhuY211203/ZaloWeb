@@ -58,8 +58,8 @@ const Sidebar = ({ user, onChangeView }) => {
           <FaIcons.FaComments className="iconn" />
         </div>
         <div
-          className={`icon ${activeButton === "profile" ? "active" : ""}`}
-          onClick={() => handleButtonClick("profile")}
+          className={`icon ${activeButton === "friend" ? "active" : ""}`}
+          onClick={() => handleButtonClick("friend")}
         >
           <FaIcons.FaUser className="iconn" />
         </div>

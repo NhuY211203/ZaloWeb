@@ -1,0 +1,53 @@
+.profile-container {
+  background-color: white;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column; /* Xếp các nút theo chiều dọc */
+}
+
+.btn {
+  color: black;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 5px;
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 300px;
+}
+
+.btn:hover {
+  background-color: #5c98ff;
+}
+
+.profile-container .icon {
+  color: black;
+  font-size: 2px;
+}
+
+.content-container {
+  flex-grow: 1; /* Phần nội dung sẽ chiếm phần còn lại của màn hình */
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+/* Định dạng cho các mục trong bạn bè, nhóm, lời mời */
+.content-section {
+  display: flex;
+  flex-direction: column;
+}
+.friend-item, .group-item, .request-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.request-item button {
+  margin-left: 10px;
+}

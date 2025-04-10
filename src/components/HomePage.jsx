@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import ChatList from "./ChatList";
 import ChatWindow from "./ChatWindow";
-import Profile from "./Profile";  // Tạo component Profile nếu cần
+import Friend from "./Friend";  // Tạo component Profile nếu cần
 import "../styles/HomePage.css";
 import { useLocation } from "react-router-dom";
 
@@ -29,7 +29,8 @@ const HomePage = () => {
             <ChatWindow selectedChat={selectedChat} />
           </>
         )}
-        {view === "profile" && <Profile user={user} />} {/* Hiển thị Profile nếu view là profile */}
+        {view === "friend" && 
+            <Friend user={user} />} {/* Hiển thị Profile nếu view là profile */}
       </div>
     </div>
   );
