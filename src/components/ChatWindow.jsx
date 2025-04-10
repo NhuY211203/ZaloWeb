@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import "../styles/ChatWindow.css";
 import * as FaIcons from "react-icons/fa";
-import * as MdIcons from "react-icons/md";
-import * as IoIcons from "react-icons/io";
 import * as BsIcons from "react-icons/bs";
 import * as BiIcons from "react-icons/bi";
 

@@ -2,8 +2,19 @@ import React, { useState } from "react";
 import ChatItem from "./ChatItem";
 import "../styles/ChatList.css";
 import * as FaIcons from "react-icons/fa";
+import AddFriendModal from './AddFriendModal'; // Import Modal
 
 const SearchBar = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false); // Quản lý trạng thái modal
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true); // Mở modal
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Đóng modal
+  };
+
   return (
     <div className="search-bar">
       <div className="search-box">
@@ -17,9 +28,16 @@ const SearchBar = () => {
         />
       </div>
       <div className="search-icons">
-        <span className="add-friend-icon">
+        <button onClick={handleOpenModal}>
           <FaIcons.FaUserPlus />
-        </span>
+        </button>
+
+        {/* Modal sẽ được gọi ở đây */}
+        <AddFriendModal 
+          isModalOpen={isModalOpen} 
+          handleCloseModal={handleCloseModal} 
+        />
+
         <span className="add-group-icon">
           <FaIcons.FaUsers />
         </span>

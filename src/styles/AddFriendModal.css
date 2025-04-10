@@ -1,0 +1,101 @@
+
+.add-friend-icon {
+    font-size: 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #007bff;
+    padding: 10px;
+    transition: color 0.3s ease;
+  }
+  
+  .add-friend-icon:hover {
+    color: #0056b3;
+  }
+  
+
+.modal-overlay {
+  position: fixed;  /* Đặt overlay cố định */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Mờ nền */
+  display: flex; /* Sử dụng flexbox để căn giữa */
+  justify-content: center; /* Căn giữa theo chiều ngang */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  z-index: 1000; /* Đảm bảo modal nằm trên các phần tử khác */
+}
+
+
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    left: 550px; 
+    top: 100px;
+    width: 400px; /* Điều chỉnh kích thước modal */
+    max-width: 90%; /* Giới hạn chiều rộng nếu quá lớn */
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .close-btn {
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+  }
+  
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  .search-info {
+    margin-bottom: 15px;
+  }
+  
+  .friend-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .sdt{
+    margin-left: 10px;
+    padding: 10px;
+    width: 85%;
+  }
+  
+  .add-friend-btn {
+    background: #007BFF;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .cancel-btn, .search-btn {
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .cancel-btn {
+    background-color: #f44336; /* Đỏ */
+    color: white;
+  }
+  
+  .search-btn {
+    background-color: #007BFF; /* Xanh lá */
+    color: white;
+  }
