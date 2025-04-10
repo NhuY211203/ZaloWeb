@@ -292,6 +292,7 @@ const UserProfileModal = ({ onClose,user }) => {
   const [fileupload, setFileUpload] = useState(null);
   useEffect(() => {
     setProfile({
+      userID: user?.userID || "user001",
       name: user?.name || "Nguyen Thanh Quyen",
       email: user?.email || "user001@example.com",
       avatar: user?.anhDaiDien || "https://res.cloudinary.com/dgqppqcbd/image/upload/v1741595806/anh-dai-dien-hai-1_b33sa3.jpg",
@@ -301,6 +302,7 @@ const UserProfileModal = ({ onClose,user }) => {
       password: user?.matKhau || "Password123"
     });
   }, [user]);
+  
   const [errorMessage, setErrorMessage] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false); // Điều khiển hiển thị mật khẩu
   
@@ -355,46 +357,89 @@ const UserProfileModal = ({ onClose,user }) => {
     const url = await uploadToCloudinary(fileupload);
     console.log(url);
   }
-  const handleSave = () => {
-    // Kiểm tra tính hợp lệ của thông tin
-    if (!profile.name) {
-      setErrorMessage("Tên không được để trống!");
-      return;
-    }
 
+
+  const handleSave = async () => {
+    // // Kiểm tra tính hợp lệ của thông tin
+    // if (!profile.userID || !profile.name || !profile.email || !profile.sdt) {
+    //   setErrorMessage("Thiếu thông tin cần thiết!");
+    //   return;
+    // }
+  
     if (!isValidEmail(profile.email)) {
       setErrorMessage("Email không hợp lệ!");
       return;
     }
-
+  
     if (!isValidPhoneNumber(profile.phone)) {
       setErrorMessage("Số điện thoại không hợp lệ!");
       return;
     }
-
+  
     if (!isValidDOB(profile.dob)) {
       setErrorMessage("Ngày sinh không hợp lệ! Vui lòng nhập đúng định dạng dd-mm-yyyy.");
       return;
     }
-
+  
     if (!isValidPassword(profile.password)) {
       setErrorMessage("Mật khẩu không hợp lệ! (Tối thiểu 8 ký tự, bao gồm chữ cái và chữ số)");
       return;
     }
-
+  
     if (!isValidImageURL(profile.avatar) && !profile.avatar.startsWith("data:image")) {
       setErrorMessage("URL ảnh đại diện không hợp lệ!");
       return;
     }
-
-    // Lưu profile vào localStorage để đảm bảo khi thoát modal sẽ vẫn giữ lại giá trị
-    localStorage.setItem('profile', JSON.stringify(profile));
-
-    setIsEditing(false);
-    setErrorMessage(""); // Reset lỗi khi lưu thành công
-    console.log("Profile saved:", profile);
+  
+    // Kiểm tra xem người dùng có thay đổi ảnh đại diện hay không
+    let avatarUrl = profile.avatar;
+    if (fileupload) {
+      avatarUrl = await uploadToCloudinary(fileupload); // Chỉ thay đổi ảnh nếu có ảnh mới
+      if (!avatarUrl) {
+        setErrorMessage("Lỗi khi tải ảnh lên!");
+        return;
+      }
+    }
+  
+    // Cập nhật profile mà không mã hóa mật khẩu trong frontend
+    const updatedProfile = { ...profile };
+    // const updatedProfile = { ...profile, avatar: avatarUrl };
+  
+    // Gửi dữ liệu cập nhật lên API
+    await updateUserProfile(updatedProfile);
   };
-
+  
+  
+  
+  const updateUserProfile = async (profile) => {
+    try {
+      // Gửi yêu cầu PUT lên backend để cập nhật thông tin người dùng
+      const response = await fetch("https://echoapp-rho.vercel.app/api/update-user", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profile), // Gửi profile đã được cập nhật
+      });
+  
+      // Chờ phản hồi từ server
+      const data = await response.json();
+      console.log("Response data:", data); // Debugging response
+  
+      // Kiểm tra phản hồi từ server
+      if (data.message === "Cập nhật thông tin thành công!") {
+        alert("Cập nhật thông tin thành công!");
+      } else {
+        setErrorMessage(data.message); // Nếu có lỗi từ backend, hiển thị thông báo lỗi
+      }
+    } catch (error) {
+      console.error("Lỗi khi cập nhật thông tin người dùng:", error);
+      setErrorMessage("Lỗi hệ thống khi cập nhật thông tin.");
+    }
+  };
+  
+  
+  
   return (
     <div className="modal-overlay profile-info-modal">
       <div className="modal-content">
