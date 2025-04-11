@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../styles/Listfriend.css"; // Import CSS cho modal
+import "../styles/Friend.css"; // Import CSS cho modal
 import { FaUserFriends, FaUsers, FaUserPlus } from "react-icons/fa"; // Import icon từ react-icons
 import SearchBar from "../components/SearchBar";
 import FriendList from "./FriendList";
@@ -17,9 +17,8 @@ const Friend = ({ user }) => {
 
   return (
     <div className="profile-container">
-      <SearchBar />
-
       <div className="button-group">
+      <SearchBar />
         <button
           className={`btn ${activeView === "friends" ? "active" : ""}`}
           onClick={() => handleViewChange("friends")}

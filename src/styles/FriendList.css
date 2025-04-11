@@ -1,0 +1,74 @@
+/* Container chính */
+.content-section {
+    padding: 40px 20px 20px 20px;
+    background-color: #fff;
+    max-width: 100%; /* Giới hạn chiều rộng để tạo không gian hợp lý */
+    margin: 0 auto; /* Căn giữa phần danh sách bạn bè */
+  }
+  
+  /* Tiêu đề danh sách bạn bè */
+  h3 {
+    display: flex;
+    align-items: center;
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd; /* Thêm đường viền dưới tiêu đề */
+    padding-bottom: 10px; /* Thêm khoảng cách dưới tiêu đề */
+  }
+  
+  h3 .icon {
+    margin-right: 10px;
+    font-size: 15px; /* Tăng kích thước icon */
+    color: #3498db;
+  }
+  
+  /* Số lượng bạn bè */
+  .friend-count {
+    font-size: 14px;
+    color: black;
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  /* Mục bạn bè */
+  .friend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: #f9f9f9;
+  }
+  
+  .content-section .friend-item:hover {
+    background-color: #7397d5; /* Màu nền khi hover */
+  }
+  
+  .friend-item span {
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  /* Thêm nút kết bạn vào từng mục */
+  .friend-item .add-friend-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+
+  }
+  
+  .friend-item .add-friend-btn:hover {
+    background-color: #2980b9;
+  }
+  
+  /* Đảm bảo không có margin dưới cùng cho mục cuối cùng */
+  .friend-item:last-child {
+    margin-bottom: 0;
+  }
+  

@@ -1,27 +1,30 @@
 .profile-container {
   background-color: white;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  top: -20px;
+  height: 715px;
+  width: 100%;
 }
 
 .button-group {
-  display: flex;
-  flex-direction: column; /* Xếp các nút theo chiều dọc */
+  flex-direction: column;
+  height:250px;
 }
 
 .btn {
   color: black;
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 5px 10px;
+  font-size: 15px;
   font-weight: bold;
-  border-radius: 5px;
   display: flex;
-  gap: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  width: 300px;
 }
 
 .btn:hover {
-  background-color: #5c98ff;
+  background-color: #a0c3ff;
 }
 
 .profile-container .icon {
@@ -31,23 +34,22 @@
 
 .content-container {
   flex-grow: 1; /* Phần nội dung sẽ chiếm phần còn lại của màn hình */
-  padding: 20px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: #d11818;
 }
 
 /* Định dạng cho các mục trong bạn bè, nhóm, lời mời */
 .content-section {
   display: flex;
   flex-direction: column;
-}
-.friend-item, .group-item, .request-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+  background-color: #7397d5;
+  width: 100%;
+  height: 100%;
 }
 
-.request-item button {
-  margin-left: 10px;
+.profile-container .button-group .icon {
+  color: black;
+  font-size: 10px;
+  margin-right: 10px;
 }
