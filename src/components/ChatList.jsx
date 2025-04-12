@@ -2,31 +2,8 @@ import React, { useState } from "react";
 import ChatItem from "./ChatItem";
 import "../styles/ChatList.css";
 import * as FaIcons from "react-icons/fa";
-
-const SearchBar = () => {
-  return (
-    <div className="search-bar">
-      <div className="search-box">
-        <span className="search-icon">
-          <FaIcons.FaSearch />
-        </span>
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Tìm kiếm"
-        />
-      </div>
-      <div className="search-icons">
-        <span className="add-friend-icon">
-          <FaIcons.FaUserPlus />
-        </span>
-        <span className="add-group-icon">
-          <FaIcons.FaUsers />
-        </span>
-      </div>
-    </div>
-  );
-};
+import AddFriendModal from './AddFriendModal'; // Import Modal
+import SearchBar from "./SearchBar"; // Import SearchBar
 
 const ChatList = ({ onSelectChat }) => {
   const [selectedChatId, setSelectedChatId] = useState(1); // Mặc định chọn chat đầu tiên

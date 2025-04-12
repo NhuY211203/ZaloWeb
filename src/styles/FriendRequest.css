@@ -1,0 +1,92 @@
+/* Container chính */
+.friend-request-container {
+    padding: 40px 20px 20px 20px;
+    background-color: #fff;
+    max-width: 100%; /* Giới hạn chiều rộng */
+    margin: 0 auto; /* Căn giữa */
+    height: 100%;
+  }
+  
+  /* Tiêu đề */
+  .friend-request-container h3 {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+  }
+  
+  /* Mỗi mục lời mời kết bạn */
+  .friend-request-container .friend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    background-color: #fff;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .friend-request-container .friend-item:hover {
+    background-color: #a6e3ff;
+  }
+  
+  /* Avatar người gửi lời mời */
+  .friend-request-container .friend-item img {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
+  }
+  
+  /* Thông tin người gửi lời mời */
+  .friend-request-container .friend-item .info {
+    flex-grow: 1;
+  }
+  
+  .friend-item .info h4 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin: 0;
+  }
+  
+  .friend-item .info p {
+    font-size: 14px;
+    color: #888;
+    margin: 5px 0;
+  }
+  
+  /* Các nút đồng ý và từ chối */
+  .friend-item .btn-group {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .friend-item .btn-group button {
+    padding: 8px 15px;
+    font-size: 14px;
+    border: none;
+  }
+  
+  .friend-item .btn-group .accept-btn {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .friend-item .btn-group .accept-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .friend-item .btn-group .reject-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .friend-item .btn-group .reject-btn:hover {
+    background-color: #e53935;
+  }
+  
