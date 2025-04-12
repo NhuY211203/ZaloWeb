@@ -23,10 +23,10 @@ const HomePage = () => {
     <div className="main">
       <Sidebar user={user} onChangeView={handleViewChange} /> {/* Truyền hàm thay đổi view */}
       <div className="chat-container">
-<<<<<<< HEAD
+
         <ChatList onSelectChat={setSelectedChat} user={user}/>
         <ChatWindow selectedChat={selectedChat} />
-=======
+
         {view === "chat" && (
           <>
             <ChatList onSelectChat={setSelectedChat} />
@@ -35,7 +35,6 @@ const HomePage = () => {
         )}
         {view === "friend" && 
             <Friend user={user} />} {/* Hiển thị Profile nếu view là profile */}
->>>>>>> 33ebe1492e62561960fedb4c569850ec35d12677
       </div>
     </div>
   );
