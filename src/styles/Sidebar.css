@@ -168,7 +168,7 @@
   margin-top: 10px;
 }
 
-.button-group {
+.modal-body profile-info .button-group {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;

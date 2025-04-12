@@ -24,32 +24,37 @@ const LoginPassword = () => {
   const handleLogin = async (e) => {
     e.preventDefault(); // Ngăn reload trang
     setError(null); // Reset lỗi trước khi kiểm tra
-
+  
     // Kiểm tra tính hợp lệ của số điện thoại và mật khẩu
     if (!isValidPhoneNumber(sdt)) {
       setError("Số điện thoại không hợp lệ! (Tối thiểu 8 chữ số)");
       return;
     }
-
+  
     if (!isValidPassword(matKhau)) {
       setError("Mật khẩu không hợp lệ! (Tối thiểu 8 ký tự, bao gồm cả chữ cái và chữ số)");
       return;
     }
-
+  
     try {
       const response = await axios.post("https://echoapp-rho.vercel.app/api/login", {
         sdt,
         matKhau,
       });
-
-
+  
       console.log("Đăng nhập thành công!", response.data.user);
+      
+      // Lưu thông tin người dùng vào localStorage
+      localStorage.setItem("userID", response.data.user.userID); // Lưu userID vào localStorage
+  
       alert("Đăng nhập thành công!");
-      navigate("/home",{state:{user:response.data.user}}); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
+      navigate("/home", { state: { user: response.data.user } }); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
     } catch (err) {
       console.error("Lỗi đăng nhập:", err.message);
+      setError("Sai số điện thoại hoặc mật khẩu");
     }
   };
+  
 
   return (
     <div className="layout-container">

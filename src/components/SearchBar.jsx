@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import * as FaIcons from "react-icons/fa";
 import AddFriendModal from "./AddFriendModal"; // Import Modal
 
-const SearchBar = () => {
+const SearchBar = ({user}) => {
   const [isModalOpen, setIsModalOpen] = useState(false); // Quản lý trạng thái modal
 
   const handleOpenModal = () => {
@@ -34,6 +34,7 @@ const SearchBar = () => {
         <AddFriendModal 
           isModalOpen={isModalOpen} 
           handleCloseModal={handleCloseModal} 
+          user={user} // Truyền user vào modal
         />
 
         <span className="add-group-icon">

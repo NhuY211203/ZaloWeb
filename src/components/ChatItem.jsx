@@ -1,14 +1,23 @@
 import React from "react";
 import "../styles/ChatItem.css";
 
-const ChatItem = ({ chat, onSelectChat, isSelected }) => {
+const ChatItem = ({ chat, onSelectChat, isSelected,user }) => {
   return (
     <div
       className={`chat-item ${isSelected ? "selected" : ""}`}
       onClick={() => onSelectChat(chat)}
       style={{ cursor: "pointer" }}
     >
-      <div className="avatar"></div>
+      <div >
+      { chat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
+              <img
+                key={chat.lastMessage.find(msg => msg.senderID !== user.userID)?._id}
+                src={chat.lastMessage.find(msg => msg.senderID !== user.userID)?.senderInfo?.avatar}
+                alt="avatar"
+                className="avatar"
+              />
+            )}
+      </div>
       <div className="chat-info">
         <p className="chat-name">{chat.name}</p>
         <p className="chat-message">{chat.message}</p>

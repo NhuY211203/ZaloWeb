@@ -17,7 +17,7 @@ const ProfileModal = ({onClose, onOpenProfile,user,navigate}) => {
           </button>
         </div>
         <div className="modal-body">
-          <div className="modal-item" onClick={()=>onOpenProfile()} >
+          <div className="modal-item" onClick={onOpenProfile} >
             <FaIcons.FaUser className="modal-icon" />
             <span>Hồ sơ của bạn</span>
           </div>

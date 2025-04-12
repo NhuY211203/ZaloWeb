@@ -14,6 +14,7 @@ const Friend = ({ user }) => {
   const handleViewChange = (view) => {
     setActiveView(view); // Cập nhật view khi nhấn vào nút
   };
+  console.log("user", user);
 
   return (
     <div className="profile-container">
@@ -46,9 +47,9 @@ const Friend = ({ user }) => {
 
       {/* Nội dung hiển thị bên cạnh */}
       <div className="content-container">
-        {activeView === "friends" && <FriendList />}
-        {activeView === "groups" && <GroupList />}
-        {activeView === "invites" && <FriendRequest />}
+        {activeView === "friends" && <FriendList user={user} />}
+        {activeView === "groups" && <GroupList user={user} />}
+        {activeView === "invites" && <FriendRequest user={user} />}
       </div>
     </div>
   );

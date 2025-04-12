@@ -39,7 +39,6 @@ const isValidPassword = (password) => {
       const response = await axios.post(
         "https://echoapp-rho.vercel.app/api/users/doimatkhau",
         {sdt, matKhau }, // Thêm email và sdt vào payload
-        
         { headers: { "Content-Type": "application/json" } }
       ).catch((err) => {
         throw new Error(`Lỗi khi cập nhật mật khẩu: ${err.message}`);

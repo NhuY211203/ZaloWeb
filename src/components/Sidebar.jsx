@@ -94,7 +94,12 @@ const Sidebar = ({ user, onChangeView }) => {
         />
       )}
       {modals.profile && (
-        <ProfileModal onClose={() => closeModal("profile")} user={user} navigate={navigate} />
+        <ProfileModal 
+        onClose={() => closeModal("profile")} 
+        user={user} navigate={navigate}  
+        onOpenProfile={() => openModal("userProfile")}
+        onOpenSettings={() => openModal("generalSettings")}
+        />
       )}
       {modals.userProfile && <UserProfileModal onClose={() => closeModal("userProfile")} user={user} />}
       {modals.generalSettings && (
