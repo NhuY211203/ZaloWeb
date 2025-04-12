@@ -15,7 +15,7 @@ const HomePage = () => {
     <div className="main">
       <Sidebar user={user} />
       <div className="chat-container">
-        <ChatList onSelectChat={setSelectedChat} />
+        <ChatList onSelectChat={setSelectedChat} user={user}/>
         <ChatWindow selectedChat={selectedChat} />
       </div>
     </div>
