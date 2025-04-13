@@ -3,12 +3,12 @@ import axios from "axios";
 import "../styles/FriendList.css"; // Import CSS
 import { FaUserFriends } from "react-icons/fa"; // Import icon from react-icons
 
-const FriendList = ({user}) => {
+const FriendList = () => {
   const [friends, setFriends] = useState([]); // Store friends data
   const [friendCount, setFriendCount] = useState(0); // Store number of friends
   const [errorMessage, setErrorMessage] = useState(""); // Store error message state
 
-  const userID = localStorage.getItem("userID"); // Get userID from localStorage
+  const user = JSON.parse(sessionStorage.getItem("user")); // Lấy thông tin người dùng từ sessionStorage
 
   useEffect(() => {
     // Fetch friends data when the component mounts
@@ -19,7 +19,7 @@ const FriendList = ({user}) => {
           return;
         }
 
-        const response = await axios.get(`https://echoapp-rho.vercel.app/api/friends/${user.userID}`);
+        const response = await axios.get(`http://localhost:5000/api/friends/${user.userID}`);
         
         if (response.status === 200) {
           setFriends(response.data); // Set the friends data
@@ -47,13 +47,20 @@ const FriendList = ({user}) => {
       {errorMessage && <div className="error-message">{errorMessage}</div>}
 
       {/* Display the list of friends */}
-      {friends.map((friend) => {
-        return <div key={friend.userID} className="friend-item">
-          <span>{friend.alias}</span></div>;
-      })}
-
-      {/* If no friends, show a message */}
-      {friends.length === 0 && !errorMessage && <p>Không có bạn bè nào.</p>}
+      {friends.length > 0 ? (
+        friends.map((friend) => (
+          <div key={friend.userID} className="friend-itemm">
+            <img
+              src={friend.anhDaiDien || "https://example.com/default-avatar.jpg"} // Hiển thị ảnh đại diện
+              alt="Avatar"
+              className="friend-avatar"
+            />
+            <span>{friend.name}</span> {/* Hiển thị tên bạn bè */}
+          </div>
+        ))
+      ) : (
+        <p>Không có bạn bè nào.</p>
+      )}
     </div>
   );
 };

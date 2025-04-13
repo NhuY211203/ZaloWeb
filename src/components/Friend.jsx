@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/Friend.css"; // Import CSS cho modal
 import { FaUserFriends, FaUsers, FaUserPlus } from "react-icons/fa"; // Import icon từ react-icons
 import SearchBar from "../components/SearchBar";
@@ -6,7 +6,17 @@ import FriendList from "./FriendList";
 import GroupList from "./GroupList";
 import FriendRequest from "./FriendRequest";
 
-const Friend = ({ user }) => {
+const Friend = () => {
+  // Lấy user từ sessionStorage hoặc localStorage
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem("user"); // Hoặc dùng localStorage.getItem("user") nếu cần
+    if (storedUser) {
+      setUser(JSON.parse(storedUser)); // Chuyển đổi JSON string thành đối tượng JavaScript
+    }
+  }, []);
+
   // Trạng thái để quản lý view hiện tại
   const [activeView, setActiveView] = useState("friends");
 
@@ -14,12 +24,17 @@ const Friend = ({ user }) => {
   const handleViewChange = (view) => {
     setActiveView(view); // Cập nhật view khi nhấn vào nút
   };
+
+  if (!user) {
+    return <div>Loading...</div>; // Nếu chưa có thông tin người dùng thì hiển thị "Loading..."
+  }
+
   console.log("user", user);
 
   return (
     <div className="profile-container">
       <div className="button-group">
-      <SearchBar />
+        <SearchBar />
         <button
           className={`btn ${activeView === "friends" ? "active" : ""}`}
           onClick={() => handleViewChange("friends")}
