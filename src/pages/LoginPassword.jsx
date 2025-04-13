@@ -44,8 +44,8 @@ const LoginPassword = () => {
   
       console.log("Đăng nhập thành công!", response.data.user);
       
-      // Lưu thông tin người dùng vào localStorage
-      localStorage.setItem("userID", response.data.user.userID); // Lưu userID vào localStorage
+      sessionStorage.setItem("userID", response.data.user.userID); // Lưu userID vào sessionStorage
+      sessionStorage.setItem("user", JSON.stringify(response.data.user)); // Lưu thông tin người dùng
   
       alert("Đăng nhập thành công!");
       navigate("/home", { state: { user: response.data.user } }); // Chuyển hướng đến trang chính sau khi đăng nhập thành công

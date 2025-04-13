@@ -3,8 +3,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom"; // For navigation
 import "../styles/AddFriendModal.css"; // Import CSS for the modal
 import InfoSearchModal from "../components/InfoSearchModal"; // Import the new modal
+import socketIOClient from "socket.io-client"; // Import socket.io client
+const socket = socketIOClient("http://localhost:5000"); // Kết nối đến server
 
-const AddFriendModal = ({ isModalOpen, handleCloseModal ,user}) => {
+const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
   const [phoneNumber, setPhoneNumber] = useState(""); // Store phone number entered by user
   const [errorMessage, setErrorMessage] = useState(""); // Error message state
   const [userData, setUserData] = useState(null); // Store data about the user found
@@ -12,7 +14,7 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal ,user}) => {
   const [friendStatus, setFriendStatus] = useState(""); // Store friend status (self, pending, accepted)
 
   const [isSearchResultModalOpen, setIsSearchResultModalOpen] = useState(false); // Modal state for search result
-  const userID = localStorage.getItem("userID"); // Get the current userID from localStorage
+  const userID = sessionStorage.getItem("userID"); // Get the current userID from sessionStorage
 
   const handleSearch = async () => {
     setIsLoading(true); // Set loading state to true while making API request
@@ -48,19 +50,29 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal ,user}) => {
 
   const handleAddFriend = async () => {
     try {
-      // Send friend request API call
       const response = await axios.post("http://localhost:5000/api/send-friend-request", {
         phoneNumber: phoneNumber,
-        userID: userID, // Send the current user ID
+        userID: userID, // Đảm bảo rằng userID là của người gửi yêu cầu
+        name: userData.name, // Gửi tên của người gửi
+        image: userData.image, // Gửi ảnh của người gửi
       });
-
+  
       if (response.status === 200) {
-        setFriendStatus("pending"); // Set status to pending after request sent
+        setFriendStatus("pending");
+  
+        // Emit sự kiện gửi yêu cầu kết bạn, đảm bảo gửi đúng thông tin của người gửi yêu cầu
+        socket.emit("sendFriendRequest", {
+          phoneNumber: phoneNumber, 
+          userID: userID,  // Người gửi yêu cầu
+          name: userData.name,  // Tên người gửi yêu cầu
+          image: userData.image  // Ảnh đại diện của người gửi yêu cầu
+        });
       }
     } catch (error) {
       setErrorMessage("Có lỗi xảy ra khi gửi yêu cầu kết bạn.");
     }
   };
+  
 
   return (
     <>

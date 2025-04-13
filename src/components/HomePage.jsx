@@ -10,7 +10,8 @@ const HomePage = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [view, setView] = useState("chat"); // Trạng thái để quản lý màn hình hiện tại
   const location = useLocation();
-  const user = location.state?.user; // Dữ liệu user từ trang đăng nhập
+  // const user = location.state?.user; // Dữ liệu user từ trang đăng nhập
+  const user = JSON.parse(sessionStorage.getItem("user")); // Lấy thông tin người dùng từ sessionStorage
 
   console.log("User from HomePage:", user); // Kiểm tra dữ liệu user
 

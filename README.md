@@ -4,6 +4,8 @@
 
 npm install firebase axios
 npm install
+npm install socket.io-client
+
 
 
 2. Start the app
