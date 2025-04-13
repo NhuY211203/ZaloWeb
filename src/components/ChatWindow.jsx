@@ -3,19 +3,23 @@ import "../styles/ChatWindow.css";
 import * as FaIcons from "react-icons/fa";
 import * as BsIcons from "react-icons/bs";
 import * as BiIcons from "react-icons/bi";
+import EmojiPicker from "emoji-picker-react";
+import { db } from "../config/firebase";
+import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 import { io } from 'socket.io-client';
 
 const socket = io('https://cnm-service.onrender.com');
 
 const ChatWindow = ({ selectedChat,user }) => {
-  const [isInfoOpen, setIsInfoOpen] = useState(true);
-  console.log("chat:",selectedChat);
-  const [messages, setMessages] = useState(""); // State to hold messages
-  const [message, setMessage] = useState([]); // State to hold the current message input
-  const [saveImage,setSaveImage] = useState(false); // State to hold images
-  const [files, setFiles] = useState([]); // State to hold files
-  const [typeFile, setTypeFile] = useState(""); // State to hold links
-  const [sticker, setSticker] = useState(""); // State to hold the current sticker input
+   const [isInfoOpen, setIsInfoOpen] = useState(true);
+    const [messages, setMessages] = useState(""); // Tin nhắn nhập vào
+    const [message, setMessage] = useState([]); // Danh sách tin nhắn
+    const [saveImage, setSaveImage] = useState(false); // Trạng thái lưu ảnh/video
+    const [files, setFiles] = useState([]); // Danh sách file
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Hiển thị bảng chọn emoji
+    const [isUploading, setIsUploading] = useState(false); // Trạng thái uploading
+    const fileInputRef = useRef(null);
+    const attachmentInputRef = useRef(null); // Ref cho input file đính kèm
   useEffect(() => {
     setMessage(selectedChat?.lastMessage || []);
   }, [selectedChat]);
@@ -85,123 +89,134 @@ const ChatWindow = ({ selectedChat,user }) => {
     setMessages('');
   };
   
-  const sendSelectedImages = async () => {
-    if (!files.length) return;
+  // Gửi file và video
+    const sendSelectedFiles = async () => {
+      if (!files.length) return;
   
-    const imageForm = new FormData();
-    const videoForm = new FormData();
+      setIsUploading(true);
   
-    const imageFiles = [];
-    const videoFiles = [];
+      const imageForm = new FormData();
+      const videoForm = new FormData();
+      const imageFiles = [];
+      const videoFiles = [];
   
-    // Phân loại files
-    files.forEach(file => {
-      if (file.type.startsWith("image")) {
-        imageForm.append("files", file);
-        imageFiles.push(file);
-      } else if (file.type.startsWith("video")) {
-        videoForm.append("files", file);
-        videoFiles.push(file);
-      }
-    });
-    console.log("imageFiles:",imageFiles);
-    console.log("videoFiles:",videoFiles);
-  
-    try {
-      // Gửi ảnh
-      if (imageFiles.length > 0) {
-        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
-          method: "POST",
-          body: imageForm,
-        });
-        if (!res.ok) {
-          throw new Error(`Server error: ${res.statusText}`);
+      files.forEach((file) => {
+        if (file.type.startsWith("image")) {
+          imageForm.append("files", file);
+          imageFiles.push(file);
+        } else if (file.type.startsWith("video")) {
+          videoForm.append("files", file);
+          videoFiles.push(file);
         }
-        const data = await res.json();
+      });
   
-        const imageMsg = {
-          tempID: Date.now().toString(),
-          chatID: selectedChat.chatID,
-          senderID: user.userID,
-          content: '',
-          type: 'image',
-          timestamp: new Date().toISOString(),
-          media_url: data.urls,
-          status: 'sent',
-          senderInfo: { name: user.name, avatar: user.anhDaiDien },
-        };
+      try {
+        // Gửi ảnh
+        if (imageFiles.length > 0) {
+          const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+            method: "POST",
+            body: imageForm,
+          });
+          if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+          const data = await res.json();
   
-        setMessage(prev => [...prev, imageMsg]);
-        socket.emit("send_message", imageMsg);
-      }
+          const imageMsg = {
+            tempID: Date.now().toString(),
+            chatID: selectedChat.chatID,
+            senderID: user.userID,
+            content: "",
+            type: "image",
+            timestamp: new Date().toISOString(),
+            media_url: data.urls,
+            status: "sent",
+            senderInfo: { name: user.name, avatar: user.anhDaiDien },
+          };
   
-      // Gửi video
-      if (videoFiles.length > 0) {
-        const res = await fetch("https://cnm-service.onrender.com/api/upload", {
-          method: "POST",
-          body: videoForm,
-        });
-        if (!res.ok) {
-          throw new Error(`Server error: ${res.status} - ${res.statusText}`);
+          setMessage(prev => [...prev, imageMsg]); // <-- dùng emojiMsg ở đây
+          socket.emit("send_message", imageMsg);   // <-- và cả ở đây
         }
-        const data = await res.json();
   
-        const videoMsg = {
-          tempID: Date.now().toString(),
-          chatID: selectedChat.chatID,
-          senderID: user.userID,
-          content: '',
-          type: 'video',
-          timestamp: new Date().toISOString(),
-          media_url: data.urls,
-          status: 'sent',
-          senderInfo: { name: user.name, avatar: user.anhDaiDien },
-        };
+        // Gửi video
+        if (videoFiles.length > 0) {
+          const res = await fetch("https://cnm-service.onrender.com/api/upload", {
+            method: "POST",
+            body: videoForm,
+          });
+          if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+          const data = await res.json();
   
-        setMessage(prev => [...prev, videoMsg]);
-        socket.emit("send_message", videoMsg);
+          const videoMsg = {
+            tempID: Date.now().toString(),
+            chatID: selectedChat.chatID,
+            senderID: user.userID,
+            content: "",
+            type: "video",
+            timestamp: new Date().toISOString(),
+            media_url: data.urls,
+            status: "sent",
+            senderInfo: { name: user.name, avatar: user.anhDaiDien },
+          };
+  
+          setMessage(prev => [...prev, videoMsg]); // <-- dùng emojiMsg ở đây
+          socket.emit("send_message", videoMsg);   // <-- và cả ở đây
+        }
+  
+        setFiles([]);
+        setSaveImage(false);
+      } catch (error) {
+        console.error("Upload error:", error);
+        alert("Lỗi khi upload file: " + error.message);
+      } finally {
+        setIsUploading(false);
       }
-  
-      // Clear sau khi gửi xong
-      setFiles([]);
-      setSaveImage(false);
-    } catch (error) {
-      console.error("Upload error:", error);
-    }
+    };
+    const sendMessageObject = (msg) => {
+      socket.emit("send_message", msg);
+      setMessage(prev => [...prev, msg]);
+    };
+// Gửi emoji
+const handleEmojiClick = async (emojiObject) => {
+  const emoji = emojiObject.emoji;
+  const tempID = Date.now().toString();
+  const emojiMsg = {
+    tempID,
+    chatID: selectedChat.chatID,
+    senderID: user.userID,
+    content: emoji,
+    type: "emoji",
+    timestamp: new Date().toISOString(),
+    media_url: [],
+    status: "sent",
+    senderInfo: { name: user.name, avatar: user.anhDaiDien },
   };
+  console.log("emojiMsg:", emojiMsg);
+  sendMessageObject(emojiMsg);
+  setShowEmojiPicker(false);
+};
+
   const toggleInfo = () => {
     setIsInfoOpen(!isInfoOpen);
   };
 
-    const fileInputRef = useRef(null);
+   
   
     const handleIconClick = () => {
       fileInputRef.current?.click();
     };
   
-    const handleFileChange = (event) => {
-      const files = Array.from(event.target.files);
-    
-      const docs = files.map((file) => ({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      }));
-      setFiles(files);
-      setSaveImage(true);
-      console.log('Tài liệu đã chọn:', docs);
-      console.log('Tài liệu đã chọn:', files);
-
+    const handleAttachmentClick = () => {
+      attachmentInputRef.current?.click();
     };
-    const handleDeleteImage = (index) => {
-      // Xóa ảnh tại vị trí index
+    const handleFileChange = (event) => {
+      const selectedFiles = Array.from(event.target.files);
+      setFiles(selectedFiles);
+      setSaveImage(true);
+    };
+
+    const handleDeleteFile = (index) => {
       const updatedFiles = files.filter((_, i) => i !== index);
       setFiles(updatedFiles);
-  
-      // Nếu không còn ảnh, hiển thị lại nút "Chọn ảnh"
-      if (updatedFiles.length === 0) {
-        setSaveImage(false);
-      }
+      if (updatedFiles.length === 0) setSaveImage(false);
     };
   console.log("message:",message);
 
@@ -331,71 +346,101 @@ const ChatWindow = ({ selectedChat,user }) => {
     </div>
   </div> */}
 </div>
-
-          <div className="chat-input">
+<div className="chat-input">
             <div className="input-icons left">
-              <FaIcons.FaSmile size={24} />
-              {!saveImage &&( 
-                <button onClick={handleIconClick}>
-                  <FaIcons.FaImage size={24} />
-                </button>)}
-              {saveImage &&(
-                <button onClick={sendSelectedImages}>
-                <FaIcons.FaPaperPlane size={24} />
-                </button>
-              )}
-              <FaIcons.FaPaperclip size={24} />
+              <FaIcons.FaSmile
+                size={24}
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              />
+              <button onClick={handleIconClick}>
+                <FaIcons.FaImage size={24} />
+              </button>
+              <button onClick={handleAttachmentClick}>
+                <FaIcons.FaPaperclip size={24} />
+              </button>
               <FaIcons.FaLink size={24} />
               <FaIcons.FaMicrophone size={24} />
-              <FaIcons.FaEllipsisH size={24}/>
+              <FaIcons.FaEllipsisH size={24} />
             </div>
-            {files.length > 0 && (
-          <div className="image-preview">
-            {files.map((file, index) => (
-              <div key={index} className="image-container">
-                {/* Kiểm tra nếu là video */}
-                {file.type.includes('video') ? (
-                  <video
-                    width="100"
-                    height="100"
-                    controls
-                    src={URL.createObjectURL(file)}
-                    className="preview-thumbnail"
-                  />
-                ) : (
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt="preview"
-                    className="preview-thumbnail"
-                  />
-                )}
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDeleteImage(index)} // Xóa ảnh
-                >
-                  <FaIcons.FaTimes /> {/* Icon "X" để xóa ảnh */}
-                </button>
+
+            {showEmojiPicker && (
+              <div className="emoji-picker">
+                <EmojiPicker onEmojiClick={(emojiObject, event)=>{
+                  handleEmojiClick(emojiObject);
+                  console.log("Emoji selected:", emojiObject);
+
+                }} />
               </div>
-            ))}
-          </div>
-        )}
+            )}
+
+            {files.length > 0 && (
+              <div className={`image-preview ${isUploading ? "upload-loading" : ""}`}>
+                {files.map((file, index) => (
+                  <div key={index} className="image-container">
+                    {file.type.includes("video") ? (
+                      <video
+                        width="100"
+                        height="100"
+                        controls
+                        src={URL.createObjectURL(file)}
+                        className="preview-thumbnail"
+                      />
+                    ) : (
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="preview"
+                        className="preview-thumbnail"
+                      />
+                    )}
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDeleteFile(index)}
+                      disabled={isUploading}
+                    >
+                      <FaIcons.FaTimes />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <input
               type="file"
               multiple
-              accept="*"
-              style={{ display: 'none' }}
+              accept="image/*"
+              style={{ display: "none" }}
               ref={fileInputRef}
               onChange={handleFileChange}
             />
-            <input 
-            type="text" 
-            placeholder={`Nhập @, tin nhắn tới ${selectedChat.name}`} 
-            value={messages} 
-            onChange={(e) => setMessages(e.target.value)} />
+            <input
+              type="file"
+              multiple
+              accept="video/*,*/*"
+              style={{ display: "none" }}
+              ref={attachmentInputRef}
+              onChange={handleFileChange}
+            />
+            <input
+              type="text"
+              placeholder={`Nhập @, tin nhắn tới ${selectedChat.name}`}
+              value={messages}
+              onChange={(e) => setMessages(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  sendMessage();
+                }
+              }}
+            />
             <div className="input-icons right">
-            <button onClick={sendMessage}>
-              <FaIcons.FaPaperPlane size={24} />
-            </button>
+              {saveImage ? (
+                <button onClick={sendSelectedFiles} disabled={isUploading}>
+                  <FaIcons.FaPaperPlane size={24} />
+                </button>
+              ) : (
+                <button onClick={sendMessage}>
+                  <FaIcons.FaPaperPlane size={24} />
+                </button>
+              )}
               <FaIcons.FaThumbsUp size={24} />
             </div>
           </div>
