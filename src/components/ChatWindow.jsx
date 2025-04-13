@@ -11,10 +11,14 @@ const ChatWindow = ({ selectedChat,user }) => {
   const [isInfoOpen, setIsInfoOpen] = useState(true);
   console.log("chat:",selectedChat);
   const [messages, setMessages] = useState(""); // State to hold messages
-  const [message, setMessage] = useState(selectedChat?.lastMessage||[]); // State to hold the current message input
+  const [message, setMessage] = useState([]); // State to hold the current message input
+  const [saveImage,setSaveImage] = useState(false); // State to hold images
   const [files, setFiles] = useState([]); // State to hold files
-  const [links, setLinks] = useState([]); // State to hold links
+  const [typeFile, setTypeFile] = useState(""); // State to hold links
   const [sticker, setSticker] = useState(""); // State to hold the current sticker input
+  useEffect(() => {
+    setMessage(selectedChat?.lastMessage || []);
+  }, [selectedChat]);
   useEffect(() => {
     if (!selectedChat) return;
     socket.emit('read_messages', { chatID: selectedChat.chatID, userID: user.userID });
@@ -61,6 +65,7 @@ const ChatWindow = ({ selectedChat,user }) => {
       socket.off(`unsend_${selectedChat.chatID}`, handleUnsendMessage);
     };
   }, [selectedChat, user.userID]);
+
   const sendMessage = () => {
     if (!messages.trim()) return;
     const tempID = Date.now().toString();
@@ -79,39 +84,87 @@ const ChatWindow = ({ selectedChat,user }) => {
     setMessage((prev) => [...prev, newMsg]);
     setMessages('');
   };
+  
   const sendSelectedImages = async () => {
-    if (!images.length) return;
-    const formData = new FormData();
-    images.forEach((img) => {
-      const fileType = img.uri.split('.').pop();
-      formData.append('image', {
-        uri: img.uri,
-        type: `image/${fileType}`,
-        name: `upload.${fileType}`,
-      });
+    if (!files.length) return;
+  
+    const imageForm = new FormData();
+    const videoForm = new FormData();
+  
+    const imageFiles = [];
+    const videoFiles = [];
+  
+    // Phân loại files
+    files.forEach(file => {
+      if (file.type.startsWith("image")) {
+        imageForm.append("files", file);
+        imageFiles.push(file);
+      } else if (file.type.startsWith("video")) {
+        videoForm.append("files", file);
+        videoFiles.push(file);
+      }
     });
-
+    console.log("imageFiles:",imageFiles);
+    console.log("videoFiles:",videoFiles);
+  
     try {
-      const response = await fetch("https://echoapp-rho.vercel.app/api/upload", {
-        method: "POST",
-        headers: { "Content-Type": "multipart/form-data" },
-        body: formData,
-      });
-      const data = await response.json();
-      const newMsg = {
-        tempID: Date.now().toString(),
-        chatID: selectedChat.chatID,
-        senderID: user.userID,
-        content: '',
-        type: 'image',
-        timestamp: new Date().toISOString(),
-        media_url: data.urls,
-        status: 'sent',
-        senderInfo: { name: user.name, avatar: user.anhDaiDien },
-      };
-      setMessage((prev) => [...prev, newMsg]);
-      socket.emit('send_message', newMsg);
-      setSelected([]);
+      // Gửi ảnh
+      if (imageFiles.length > 0) {
+        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+          method: "POST",
+          body: imageForm,
+        });
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.statusText}`);
+        }
+        const data = await res.json();
+  
+        const imageMsg = {
+          tempID: Date.now().toString(),
+          chatID: selectedChat.chatID,
+          senderID: user.userID,
+          content: '',
+          type: 'image',
+          timestamp: new Date().toISOString(),
+          media_url: data.urls,
+          status: 'sent',
+          senderInfo: { name: user.name, avatar: user.anhDaiDien },
+        };
+  
+        setMessage(prev => [...prev, imageMsg]);
+        socket.emit("send_message", imageMsg);
+      }
+  
+      // Gửi video
+      if (videoFiles.length > 0) {
+        const res = await fetch("https://cnm-service.onrender.com/api/upload", {
+          method: "POST",
+          body: videoForm,
+        });
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.status} - ${res.statusText}`);
+        }
+        const data = await res.json();
+  
+        const videoMsg = {
+          tempID: Date.now().toString(),
+          chatID: selectedChat.chatID,
+          senderID: user.userID,
+          content: '',
+          type: 'video',
+          timestamp: new Date().toISOString(),
+          media_url: data.urls,
+          status: 'sent',
+          senderInfo: { name: user.name, avatar: user.anhDaiDien },
+        };
+  
+        setMessage(prev => [...prev, videoMsg]);
+        socket.emit("send_message", videoMsg);
+      }
+  
+      // Clear sau khi gửi xong
+      setFiles([]);
+      setSaveImage(false);
     } catch (error) {
       console.error("Upload error:", error);
     }
@@ -134,10 +187,23 @@ const ChatWindow = ({ selectedChat,user }) => {
         type: file.type,
         size: file.size,
       }));
-    
+      setFiles(files);
+      setSaveImage(true);
       console.log('Tài liệu đã chọn:', docs);
+      console.log('Tài liệu đã chọn:', files);
+
     };
+    const handleDeleteImage = (index) => {
+      // Xóa ảnh tại vị trí index
+      const updatedFiles = files.filter((_, i) => i !== index);
+      setFiles(updatedFiles);
   
+      // Nếu không còn ảnh, hiển thị lại nút "Chọn ảnh"
+      if (updatedFiles.length === 0) {
+        setSaveImage(false);
+      }
+    };
+  console.log("message:",message);
 
   if (!selectedChat) {
     return (
@@ -189,8 +255,7 @@ const ChatWindow = ({ selectedChat,user }) => {
           </div>
 
           <div className="messages">
-  {selectedChat.lastMessage
-    ?.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+  {message.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
     .map((msg, index) => {
       const isMine = msg.senderID === user.userID; // 👈 Bạn cần truyền thêm `currentUserID` nếu chưa có
       return (
@@ -207,22 +272,32 @@ const ChatWindow = ({ selectedChat,user }) => {
           )}
 
           <div className="message-bubble">
-            {msg.type === "unsent" ? (
-              <i style={{ color: "gray" }}>Tin nhắn đã được thu hồi</i>
-            ) : msg.type === "image" ? (
-              msg.media_url.map((img, i) => (
-                <img
-                  key={i}
-                  src={typeof img === "string" ? img : img.uri}
-                  className="chat-image"
-                  alt="media"
-                  onClick={() => window.open(typeof img === "string" ? img : img.uri, "_blank")}
-                />
-              ))
-            ) : (
-              <span className="message-text">{msg.content}</span>
-            )}
-
+          {msg.type === "unsent" ? (
+  <i style={{ color: "gray" }}>Tin nhắn đã được thu hồi</i>
+) : msg.type === "image" ? (
+  msg.media_url.map((img, i) => (
+    <img
+      key={i}
+      src={typeof img === "string" ? img : img.uri}
+      className="chat-image"
+      alt="media"
+      onClick={() =>
+        window.open(typeof img === "string" ? img : img.uri, "_blank")
+      }
+    />
+  ))
+) : msg.type === "video" ? (
+  msg.media_url.map((video, i) => (
+    <video
+      key={i}
+      src={typeof video === "string" ? video : video.uri}
+      className="chat-video"
+      controls
+    />
+  ))
+) : (
+  <span className="message-text">{msg.content}</span>
+)}
             {isMine && msg.type !== "unsent" && (
               <div className="status-text">
                 {msg.status === "read" ? "Đã xem" : "Đã gửi"}
@@ -242,8 +317,9 @@ const ChatWindow = ({ selectedChat,user }) => {
     })}
 
   {/* Optional: Divider để đánh dấu ngày hoặc sự kiện */}
-  <div className="date-divider">{new Date().toLocaleDateString("vi-VN")}</div>
-  <div className="chat-message received">
+  {/* <div className="date-divider">{new Date().toLocaleDateString("vi-VN")}
+  </div> */}
+  {/* <div className="chat-message received">
     <div className="message-content">
       <p>Bạn và {selectedChat.name} đã trở thành bạn</p>
       <p>Chọn một sticker dưới đây để bắt đầu trò chuyện</p>
@@ -253,21 +329,56 @@ const ChatWindow = ({ selectedChat,user }) => {
         <div className="sticker">👋</div>
       </div>
     </div>
-  </div>
+  </div> */}
 </div>
-
 
           <div className="chat-input">
             <div className="input-icons left">
               <FaIcons.FaSmile size={24} />
-              <button onClick={handleIconClick}>
-                <FaIcons.FaImage size={24} />
-              </button>
+              {!saveImage &&( 
+                <button onClick={handleIconClick}>
+                  <FaIcons.FaImage size={24} />
+                </button>)}
+              {saveImage &&(
+                <button onClick={sendSelectedImages}>
+                <FaIcons.FaPaperPlane size={24} />
+                </button>
+              )}
               <FaIcons.FaPaperclip size={24} />
               <FaIcons.FaLink size={24} />
               <FaIcons.FaMicrophone size={24} />
               <FaIcons.FaEllipsisH size={24}/>
             </div>
+            {files.length > 0 && (
+          <div className="image-preview">
+            {files.map((file, index) => (
+              <div key={index} className="image-container">
+                {/* Kiểm tra nếu là video */}
+                {file.type.includes('video') ? (
+                  <video
+                    width="100"
+                    height="100"
+                    controls
+                    src={URL.createObjectURL(file)}
+                    className="preview-thumbnail"
+                  />
+                ) : (
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt="preview"
+                    className="preview-thumbnail"
+                  />
+                )}
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDeleteImage(index)} // Xóa ảnh
+                >
+                  <FaIcons.FaTimes /> {/* Icon "X" để xóa ảnh */}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
             <input
               type="file"
               multiple
@@ -282,13 +393,9 @@ const ChatWindow = ({ selectedChat,user }) => {
             value={messages} 
             onChange={(e) => setMessages(e.target.value)} />
             <div className="input-icons right">
-              <button
-                onClick={() => 
-                  console.log("Send message:", messages) // Gửi tin nhắn
-                }
-              >
+            <button onClick={sendMessage}>
               <FaIcons.FaPaperPlane size={24} />
-              </button>
+            </button>
               <FaIcons.FaThumbsUp size={24} />
             </div>
           </div>

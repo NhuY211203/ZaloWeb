@@ -6,6 +6,13 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
-    host: true // Cho phép truy cập từ bên ngoài
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'https://echoapp-rho.vercel.app',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 });
