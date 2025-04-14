@@ -9,8 +9,8 @@ import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firesto
 import { AudioRecorder } from 'react-audio-voice-recorder';
 import { io } from 'socket.io-client';
 
-//const socket = io('https://cnm-service.onrender.com');
-const socket = io('http://localhost:5000');
+const socket = io('https://cnm-service.onrender.com');
+//const socket = io('http://localhost:5000');
 
 const ChatWindow = ({ selectedChat,user }) => {
    const [isInfoOpen, setIsInfoOpen] = useState(true);

@@ -6,52 +6,14 @@ import AddFriendModal from './AddFriendModal'; // Import Modal
 import SearchBar from "./SearchBar"; // Import SearchBar
 import { io } from 'socket.io-client';
 
-//const socket = io('https://cnm-service.onrender.com');
+const socket = io('https://cnm-service.onrender.com');
 //const socket = io('http://192.168.1.20:5000');
-const socket = io('http://localhost:5000');
+//const socket = io('http://localhost:5000');
 
 const ChatList = ({ onSelectChat,user }) => {
   const [Messages, setMessages] = useState([]);
 
-  const chats = [
-    {
-      id: 1,
-      name: "PTCNM",
-      message: "Xin chào!",
-      time: "16 phút",
-      unreadCount: 1,
-      avatar: "", // Placeholder
-      thoigiantruycap: "5 phút",
-      trangthai: "online",
-      messages: [
-        { id: 1, sender: "PTCNM", content: "Xin chào!", time: "10:00", type: "received" },
-      ],
-    },
-    {
-      id: 2,
-      name: "Văn A",
-      message: "Xin chào!",
-      time: "16 phút",
-      unreadCount: 0,
-      avatar: "",
-      thoigiantruycap: "5 phút",
-      trangthai: "offline",
-      messages: [
-        { id: 1, sender: "Văn A", content: "Xin chào!", time: "10:00", type: "received" },
-      ],
-    },
-    {
-      id: 3,
-      name: "Cloud của tôi",
-      message: "Chưa có tin nhắn",
-      time: "",
-      unreadCount: 0,
-      avatar: "",
-      thoigiantruycap: "",
-      trangthai: "offline",
-      messages: [],
-    },
-  ];
+  
   useEffect(() => {
     if (!socket || !user?.userID) return;
   
