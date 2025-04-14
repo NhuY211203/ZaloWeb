@@ -12,7 +12,7 @@
 }
 
 .chat-item.selected {
-  background-color: #e6f3ff; /* Màu xanh nhạt khi được chọn */
+  background-color: #e6f3ff;
 }
 
 .avatar {
@@ -25,12 +25,16 @@
 
 .chat-info {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column; /* Đảm bảo chat-name và chat-message xếp dọc */
 }
 
 .chat-name {
   font-size: 16px;
   font-weight: bold;
   color: #333;
+  margin: 0;
+  margin-bottom: 4px; /* Khoảng cách nhỏ giữa chat-name và chat-message */
 }
 
 .chat-message {
@@ -40,6 +44,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 180px;
+  margin: 0;
 }
 
 .chat-meta {
@@ -53,16 +58,8 @@
   color: #999;
 }
 
-.unread-count {
-  background-color: #ff4d4f; /* Màu đỏ cho số tin nhắn chưa đọc */
-  color: white;
+.read-status {
   font-size: 12px;
-  font-weight: bold;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #666;
   margin-top: 4px;
 }
