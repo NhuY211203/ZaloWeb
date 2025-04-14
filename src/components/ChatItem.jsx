@@ -53,6 +53,8 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
       ? '[Image]'
       : lastMsg.type === 'video'
       ? '[Video]'
+      : lastMsg.type === 'audio'
+      ? '[Audio]'
       : lastMsg.content;
   };
 

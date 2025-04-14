@@ -6,9 +6,11 @@ import * as BiIcons from "react-icons/bi";
 import EmojiPicker from "emoji-picker-react";
 import { db } from "../config/firebase";
 import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
+import { AudioRecorder } from 'react-audio-voice-recorder';
 import { io } from 'socket.io-client';
 
-const socket = io('https://cnm-service.onrender.com');
+//const socket = io('https://cnm-service.onrender.com');
+const socket = io('http://localhost:5000');
 
 const ChatWindow = ({ selectedChat,user }) => {
    const [isInfoOpen, setIsInfoOpen] = useState(true);
@@ -18,8 +20,28 @@ const ChatWindow = ({ selectedChat,user }) => {
     const [files, setFiles] = useState([]); // Danh sách file
     const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Hiển thị bảng chọn emoji
     const [isUploading, setIsUploading] = useState(false); // Trạng thái uploading
+    const [audioBlob, setAudioBlob] = useState(null);
+    const [audioUrl, setAudioUrl] = useState(null); // dùng để play
     const fileInputRef = useRef(null);
     const attachmentInputRef = useRef(null); // Ref cho input file đính kèm
+    const bottomRef = useRef(null);
+    // Hàm xử lý khi ghi âm xong
+    const handleAudioStop = (blob) => {
+      const url = URL.createObjectURL(blob);
+      setAudioBlob(blob);       // ✅ dùng để gửi lên server
+      setAudioUrl(url);         // ✅ dùng để play audio
+      console.log("Audio blob:", blob);
+      console.log("Audio URL:", url);
+    };
+    
+  const handleDeleteRecording = () => {
+    setAudioBlob(null); // xoá bản ghi cũ
+    setAudioUrl(null);  // xoá bản ghi cũ
+  };
+
+    useEffect(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]); // mỗi lần messages thay đổi => scroll xuống
   useEffect(() => {
     setMessage(selectedChat?.lastMessage || []);
   }, [selectedChat]);
@@ -69,7 +91,41 @@ const ChatWindow = ({ selectedChat,user }) => {
       socket.off(`unsend_${selectedChat.chatID}`, handleUnsendMessage);
     };
   }, [selectedChat, user.userID]);
-
+  const sendVoiceMessage = async () => {
+    if (!audioBlob) return;
+  
+    const formData = new FormData();
+    formData.append("files", audioBlob, "voice-message.webm");
+  
+    const res = await fetch("http://localhost:5000/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+  
+    if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+    const data = await res.json();
+    console.log("Audio upload response:", data);
+    const tempID = Date.now().toString();
+    const newMsg = {
+      tempID,
+      chatID: selectedChat.chatID,
+      senderID: user.userID,
+      content: '',
+      type: 'audio',
+      timestamp: new Date().toISOString(),
+      media_url: data.urls,
+      status: 'sent',
+      senderInfo: { name: user.name, avatar: user.anhDaiDien },
+    };
+    socket.emit('send_message', newMsg);
+    setMessage((prev) => [...prev, newMsg]);
+  
+    // Gửi tin nhắn hoặc xử lý tiếp ở đây
+  
+    setAudioBlob(null);
+    setAudioUrl(null);
+  };
+  
   const sendMessage = () => {
     if (!messages.trim()) return;
     const tempID = Date.now().toString();
@@ -270,6 +326,7 @@ const handleEmojiClick = async (emojiObject) => {
           </div>
 
           <div className="messages">
+          <div ref={bottomRef} />        
   {message.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
     .map((msg, index) => {
       const isMine = msg.senderID === user.userID; // 👈 Bạn cần truyền thêm `currentUserID` nếu chưa có
@@ -310,7 +367,15 @@ const handleEmojiClick = async (emojiObject) => {
       controls
     />
   ))
-) : (
+) : msg.type==="audio" ?(
+  msg.media_url.map((audio, i) => (
+    <audio 
+      key={i}
+      controls
+      src={typeof audio === "string" ? audio : audio.uri}>
+    </audio>
+  ))
+): (
   <span className="message-text">{msg.content}</span>
 )}
             {isMine && msg.type !== "unsent" && (
@@ -330,7 +395,6 @@ const handleEmojiClick = async (emojiObject) => {
         </div>
       );
     })}
-
   {/* Optional: Divider để đánh dấu ngày hoặc sự kiện */}
   {/* <div className="date-divider">{new Date().toLocaleDateString("vi-VN")}
   </div> */}
@@ -345,7 +409,9 @@ const handleEmojiClick = async (emojiObject) => {
       </div>
     </div>
   </div> */}
+  <div ref={bottomRef} /> 
 </div>
+    
 <div className="chat-input">
             <div className="input-icons left">
               <FaIcons.FaSmile
@@ -359,7 +425,37 @@ const handleEmojiClick = async (emojiObject) => {
                 <FaIcons.FaPaperclip size={24} />
               </button>
               <FaIcons.FaLink size={24} />
-              <FaIcons.FaMicrophone size={24} />
+              <div>
+                <AudioRecorder
+                  onRecordingComplete={(blob) => handleAudioStop(blob)}
+                  audioTrackConstraints={{
+                    noiseSuppression: true,
+                    echoCancellation: true,
+                  }}
+                  downloadOnSavePress={false}
+                  showVisualizer={true}
+                />
+
+                {audioUrl && (
+                  <div style={{ marginTop: '1rem' }}>
+                    <p>🎧 Ghi âm xong:</p>
+                    <audio controls src={audioUrl}></audio>
+                  </div>
+                )}
+                {audioUrl && (
+                  <button onClick={handleDeleteRecording} className="bg-red-500 text-white px-4 py-2 rounded">
+                    Xoá ghi âm
+                  </button>
+                )}
+
+
+                
+                {audioUrl && (
+                  <button onClick={sendVoiceMessage} className="bg-red-500 text-white px-4 py-2 rounded">
+                     Lưu ghi âm
+                  </button>
+                )}
+              </div>
               <FaIcons.FaEllipsisH size={24} />
             </div>
 
