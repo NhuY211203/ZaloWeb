@@ -1,24 +1,21 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // For navigation
-import "../styles/AddFriendModal.css"; // Import CSS for the modal
-import InfoSearchModal from "../components/InfoSearchModal"; // Import the new modal
-import socketIOClient from "socket.io-client"; // Import socket.io client
-const socket = socketIOClient("http://localhost:5000"); // Kết nối đến server
+import { useNavigate } from "react-router-dom";
+import "../styles/AddFriendModal.css";
+import InfoSearchModal from "../components/InfoSearchModal";
 
 const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
-  const [phoneNumber, setPhoneNumber] = useState(""); // Store phone number entered by user
-  const [errorMessage, setErrorMessage] = useState(""); // Error message state
-  const [userData, setUserData] = useState(null); // Store data about the user found
-  const [isLoading, setIsLoading] = useState(false); // Loading state for the API request
-  const [friendStatus, setFriendStatus] = useState(""); // Store friend status (self, pending, accepted)
-
-  const [isSearchResultModalOpen, setIsSearchResultModalOpen] = useState(false); // Modal state for search result
-  const userID = sessionStorage.getItem("userID"); // Get the current userID from sessionStorage
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [friendStatus, setFriendStatus] = useState("");
+  const [isSearchResultModalOpen, setIsSearchResultModalOpen] = useState(false);
+  const userID = sessionStorage.getItem("userID");
 
   const handleSearch = async () => {
-    setIsLoading(true); // Set loading state to true while making API request
-    setErrorMessage(""); // Reset error message
+    setIsLoading(true);
+    setErrorMessage("");
 
     try {
       if (!userID) {
@@ -26,25 +23,24 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
         return;
       }
 
-      // API call to search for user by phone number
       const response = await axios.post("http://localhost:5000/api/search-friend-by-phone", {
         phoneNumber: phoneNumber,
-        userID: userID, // Pass userID to the backend
+        userID: userID,
       });
 
       if (response.status === 200) {
         const { friendStatus, ...userDetails } = response.data;
-        setUserData(userDetails); // Set the user data
-        setFriendStatus(friendStatus); // Set the friend status
-        setErrorMessage(""); // Clear any previous error messages
-        setIsSearchResultModalOpen(true); // Open the search result modal
+        setUserData(userDetails);
+        setFriendStatus(friendStatus);
+        setErrorMessage("");
+        setIsSearchResultModalOpen(true);
       } else {
-        setErrorMessage(response.data.message); // Handle any non-200 status code from the backend
+        setErrorMessage(response.data.message);
       }
     } catch (error) {
       setErrorMessage(error.response ? error.response.data.message : "Không tìm thấy người dùng hoặc có lỗi xảy ra.");
     } finally {
-      setIsLoading(false); // Set loading state to false when done
+      setIsLoading(false);
     }
   };
 
@@ -52,27 +48,18 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
     try {
       const response = await axios.post("http://localhost:5000/api/send-friend-request", {
         phoneNumber: phoneNumber,
-        userID: userID, // Đảm bảo rằng userID là của người gửi yêu cầu
-        name: userData.name, // Gửi tên của người gửi
-        image: userData.image, // Gửi ảnh của người gửi
+        userID: userID,
+        name: userData.name,
+        image: userData.image,
       });
-  
+
       if (response.status === 200) {
         setFriendStatus("pending");
-  
-        // Emit sự kiện gửi yêu cầu kết bạn, đảm bảo gửi đúng thông tin của người gửi yêu cầu
-        socket.emit("sendFriendRequest", {
-          phoneNumber: phoneNumber, 
-          userID: userID,  // Người gửi yêu cầu
-          name: userData.name,  // Tên người gửi yêu cầu
-          image: userData.image  // Ảnh đại diện của người gửi yêu cầu
-        });
       }
     } catch (error) {
       setErrorMessage("Có lỗi xảy ra khi gửi yêu cầu kết bạn.");
     }
   };
-  
 
   return (
     <>
@@ -91,13 +78,12 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
                   type="text"
                   placeholder="Số điện thoại"
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)} // Update phone number
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                 />
               </div>
 
-              {errorMessage && <div className="error-message">{errorMessage}</div>} {/* Display error message */} 
+              {errorMessage && <div className="error-message">{errorMessage}</div>}
 
-              {/* Button to trigger search */}
               <div className="modal-footer">
                 <button onClick={handleCloseModal} className="cancel-btn">Hủy</button>
                 <button
@@ -113,7 +99,6 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
         </div>
       )}
 
-      {/* Show InfoSearchModal if user data is found */}
       {isSearchResultModalOpen && userData && (
         <InfoSearchModal
           isModalOpen={isSearchResultModalOpen}

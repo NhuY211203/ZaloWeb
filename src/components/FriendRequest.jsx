@@ -2,31 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/FriendRequest.css"; // Import CSS
 import { FaUserFriends } from "react-icons/fa"; // Import icon from react-icons
-import socketIOClient from "socket.io-client"; // Import socket.io-client
 
 const FriendRequest = ({ user }) => {
   const [friendRequests, setFriendRequests] = useState([]); // Ensure it's an array
   const [errorMessage, setErrorMessage] = useState(""); // For error handling
   const [isLoading, setIsLoading] = useState(false);
-
-  const socket = socketIOClient("http://localhost:5000"); // Kết nối đến server
-  
-  useEffect(() => {
-    // Lắng nghe sự kiện mới của yêu cầu kết bạn từ socket
-    socket.on("newFriendRequest", (data) => {
-      console.log("Received new friend request:", data);
-      // Cập nhật danh sách yêu cầu kết bạn với thông tin của người gửi
-      setFriendRequests((prevRequests) => [
-        ...prevRequests,
-        { name: data.name, userID: data.userID, phoneNumber: data.phoneNumber, image: data.image }
-      ]);
-    });
-  
-    return () => {
-      socket.off("newFriendRequest"); // Hủy lắng nghe khi component unmount
-    };
-  }, []);
-  
 
   // Hàm gọi lại API để lấy danh sách yêu cầu kết bạn
   const fetchFriendRequests = async () => {
@@ -62,7 +42,7 @@ const FriendRequest = ({ user }) => {
         contactID: contactID,  // ID của người gửi yêu cầu kết bạn
         userID: user.userID    // ID của người nhận yêu cầu (người đăng nhập)
       });
-  
+
       if (response.status === 200) {
         // Gọi lại API để lấy danh sách yêu cầu kết bạn mới
         fetchFriendRequests();  // Gọi lại API để lấy dữ liệu mới
@@ -72,8 +52,6 @@ const FriendRequest = ({ user }) => {
       alert("Có lỗi xảy ra khi chấp nhận yêu cầu.");
     }
   };
-  
-  
 
   // Handle reject friend request
   const handleRejectRequest = async (contactID) => {
@@ -82,7 +60,7 @@ const FriendRequest = ({ user }) => {
         contactID: contactID,  // ID của người gửi yêu cầu kết bạn
         userID: user.userID    // ID của người nhận yêu cầu (người đăng nhập)
       });
-  
+
       if (response.status === 200) {
         // Cập nhật lại danh sách yêu cầu kết bạn hoặc danh sách bạn bè
         fetchFriendRequests();  // Gọi lại API để lấy dữ liệu mới
@@ -92,7 +70,7 @@ const FriendRequest = ({ user }) => {
       alert("Có lỗi xảy ra khi từ chối yêu cầu.");
     }
   };
-  
+
   return (
     <div className="friend-request-container">
       <h3>
