@@ -3,7 +3,8 @@ import "../styles/ChatItem.css";
 import { io } from 'socket.io-client';
 
 // Khởi tạo socket
-const socket = io('https://cnm-service.onrender.com');
+//const socket = io('https://cnm-service.onrender.com');
+const socket = io('http://localhost:5000');
 
 const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
   const [lastMessage, setLastMessage] = useState(chat.lastMessage || []);

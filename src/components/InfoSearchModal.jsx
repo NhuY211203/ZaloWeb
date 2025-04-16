@@ -3,6 +3,8 @@ import "../styles/InfoSearchModal.css"; // Import CSS for the search result moda
 import UserProfileModal from "../components/UserProfileModal"; // Import UserProfileModal
 
 const InfoSearchModal = ({ isModalOpen, handleCloseModal, userData, friendStatus, handleAddFriend }) => {
+  console.log("User Data:", userData); // Debugging line
+  console.log("Friend Status:", friendStatus); // Debugging line
   return (
     <>
       {isModalOpen && (
@@ -14,13 +16,7 @@ const InfoSearchModal = ({ isModalOpen, handleCloseModal, userData, friendStatus
             </div>
             <div className="modal-body">
               <div className="user-found">
-                {/* <img
-                  src={userData.anhBia}
-                  alt="User Avatar"
-                  className="user-avatar"
-                /> */}
                 <img
-                  
                   src={userData.avatar}
                   alt="User Avatar"
                   className="user-avatar"
@@ -30,7 +26,6 @@ const InfoSearchModal = ({ isModalOpen, handleCloseModal, userData, friendStatus
 
                 {/* Check if user is the current user */}
                 {friendStatus === "self" ? (
-                  // <UserProfileModal userData={userData} />
                   <button className="btn-profile">Đây là tài khoản của bạn</button>
                 ) : friendStatus === "pending" ? (
                   <button className="btn-pending">Yêu cầu kết bạn đang chờ duyệt</button>
