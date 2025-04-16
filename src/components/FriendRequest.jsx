@@ -17,7 +17,7 @@ const FriendRequest = ({ user }) => {
       }
 
       // Gọi API lấy danh sách yêu cầu kết bạn
-      const response = await axios.get(`http://localhost:5000/api/display-friend-request/${user.userID}`);
+      const response = await axios.get(`https://echoapp-rho.vercel.app/api/display-friend-request/${user.userID}`);
 
       if (Array.isArray(response.data)) {
         setFriendRequests(response.data);
@@ -38,7 +38,7 @@ const FriendRequest = ({ user }) => {
   // Handle accept friend request
   const handleAcceptRequest = async (contactID) => {
     try {
-      const response = await axios.post("http://localhost:5000/api/accept-friend-request", {
+      const response = await axios.post("https://echoapp-rho.vercel.app/api/accept-friend-request", {
         contactID: contactID,  // ID của người gửi yêu cầu kết bạn
         userID: user.userID    // ID của người nhận yêu cầu (người đăng nhập)
       });
@@ -56,7 +56,7 @@ const FriendRequest = ({ user }) => {
   // Handle reject friend request
   const handleRejectRequest = async (contactID) => {
     try {
-      const response = await axios.post("http://localhost:5000/api/reject-friend-request", {
+      const response = await axios.post("https://echoapp-rho.vercel.app/api/reject-friend-request", {
         contactID: contactID,  // ID của người gửi yêu cầu kết bạn
         userID: user.userID    // ID của người nhận yêu cầu (người đăng nhập)
       });

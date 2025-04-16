@@ -5,6 +5,10 @@
 npm install firebase axios
 npm install
 npm install socket.io-client
+npm install @ffmpeg/ffmpeg sharp
+
+
+
 
 
 

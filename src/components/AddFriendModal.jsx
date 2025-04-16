@@ -23,7 +23,7 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
         return;
       }
 
-      const response = await axios.post("http://localhost:5000/api/search-friend-by-phone", {
+      const response = await axios.post("https://echoapp-rho.vercel.app/api/search-friend-by-phone", {
         phoneNumber: phoneNumber,
         userID: userID,
       });
@@ -46,7 +46,7 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
 
   const handleAddFriend = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/send-friend-request", {
+      const response = await axios.post("https://echoapp-rho.vercel.app/api/send-friend-request", {
         phoneNumber: phoneNumber,
         userID: userID,
         name: userData.name,

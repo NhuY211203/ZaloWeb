@@ -19,7 +19,7 @@ const FriendList = () => {
           return;
         }
 
-        const response = await axios.get(`http://localhost:5000/api/friends/${user.userID}`);
+        const response = await axios.get(`https://echoapp-rho.vercel.app/api/friends/${user.userID}`);
         
         if (response.status === 200) {
           setFriends(response.data); // Set the friends data

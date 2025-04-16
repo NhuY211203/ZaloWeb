@@ -6,8 +6,10 @@ import * as BiIcons from "react-icons/bi";
 import EmojiPicker from "emoji-picker-react";
 import { db } from "../config/firebase";
 import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
+import ffmpeg from 'ffmpeg.js';
 import { AudioRecorder } from 'react-audio-voice-recorder';
 import { io } from 'socket.io-client';
+
 
 const socket = io('https://cnm-service.onrender.com');
 //const socket = io('http://localhost:5000');
@@ -22,9 +24,24 @@ const ChatWindow = ({ selectedChat,user }) => {
     const [isUploading, setIsUploading] = useState(false); // Trạng thái uploading
     const [audioBlob, setAudioBlob] = useState(null);
     const [audioUrl, setAudioUrl] = useState(null); // dùng để play
+    const [visibleCount, setVisibleCount] = useState(10);
     const fileInputRef = useRef(null);
     const attachmentInputRef = useRef(null); // Ref cho input file đính kèm
     const bottomRef = useRef(null);
+    const scrollContainerRef = useRef(null);
+
+
+    
+    
+
+
+    // ham xu ly load them 10 tin nhan cu 
+    const handleScroll = () => {
+      const el = scrollContainerRef.current;
+      if (el && el.scrollTop === 0 && visibleCount < message.length) {
+        setVisibleCount((prev) => prev + 10);
+      }
+    };
     // Hàm xử lý khi ghi âm xong
     const handleAudioStop = (blob) => {
       const url = URL.createObjectURL(blob);
@@ -39,12 +56,25 @@ const ChatWindow = ({ selectedChat,user }) => {
     setAudioUrl(null);  // xoá bản ghi cũ
   };
 
-    useEffect(() => {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]); // mỗi lần messages thay đổi => scroll xuống
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "auto" });
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, []);
+  
+  
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [message]);
+  
+
   useEffect(() => {
     setMessage(selectedChat?.lastMessage || []);
   }, [selectedChat]);
+  const sortedMessages = [...message].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const visibleMessages = sortedMessages.slice(-visibleCount); // lấy 10 tin nhắn mới nhất
+
   useEffect(() => {
     if (!selectedChat) return;
     socket.emit('read_messages', { chatID: selectedChat.chatID, userID: user.userID });
@@ -97,7 +127,7 @@ const ChatWindow = ({ selectedChat,user }) => {
     const formData = new FormData();
     formData.append("files", audioBlob, "voice-message.webm");
   
-    const res = await fetch("http://localhost:5000/api/upload", {
+    const res = await fetch("https://cnm-service.onrender.com/api/upload", {
       method: "POST",
       body: formData,
     });
@@ -161,8 +191,10 @@ const ChatWindow = ({ selectedChat,user }) => {
           imageForm.append("files", file);
           imageFiles.push(file);
         } else if (file.type.startsWith("video")) {
-          videoForm.append("files", file);
-          videoFiles.push(file);
+          
+              videoForm.append("files", file);
+              videoFiles.push(file);  
+          
         }
       });
   
@@ -175,6 +207,7 @@ const ChatWindow = ({ selectedChat,user }) => {
           });
           if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
           const data = await res.json();
+          console.log("Image upload response:", data);
   
           const imageMsg = {
             tempID: Date.now().toString(),
@@ -194,7 +227,7 @@ const ChatWindow = ({ selectedChat,user }) => {
   
         // Gửi video
         if (videoFiles.length > 0) {
-          const res = await fetch("https://cnm-service.onrender.com/api/upload", {
+          const res = await fetch("http://localhost:5000/api/upload", {
             method: "POST",
             body: videoForm,
           });
@@ -324,93 +357,101 @@ const handleEmojiClick = async (emojiObject) => {
               <span className="header-icon" onClick={toggleInfo}><FaIcons.FaInfoCircle /></span>
             </div>
           </div>
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            style={{
+              height:"600px",
+              overflowY: "auto",
+            }}
+            >   
+            <div className="messages"> 
+            
+            {visibleMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+              .map((msg, index) => {
+                const isMine = msg.senderID === user.userID; // 👈 Bạn cần truyền thêm `currentUserID` nếu chưa có
+                return (
+                  <div
+                    key={msg._id || index}
+                    className={`message-row ${isMine ? "my-message" : "other-message"}`}
+                  >
+                    {!isMine && msg.senderInfo?.avatar && (
+                      <img
+                        src={msg.senderInfo.avatar}
+                        alt="avatar"
+                        className="avatar-small"
+                      />
+                    )}
 
-          <div className="messages">
-          <div ref={bottomRef} />        
-  {message.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-    .map((msg, index) => {
-      const isMine = msg.senderID === user.userID; // 👈 Bạn cần truyền thêm `currentUserID` nếu chưa có
-      return (
-        <div
-          key={msg._id || index}
-          className={`message-row ${isMine ? "my-message" : "other-message"}`}
-        >
-          {!isMine && msg.senderInfo?.avatar && (
-            <img
-              src={msg.senderInfo.avatar}
-              alt="avatar"
-              className="avatar-small"
-            />
+                    <div className="message-bubble">
+                    {msg.type === "unsent" ? (
+            <i style={{ color: "gray" }}>Tin nhắn đã được thu hồi</i>
+          ) : msg.type === "image" ? (
+            msg.media_url.map((img, i) => (
+              <img
+                key={i}
+                src={typeof img === "string" ? img : img.uri}
+                className="chat-image"
+                alt="media"
+                onClick={() =>
+                  window.open(typeof img === "string" ? img : img.uri, "_blank")
+                }
+              />
+            ))
+          ) : msg.type === "video" ? (
+            msg.media_url.map((video, i) => (
+              <video
+                key={i}
+                src={typeof video === "string" ? video : video.uri}
+                className="chat-video"
+                controls
+              />
+            ))
+          ) : msg.type==="audio" ?(
+            msg.media_url.map((audio, i) => (
+              <audio 
+                key={i}
+                controls
+                src={typeof audio === "string" ? audio : audio.uri}>
+              </audio>
+            ))
+          ): (
+            <span className="message-text">{msg.content}</span>
           )}
+                      {isMine && msg.type !== "unsent" && (
+                        <div className="status-text">
+                          {msg.status === "read" ? "Đã xem" : "Đã gửi"}
+                        </div>
+                      )}
+                    </div>
 
-          <div className="message-bubble">
-          {msg.type === "unsent" ? (
-  <i style={{ color: "gray" }}>Tin nhắn đã được thu hồi</i>
-) : msg.type === "image" ? (
-  msg.media_url.map((img, i) => (
-    <img
-      key={i}
-      src={typeof img === "string" ? img : img.uri}
-      className="chat-image"
-      alt="media"
-      onClick={() =>
-        window.open(typeof img === "string" ? img : img.uri, "_blank")
-      }
-    />
-  ))
-) : msg.type === "video" ? (
-  msg.media_url.map((video, i) => (
-    <video
-      key={i}
-      src={typeof video === "string" ? video : video.uri}
-      className="chat-video"
-      controls
-    />
-  ))
-) : msg.type==="audio" ?(
-  msg.media_url.map((audio, i) => (
-    <audio 
-      key={i}
-      controls
-      src={typeof audio === "string" ? audio : audio.uri}>
-    </audio>
-  ))
-): (
-  <span className="message-text">{msg.content}</span>
-)}
-            {isMine && msg.type !== "unsent" && (
-              <div className="status-text">
-                {msg.status === "read" ? "Đã xem" : "Đã gửi"}
+                    {isMine && msg.senderInfo?.avatar && (
+                      <img
+                        src={msg.senderInfo.avatar}
+                        alt="avatar"
+                        className="avatar-small"
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            {/* Optional: Divider để đánh dấu ngày hoặc sự kiện */}
+            {/* <div className="date-divider">{new Date().toLocaleDateString("vi-VN")}
+            </div> */}
+            {/* <div className="chat-message received">
+              <div className="message-content">
+                <p>Bạn và {selectedChat.name} đã trở thành bạn</p>
+                <p>Chọn một sticker dưới đây để bắt đầu trò chuyện</p>
+                <div className="stickers">
+                  <div className="sticker">HI!!</div>
+                  <div className="sticker">HELLO!!</div>
+                  <div className="sticker">👋</div>
+                </div>
               </div>
-            )}
+            </div> */}
+            <div ref={bottomRef} /> 
           </div>
-
-          {isMine && msg.senderInfo?.avatar && (
-            <img
-              src={msg.senderInfo.avatar}
-              alt="avatar"
-              className="avatar-small"
-            />
-          )}
-        </div>
-      );
-    })}
-  {/* Optional: Divider để đánh dấu ngày hoặc sự kiện */}
-  {/* <div className="date-divider">{new Date().toLocaleDateString("vi-VN")}
-  </div> */}
-  {/* <div className="chat-message received">
-    <div className="message-content">
-      <p>Bạn và {selectedChat.name} đã trở thành bạn</p>
-      <p>Chọn một sticker dưới đây để bắt đầu trò chuyện</p>
-      <div className="stickers">
-        <div className="sticker">HI!!</div>
-        <div className="sticker">HELLO!!</div>
-        <div className="sticker">👋</div>
-      </div>
-    </div>
-  </div> */}
-  <div ref={bottomRef} /> 
-</div>
+          </div> 
     
 <div className="chat-input">
             <div className="input-icons left">

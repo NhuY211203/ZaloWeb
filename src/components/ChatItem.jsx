@@ -24,7 +24,7 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
     };
 
     const handleStatusUpdate = ({ messageID, status }) => {
-      if (status === 'read' && chat.chatID === messageID.chatID) {
+      if (status === 'read' && chat?.chatID === messageID?.chatID) {
         setIsRead(true);
       }
     };
@@ -43,7 +43,32 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
       socket.off(`status_update_${chat.chatID}`, handleStatusUpdate);
     };
   }, [chat.chatID, user.userID, chat.lastMessage]);
-
+  const [avatar, setAvatar] = useState(null);
+  const fetchAvatar = async (item) => {
+    try{
+        const createResponse = await fetch("https://echoapp-rho.vercel.app/api/chatmemberBychatID&userID", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userID: user.userID,
+            chatID: item.chatID
+          }),
+        });
+        const data = await createResponse.json();
+        console.log(data);
+        if (createResponse.ok) {
+          setAvatar(data?.anhDaiDien);
+        }
+    }catch (error) {
+      console.error('Error fetching friends list:', error);
+    }
+  }
+ useEffect(() => {
+  if (!chat) return;
+     fetchAvatar(chat);
+    },[chat]);
   // Xử lý hiển thị nội dung tin nhắn cuối cùng
   const getMessageContent = () => {
     const lastMsg = lastMessage[0] || chat.lastMessage?.[0];
@@ -72,7 +97,7 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
         {lastMessage?.find((msg) => msg.senderID !== user.userID) ? (
           <img
             key={lastMessage.find((msg) => msg.senderID !== user.userID)?._id}
-            src={lastMessage.find((msg) => msg.senderID !== user.userID)?.senderInfo?.avatar}
+            src={avatar}
             alt="avatar"
             className="avatar"
           />
