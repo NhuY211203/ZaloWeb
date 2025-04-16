@@ -16,6 +16,7 @@ const Friend = () => {
       setUser(JSON.parse(storedUser)); // Chuyển đổi JSON string thành đối tượng JavaScript
     }
   }, []);
+  
 
   // Trạng thái để quản lý view hiện tại
   const [activeView, setActiveView] = useState("friends");

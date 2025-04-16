@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client"; // Import socket.io-client
 import "../styles/AddFriendModal.css";
 import InfoSearchModal from "../components/InfoSearchModal";
 
-const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
+const socket = io("http://localhost:5000");  // Kết nối đến server socket
+
+const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [userData, setUserData] = useState(null);
@@ -12,6 +14,13 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
   const [friendStatus, setFriendStatus] = useState("");
   const [isSearchResultModalOpen, setIsSearchResultModalOpen] = useState(false);
   const userID = sessionStorage.getItem("userID");
+ // console.log("User ID:", user); // Debugging line
+ useEffect(() => {
+  if(!userID){
+    socket.emit("join_user",userID); // Đăng ký số điện thoại của người dùng khi kết nối socket
+  }
+ },[userID]);
+  
 
   const handleSearch = async () => {
     setIsLoading(true);
@@ -45,22 +54,18 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal }) => {
   };
 
   const handleAddFriend = async () => {
-    try {
-      const response = await axios.post("http://localhost:5000/api/send-friend-request", {
-        phoneNumber: phoneNumber,
-        userID: userID,
-        name: userData.name,
-        image: userData.image,
-      });
-
-      if (response.status === 200) {
-        setFriendStatus("pending");
-      }
-    } catch (error) {
-      setErrorMessage("Có lỗi xảy ra khi gửi yêu cầu kết bạn.");
-    }
+    const data = {
+      senderID: userID,
+      recipientID: userData.userID, // ID của người nhận (từ dữ liệu frontend)
+      senderName: userData.name,
+      senderImage: userData.avatar,
+      recipientPhone: userData.phoneNumber,
+    };
+    setFriendStatus("pending");
+     socket.emit("send_friend_request", data); // Gửi yêu cầu kết bạn qua socket
+    
   };
-
+  
   return (
     <>
       {isModalOpen && (
