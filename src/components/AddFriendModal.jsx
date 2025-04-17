@@ -54,7 +54,6 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {
   };
 
   const handleAddFriend = async () => {
-<<<<<<< HEAD
     try {
       const response = await axios.post("https://echoapp-rho.vercel.app/api/send-friend-request", {
         phoneNumber: phoneNumber,
@@ -69,7 +68,6 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {
     } catch (error) {
       setErrorMessage("Có lỗi xảy ra khi gửi yêu cầu kết bạn.");
     }
-=======
     const data = {
       senderID: userID,
       recipientID: userData.userID, // ID của người nhận (từ dữ liệu frontend)
@@ -80,7 +78,6 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {
     setFriendStatus("pending");
      socket.emit("send_friend_request", data); // Gửi yêu cầu kết bạn qua socket
     
->>>>>>> 74d09501428adb8676443c4c1d499615c3001eec
   };
   
   return (

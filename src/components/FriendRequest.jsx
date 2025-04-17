@@ -12,34 +12,30 @@ const FriendRequest = ({ user }) => {
   const [friendSend, setFriendSend] = useState([]); // For friend send requests
   const [isLoading, setIsLoading] = useState(false);
 
-<<<<<<< HEAD
-  // Hàm gọi lại API để lấy danh sách yêu cầu kết bạn
-  const fetchFriendRequests = async () => {
-    try {
-      if (!user.userID) {
-        setErrorMessage("Bạn chưa đăng nhập.");
-        return;
-      }
 
-      // Gọi API lấy danh sách yêu cầu kết bạn
-      const response = await axios.get(`https://echoapp-rho.vercel.app/api/display-friend-request/${user.userID}`);
+  // // Hàm gọi lại API để lấy danh sách yêu cầu kết bạn
+  // const fetchFriendRequests = async () => {
+  //   try {
+  //     if (!user.userID) {
+  //       setErrorMessage("Bạn chưa đăng nhập.");
+  //       return;
+  //     }
 
-      if (Array.isArray(response.data)) {
-        setFriendRequests(response.data);
-      } else {
-        setFriendRequests([]); // Reset khi không có dữ liệu hợp lệ
-      }
-    } catch (error) {
-      console.error("Error fetching friend requests:", error);
-      setErrorMessage("Không thể tải yêu cầu kết bạn.");
-    }
-  };
+  //     // Gọi API lấy danh sách yêu cầu kết bạn
+  //     const response = await axios.get(`https://echoapp-rho.vercel.app/api/display-friend-request/${user.userID}`);
+
+  //     if (Array.isArray(response.data)) {
+  //       setFriendRequests(response.data);
+  //     } else {
+  //       setFriendRequests([]); // Reset khi không có dữ liệu hợp lệ
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching friend requests:", error);
+  //     setErrorMessage("Không thể tải yêu cầu kết bạn.");
+  //   }
+  // };
 
   // Khi component mount, fetch danh sách yêu cầu kết bạn
-=======
-  
-  
->>>>>>> 74d09501428adb8676443c4c1d499615c3001eec
   useEffect(() => {
     if (!user) {
       setErrorMessage("Bạn chưa đăng nhập.");
@@ -53,7 +49,7 @@ const FriendRequest = ({ user }) => {
 
     // Lắng nghe sự kiện "pending_friend_requests" để cập nhật danh sách yêu cầu kết bạn
     socket.on("pending_friend_requests", (friendRequests) => {
-      setFriendRequests(friendRequests); // Cập nhật danh sách yêu cầu kết bạn
+      setFriendRequests(friendRequests.receivedRequests); // Cập nhật danh sách yêu cầu kết bạn
       setIsLoading(false);
     });
 
@@ -64,7 +60,7 @@ const FriendRequest = ({ user }) => {
 
     // Lắng nghe sự kiện lỗi
     socket.on("error", (error) => {
-      setErrorMessage(error.message || "Lỗi khi lấy yêu cầu kết bạn.");
+     // setErrorMessage(error.message || "Lỗi khi lấy yêu cầu kết bạn.");
       setIsLoading(false);
     });
 
