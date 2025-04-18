@@ -47,7 +47,7 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
   const [avatar, setAvatar] = useState(null);
   const fetchAvatar = async (item) => {
     try{
-        const createResponse = await fetch("https://echoapp-rho.vercel.app/api/chatmemberBychatID&userID", {
+        const createResponse = await fetch("http://192.168.1.110:5000/api/chatmemberBychatID&userID", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

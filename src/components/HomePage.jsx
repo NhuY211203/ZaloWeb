@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import Sidebar from "./Sidebar";
 import ChatList from "./ChatList";
 import ChatWindow from "./ChatWindow";
@@ -15,6 +15,12 @@ const HomePage = () => {
 
   console.log("User from HomePage:", user); // Kiểm tra dữ liệu user
 
+  useEffect(() => {
+    if (location.state?.chat) {
+      //setSelectedChat(location.state.chat);
+      setView("chat"); // Chuyển view về chat nếu đang ở friend
+    }
+  }, [location.state?.chat]);
   // Hàm thay đổi view
   const handleViewChange = (newView) => {
     setView(newView); // Cập nhật view khi nhấn vào icon

@@ -12,7 +12,6 @@ const FriendRequest = ({ user }) => {
   const [friendSend, setFriendSend] = useState([]); // For friend send requests
   const [isLoading, setIsLoading] = useState(false);
 
-
   // // Hàm gọi lại API để lấy danh sách yêu cầu kết bạn
   // const fetchFriendRequests = async () => {
   //   try {
@@ -50,6 +49,7 @@ const FriendRequest = ({ user }) => {
     // Lắng nghe sự kiện "pending_friend_requests" để cập nhật danh sách yêu cầu kết bạn
     socket.on("pending_friend_requests", (friendRequests) => {
       setFriendRequests(friendRequests.receivedRequests); // Cập nhật danh sách yêu cầu kết bạn
+      setFriendSend(friendRequests.sentRequests); // Cập nhật danh sách yêu cầu đã gửi
       setIsLoading(false);
     });
 
@@ -57,6 +57,11 @@ const FriendRequest = ({ user }) => {
       console.log("Yêu cầu kết bạn mới:", data);
       setFriendRequests((prevRequests) => [...prevRequests, data]); // Cập nhật danh sách yêu cầu kết bạn
     });
+    socket.on('friend_request_sent', (data) => {
+      setFriendSend((prevRequests) => [...prevRequests, data]); // Cập nhật danh sách yêu cầu đã gửi
+      console.log("Yêu cầu kết bạn đã gửi:", data);
+    });
+
     socket.on("friend_request_accepted", (data) => {
 
       if(data.status ==="accepted"){
@@ -64,6 +69,12 @@ const FriendRequest = ({ user }) => {
         setFriendRequests((prevRequests) => prevRequests.filter(req => req.contactID !== data.userID)); // Xóa yêu cầu đã chấp nhận
       }
 
+    });
+    socket.on("friend_request_accepted", (data) => {
+      if (data.status === "accepted") {
+        console.log("Yêu cầu kết bạn đã được chấp nhận:", data);
+        setFriendSend((prevRequests) => prevRequests.filter(req => req.userID !== data.recipientID)); // Xóa yêu cầu đã chấp nhận
+      }
     });
 
     // Lắng nghe sự kiện lỗi
@@ -77,6 +88,7 @@ const FriendRequest = ({ user }) => {
       socket.off("pending_friend_requests");
       socket.off("new_friend_request");
       socket.off("friend_request_accepted");
+      socket.off('friend_request_sent');
       socket.off("error");
     };
   }, [user]); // Khi user thay đổi, gọi lại yêu cầu lấy yêu cầu kết bạn
@@ -155,7 +167,34 @@ const FriendRequest = ({ user }) => {
           </div>
         ))
       )}
-      {<p>Chưa giửi lời mời.</p>}
+      {/* Lời mời đã gửi */}
+      <h3>
+        <FaUserFriends className="icon" />
+        Lời mời đã gửi
+      </h3>
+      <div>
+        <span className="friend-count">Số lượng lời mời đã gửi: {friendSend.length}</span>
+      </div>
+      {friendSend.length === 0 ? (
+        null
+      ) : (
+        friendSend.map((sentRequest) => (
+          <div key={sentRequest.userID} className="friend-item">
+            <img src={sentRequest.avatar || "https://example.com/avatar.jpg"} alt="Avatar" />
+            <div className="info">
+              <h4>{sentRequest.name}</h4>
+            </div>
+            <div className="btn-group">
+              <button
+                className="reject-btn"
+                onClick={() => handleRejectRequest(sentRequest)}
+              >
+                Thu hồi
+              </button>
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 };
