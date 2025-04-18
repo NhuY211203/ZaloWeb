@@ -45,15 +45,28 @@ const ChatList = ({ onSelectChat,user }) => {
       setMessages((prevMessages) => {
         const updatedMessages = [...prevMessages];
         const chatIndex = updatedMessages.findIndex(c => c.chatID === newMsg.chatID);
-  
+    
         if (chatIndex !== -1) {
           const chat = updatedMessages[chatIndex];
-          chat.lastMessage = [
-            { ...newMsg, senderInfo: newMsg.senderInfo || {} },
-            ...(chat.lastMessage || []),
-          ];
-          chat.unreadCount = (chat.unreadCount || 0) + 1;
+          const oldMessages = chat.lastMessage || [];
+    
+          // Kiểm tra xem đã có tin nhắn này chưa (dựa vào messageID hoặc tempID)
+          const msgIndex = oldMessages.findIndex(
+            m => m.messageID === newMsg.messageID || m.tempID === newMsg.tempID
+          );
+    
+          if (msgIndex !== -1) {
+            // Nếu đã có, cập nhật nội dung
+            oldMessages[msgIndex] = { ...oldMessages[msgIndex], ...newMsg };
+          } else {
+            // Nếu chưa có, thêm vào đầu mảng
+            oldMessages.unshift({ ...newMsg, senderInfo: newMsg.senderInfo || {} });
+            chat.unreadCount = (chat.unreadCount || 0) + 1;
+          }
+    
+          chat.lastMessage = oldMessages;
         } else {
+          // Nếu chưa có đoạn chat này, tạo mới
           updatedMessages.unshift({
             chatID: newMsg.chatID,
             name: newMsg.senderInfo?.name || 'Tin nhắn mới',
@@ -61,7 +74,8 @@ const ChatList = ({ onSelectChat,user }) => {
             lastMessage: [{ ...newMsg, senderInfo: newMsg.senderInfo || {} }],
           });
         }
-  
+    
+        // Sắp xếp lại các cuộc trò chuyện theo thời gian
         return updatedMessages.sort((a, b) => {
           const aTime = a.lastMessage?.[0]?.timestamp || 0;
           const bTime = b.lastMessage?.[0]?.timestamp || 0;
@@ -81,14 +95,10 @@ const ChatList = ({ onSelectChat,user }) => {
     };
   
     const handleNewChat1to1 = (data) => {
-      if (!data || !data.data) return;
-      const newChat = data.data;
-  
-      setMessages((prevMessages) => {
-        const exists = prevMessages.some(chat => chat.chatID === newChat.chatID);
-        if (exists) return prevMessages;
-        return [newChat, ...prevMessages];
-      });
+     
+      const newChat = data
+      console.log("newChat",newChat);
+      setMessages((prevMessages) =>[...prevMessages,newChat]);
     };
   
     // Đăng ký socket listeners
@@ -96,6 +106,7 @@ const ChatList = ({ onSelectChat,user }) => {
     socket.on("new_message", handleNewMessage);
     socket.on("status_update_all", handleStatusUpdate);
     socket.on("newChat1-1", handleNewChat1to1);
+    socket.emit("unsend_notification", handleNewMessage);
   
     // Cleanup
     return () => {
@@ -104,6 +115,7 @@ const ChatList = ({ onSelectChat,user }) => {
       socket.off("new_message", handleNewMessage);
       socket.off("status_update_all", handleStatusUpdate);
       socket.off("newChat1-1", handleNewChat1to1);
+      socket.off("unsend_notification", handleNewMessage);
     };
   }, [socket, user?.userID]);
   

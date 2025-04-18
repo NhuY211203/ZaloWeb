@@ -12,8 +12,8 @@ import { io } from 'socket.io-client';
 
 
 
-const socket = io('https://cnm-service.onrender.com');
-//const socket = io('http://localhost:5000');
+//const socket = io('https://cnm-service.onrender.com');
+const socket = io('http://localhost:5000');
 
 
 const ChatWindow = ({ selectedChat,user }) => {
@@ -116,11 +116,20 @@ const ChatWindow = ({ selectedChat,user }) => {
     socket.on(selectedChat.chatID, handleNewMessage);
     socket.on(`status_update_${selectedChat.chatID}`, handleStatusUpdate);
     socket.on(`unsend_${selectedChat.chatID}`, handleUnsendMessage);
+    socket.on("unsend_notification", (updatedMessage) => {
+      setMessage(prevMessages =>
+        prevMessages.map(m =>
+          m.messageID === updatedMessage.messageID ? { ...m, ...updatedMessage } : m
+        )
+      );
+      console.log("Received unsend notification:", updatedMessage);
+    });
 
     return () => {
       socket.off(selectedChat.chatID, handleNewMessage);
       socket.off(`status_update_${selectedChat.chatID}`, handleStatusUpdate);
       socket.off(`unsend_${selectedChat.chatID}`, handleUnsendMessage);
+      socket.off("unsend_notification");
     };
   }, [selectedChat, user.userID]);
   const sendVoiceMessage = async () => {
@@ -386,7 +395,7 @@ const handleEmojiClick = async (emojiObject) => {
                     )}
 
                     <div className="message-bubble">
-                    {msg.type === "unsent" ? (
+                    {msg.type === "unsend" ? (
             <i style={{ color: "gray" }}>Tin nhắn đã được thu hồi</i>
           ) : msg.type === "image" ? (
             msg.media_url.map((img, i) => (
@@ -406,6 +415,7 @@ const handleEmojiClick = async (emojiObject) => {
                 key={i}
                 src={typeof video === "string" ? video : video.uri}
                 className="chat-video"
+                paused={false}
                 controls
               />
             ))
@@ -417,7 +427,8 @@ const handleEmojiClick = async (emojiObject) => {
                 src={typeof audio === "string" ? audio : audio.uri}>
               </audio>
             ))
-          ): (
+          )
+          : (
             <span className="message-text">{msg.content}</span>
           )}
                       {isMine && msg.type !== "unsent" && (

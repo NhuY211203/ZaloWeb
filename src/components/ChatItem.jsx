@@ -10,11 +10,11 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
   const [lastMessage, setLastMessage] = useState(chat.lastMessage || []);
   const [messageTime, setMessageTime] = useState('');
   const [isRead, setIsRead] = useState(chat.isRead || false);
+  console.log("ChatItem", chat);
 
   // Lắng nghe socket để cập nhật tin nhắn và thời gian
   useEffect(() => {
     if (!chat.chatID) return;
-
     const handleNewMessage = (data) => {
       if (data.chatID === chat.chatID) {
         setLastMessage([data]);
@@ -72,17 +72,22 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
     },[chat]);
   // Xử lý hiển thị nội dung tin nhắn cuối cùng
   const getMessageContent = () => {
-    const lastMsg = lastMessage[0] || chat.lastMessage?.[0];
+    const sortedMessages = chat.lastMessage?.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const lastMsg = sortedMessages?.[sortedMessages.length - 1];
+  
     if (!lastMsg) return "No messages yet";
-
+  
     return lastMsg.type === 'image'
       ? '[Image]'
       : lastMsg.type === 'video'
       ? '[Video]'
       : lastMsg.type === 'audio'
       ? '[Audio]'
+      : lastMsg.type === 'unsend'
+      ? '[Đã thu hồi]'
       : lastMsg.content;
   };
+  
 
   return (
     <div
