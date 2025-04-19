@@ -15,12 +15,12 @@ const HomePage = () => {
 
   console.log("User from HomePage:", user); // Kiểm tra dữ liệu user
 
-  useEffect(() => {
-    if (location.state?.chat) {
-      //setSelectedChat(location.state.chat);
-      setView("chat"); // Chuyển view về chat nếu đang ở friend
-    }
-  }, [location.state?.chat]);
+  // useEffect(() => {
+  //   if (location.state?.chat) {
+  //     //setSelectedChat(location.state.chat);
+  //     setView("chat"); // Chuyển view về chat nếu đang ở friend
+  //   }
+  // }, [location.state?.chat]);
   // Hàm thay đổi view
   const handleViewChange = (newView) => {
     setView(newView); // Cập nhật view khi nhấn vào icon
@@ -37,7 +37,11 @@ const HomePage = () => {
           </>
         )}
         {view === "friend" && 
-            <Friend user={user} />} {/* Hiển thị Profile nếu view là profile */}
+            <Friend user={user} onStartChat={(chat) => {
+              setSelectedChat(chat);
+              setView("chat");
+            }} />
+            } {/* Hiển thị Profile nếu view là profile */}
       </div>
     </div>
   );

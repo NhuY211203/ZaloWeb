@@ -10,7 +10,34 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
   const [lastMessage, setLastMessage] = useState(chat.lastMessage || []);
   const [messageTime, setMessageTime] = useState('');
   const [isRead, setIsRead] = useState(chat.isRead || false);
+  const [avatar, setAvatar] = useState(''); // Đường dẫn đến ảnh đại diện mặc định
+  
   console.log("ChatItem", chat);
+  const fetchAvatar = async (chat) => {
+    try{
+        const createResponse = await fetch("http://localhost:5000/api/chatmemberBychatID&userID", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userID: user.userID,
+            chatID: chat.chatID
+          }),
+        });
+        const data = await createResponse.json();
+        console.log(data);
+        if (createResponse.ok) {
+          setAvatar(data?.anhDaiDien);
+        }
+    }catch (error) {
+      console.error('Error fetching friends list:', error);
+    }
+  }
+  useEffect(() => {
+    if (!chat) return;
+    fetchAvatar(chat);
+  },[chat]);
 
   // Lắng nghe socket để cập nhật tin nhắn và thời gian
   useEffect(() => {
@@ -38,38 +65,14 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
     if (chat.lastMessage?.[0]?.timestamp) {
       setMessageTime(chat.lastMessage[0].timestamp ? new Date(chat.lastMessage[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '');
     }
-
+    
     return () => {
       socket.off(chat.chatID, handleNewMessage);
       socket.off(`status_update_${chat.chatID}`, handleStatusUpdate);
     };
   }, [chat.chatID, user.userID, chat.lastMessage]);
-  const [avatar, setAvatar] = useState(null);
-  const fetchAvatar = async (item) => {
-    try{
-        const createResponse = await fetch("http://192.168.1.110:5000/api/chatmemberBychatID&userID", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userID: user.userID,
-            chatID: item.chatID
-          }),
-        });
-        const data = await createResponse.json();
-        console.log(data);
-        if (createResponse.ok) {
-          setAvatar(data?.anhDaiDien);
-        }
-    }catch (error) {
-      console.error('Error fetching friends list:', error);
-    }
-  }
- useEffect(() => {
-  if (!chat) return;
-     fetchAvatar(chat);
-    },[chat]);
+
+  
   // Xử lý hiển thị nội dung tin nhắn cuối cùng
   const getMessageContent = () => {
     const sortedMessages = chat.lastMessage?.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -83,6 +86,8 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
       ? '[Video]'
       : lastMsg.type === 'audio'
       ? '[Audio]'
+      : lastMsg.type === 'file'
+      ? '[File]'
       : lastMsg.type === 'unsend'
       ? '[Đã thu hồi]'
       : lastMsg.content;

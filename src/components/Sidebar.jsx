@@ -46,7 +46,7 @@ const Sidebar = ({ user, onChangeView }) => {
     <div className="sidebar">
       {/* Avatar */}
       <div className="avatar" onClick={() => openModal("profile")}>
-        <img src={user.anhDaiDien} alt="Avatar" />
+        <img src={user?.anhDaiDien} alt="Avatar" />
       </div>
 
       {/* Icons */}

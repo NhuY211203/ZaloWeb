@@ -54,20 +54,20 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {
   };
 
   const handleAddFriend = async () => {
-    try {
-      const response = await axios.post("https://echoapp-rho.vercel.app/api/send-friend-request", {
-        phoneNumber: phoneNumber,
-        userID: userID,
-        name: userData.name,
-        image: userData.image,
-      });
+    // try {
+    //   const response = await axios.post("http://localhost:5000/api/send-friend-request", {
+    //     phoneNumber: phoneNumber,
+    //     userID: userID,
+    //     name: userData.name,
+    //     image: userData.image,
+    //   });
 
-      if (response.status === 200) {
-        setFriendStatus("pending");
-      }
-    } catch (error) {
-      setErrorMessage("Có lỗi xảy ra khi gửi yêu cầu kết bạn.");
-    }
+    //   if (response.status === 200) {
+    //     setFriendStatus("pending");
+    //   }
+    // } catch (error) {
+    //  // setErrorMessage("Có lỗi xảy ra khi gửi yêu cầu kết bạn.");
+    // }
     const data = {
       senderID: userID,
       recipientID: userData.userID, // ID của người nhận (từ dữ liệu frontend)

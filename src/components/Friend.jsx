@@ -5,17 +5,45 @@ import SearchBar from "../components/SearchBar";
 import FriendList from "./FriendList";
 import GroupList from "./GroupList";
 import FriendRequest from "./FriendRequest";
+import { io } from 'socket.io-client';
+const socket = io('http://localhost:5000');
 
-const Friend = () => {
-  // Lấy user từ sessionStorage hoặc localStorage
-  const [user, setUser] = useState(null);
-
+const Friend = ({onStartChat,user}) => {
+  const [friends, setFriends] = useState([]); // Store friends data
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("user"); // Hoặc dùng localStorage.getItem("user") nếu cần
-    if (storedUser) {
-      setUser(JSON.parse(storedUser)); // Chuyển đổi JSON string thành đối tượng JavaScript
-    }
+      // Fetch friends data ngay sau khi setUser xong
+      const fetchFriends = async () => {
+        try {
+          const response = await fetch("http://localhost:5000/api/ContacsFriendByUserID", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userID: user.userID }),
+          });
+          
+          const data = await response.json();
+          console.log("📦 Server response:", data);
+          setFriends(data); // Set the friends data
+        } catch (error) {
+          setErrorMessage("Không thể tải danh sách bạn bè.");
+        }
+      };
+      fetchFriends();
   }, []);
+  useEffect(() => {
+    if (!user?.userID) return;
+    socket.emit("join_user", user.userID);
+    socket.on("friend_request_accepted", (data) => {
+      if(data.status ==="accepted"){
+        console.log("friend_request_accepted",data);
+        setFriends((prevRequests) =>[...prevRequests,data]); // Xóa yêu cầu đã chấp nhận
+      }
+    });
+
+  }, [user.userID]);
+  
+  console.log("friends", friends);
   
 
   // Trạng thái để quản lý view hiện tại
@@ -30,7 +58,7 @@ const Friend = () => {
     return <div>Loading...</div>; // Nếu chưa có thông tin người dùng thì hiển thị "Loading..."
   }
 
-  console.log("user", user);
+  console.log("user-----", user);
 
   return (
     <div className="profile-container">
@@ -63,7 +91,7 @@ const Friend = () => {
 
       {/* Nội dung hiển thị bên cạnh */}
       <div className="content-container">
-        {activeView === "friends" && <FriendList user={user} />}
+        {activeView === "friends" && <FriendList user={user} friends={friends} onStartChat={onStartChat} />}
         {activeView === "groups" && <GroupList user={user} />}
         {activeView === "invites" && <FriendRequest user={user} />}
       </div>

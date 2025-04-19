@@ -12,29 +12,7 @@ const FriendRequest = ({ user }) => {
   const [friendSend, setFriendSend] = useState([]); // For friend send requests
   const [isLoading, setIsLoading] = useState(false);
 
-  // // Hàm gọi lại API để lấy danh sách yêu cầu kết bạn
-  // const fetchFriendRequests = async () => {
-  //   try {
-  //     if (!user.userID) {
-  //       setErrorMessage("Bạn chưa đăng nhập.");
-  //       return;
-  //     }
 
-  //     // Gọi API lấy danh sách yêu cầu kết bạn
-  //     const response = await axios.get(`https://echoapp-rho.vercel.app/api/display-friend-request/${user.userID}`);
-
-  //     if (Array.isArray(response.data)) {
-  //       setFriendRequests(response.data);
-  //     } else {
-  //       setFriendRequests([]); // Reset khi không có dữ liệu hợp lệ
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching friend requests:", error);
-  //     setErrorMessage("Không thể tải yêu cầu kết bạn.");
-  //   }
-  // };
-
-  // Khi component mount, fetch danh sách yêu cầu kết bạn
   useEffect(() => {
     if (!user) {
       setErrorMessage("Bạn chưa đăng nhập.");
@@ -63,7 +41,6 @@ const FriendRequest = ({ user }) => {
     });
 
     socket.on("friend_request_accepted", (data) => {
-
       if(data.status ==="accepted"){
         console.log("Yêu cầu kết bạn đã được chấp nhận:", data);
         setFriendRequests((prevRequests) => prevRequests.filter(req => req.contactID !== data.userID)); // Xóa yêu cầu đã chấp nhận
@@ -74,6 +51,18 @@ const FriendRequest = ({ user }) => {
       if (data.status === "accepted") {
         console.log("Yêu cầu kết bạn đã được chấp nhận:", data);
         setFriendSend((prevRequests) => prevRequests.filter(req => req.userID !== data.recipientID)); // Xóa yêu cầu đã chấp nhận
+      }
+    });
+    socket.on("friend_request_rejected", (data) => {
+      if (data.status === "rejected") {
+        console.log("Yêu cầu kết bạn đã bị từ chối:", data);
+        setFriendRequests((prevRequests) => prevRequests.filter(req => req.contactID !== data.userID)); // Xóa yêu cầu đã từ chối
+      }
+    });
+    socket.on("friend_request_rejected", (data) => {
+      if (data.status === "rejected") {
+        console.log("Yêu cầu kết bạn đã bị từ chối:", data);
+        setFriendSend((prevRequests) => prevRequests.filter(req => req.userID !== data.recipientID)); // Xóa yêu cầu đã từ chối
       }
     });
 
@@ -88,7 +77,10 @@ const FriendRequest = ({ user }) => {
       socket.off("pending_friend_requests");
       socket.off("new_friend_request");
       socket.off("friend_request_accepted");
+      socket.off("friend_request_accepted");
       socket.off('friend_request_sent');
+      socket.off("friend_request_rejected");
+      socket.off("friend_request_rejected");
       socket.off("error");
     };
   }, [user]); // Khi user thay đổi, gọi lại yêu cầu lấy yêu cầu kết bạn
@@ -108,27 +100,13 @@ const FriendRequest = ({ user }) => {
   };
 
   // Handle reject friend request
-  const handleRejectRequest = async (contactID) => {
-    try {
-      const response = await axios.post("https://echoapp-rho.vercel.app/api/reject-friend-request", {
-        contactID: contactID,  // ID của người gửi yêu cầu kết bạn
-        userID: user.userID    // ID của người nhận yêu cầu (người đăng nhập)
-      });
-
-      if (response.status === 200) {
-        // Cập nhật lại danh sách yêu cầu kết bạn hoặc danh sách bạn bè
-        //fetchFriendRequests();  // Gọi lại API để lấy dữ liệu mới
-        setFriendRequests((prevRequests) => prevRequests.filter((req) => req.contactID !== contactID));
-        // Gửi thông báo về việc từ chối yêu cầu qua socket
+  const handleRejectRequest = async (item) => {
         socket.emit("reject_friend_request", {
-          senderID: contactID,
+          senderID: item.contactID,
           recipientID: user.userID,
+          senderName: item.name,
+          senderImage: item.avatar,
         });
-      }
-    } catch (error) {
-      console.error("Error rejecting friend request:", error);
-      alert("Có lỗi xảy ra khi từ chối yêu cầu.");
-    }
   };
 
   return (
@@ -145,7 +123,7 @@ const FriendRequest = ({ user }) => {
         <p>Chưa có lời mời kết bạn nào.</p>
       ) : (
         friendRequests.map((request) => (
-          <div key={request.contactID} className="friend-item">
+          <div key={request.name} className="friend-item">
             <img src={request.avatar || "https://example.com/avatar.jpg"} alt="Avatar" />
             <div className="info">
               <h4>{request.name}</h4>
@@ -159,7 +137,7 @@ const FriendRequest = ({ user }) => {
               </button>
               <button
                 className="reject-btn"
-                onClick={() => handleRejectRequest(request.contactID)} // Chuyển vào contactID đúng
+                onClick={() => handleRejectRequest(request)} // Chuyển vào contactID đúng
               >
                 Từ chối
               </button>
@@ -179,7 +157,7 @@ const FriendRequest = ({ user }) => {
         null
       ) : (
         friendSend.map((sentRequest) => (
-          <div key={sentRequest.userID} className="friend-item">
+          <div key={sentRequest.name} className="friend-item">
             <img src={sentRequest.avatar || "https://example.com/avatar.jpg"} alt="Avatar" />
             <div className="info">
               <h4>{sentRequest.name}</h4>

@@ -3,46 +3,27 @@ import axios from "axios";
 import "../styles/FriendList.css"; // Import CSS
 import { FaUserFriends } from "react-icons/fa"; // Import icon from react-icons
 import { useNavigate } from "react-router-dom";
+import { io } from 'socket.io-client';
+const socket = io('http://localhost:5000');
 
-const FriendList = () => {
-  const [friends, setFriends] = useState([]); // Store friends data
-  const [friendCount, setFriendCount] = useState(0); // Store number of friends
+
+const FriendList = ({friends,onStartChat,user}) => {
   const [errorMessage, setErrorMessage] = useState(""); // Store error message state
    const navigate = useNavigate();
+   console.log("friends",friends.length);
+   useEffect(() => {
+    if (!user?.userID) return;
+    socket.emit("join_user", user.userID);
+  }, []);
 
-  const user = JSON.parse(sessionStorage.getItem("user")); // Lấy thông tin người dùng từ sessionStorage
+ // const user = JSON.parse(sessionStorage.getItem("user")); // Lấy thông tin người dùng từ sessionStorage
 
-  useEffect(() => {
-    // Fetch friends data when the component mounts
-    const fetchFriends = async () => {
-      try {
-        if (!user.userID) {
-          setErrorMessage("Bạn chưa đăng nhập.");
-          return;
-        }
 
-        const response = await axios.get(`http://localhost:5000/api/friends/${user.userID}`);
-
-        
-        if (response.status === 200) {
-          setFriends(response.data); // Set the friends data
-          setFriendCount(response.data.length); // Update the friend count
-        }
-      } catch (error) {
-        setErrorMessage("Không thể tải danh sách bạn bè.");
-      }
-    };
-
-    fetchFriends(); // Call the function to fetch friends data
-  }, [user.userID]); // Re-run this effect when userID changes
   const fetchatListChatFriend = async (friend) => {
-    console.log("aaaaaa",friend);
     try {
       const response = await fetch("http://localhost:5000/api/chats1-1ByUserID", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userID1: user.userID,
           userID2: friend.userID,
@@ -50,38 +31,34 @@ const FriendList = () => {
       });
   
       const chat = await response.json();
-      
   
       if (response.ok && chat && chat.chatID) {
-        // Nếu đã có chat, chuyển đến ChatScreen
-        navigate('/home',{state: chat});
+        onStartChat(chat);
       } else {
-        // Nếu chưa có, tạo chat mới
         const createResponse = await fetch("http://localhost:5000/api/createChat1-1", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userID1: user.userID,
             userID2: friend.userID,
           }),
         });
   
-        const chat = await createResponse.json();
-       
-        console.log("📦 New chat response:", newChat);
-        if (createResponse.ok && chat.chatID) {
-          socket.emit("createChat1-1",chat);
-           navigate('/home',{state: chat});
+        const newchat = await createResponse.json();
+  
+        console.log("📦 New chat response:", newchat);
+        if (createResponse.ok && newchat.chatID) {
+          socket.emit("createChat1-1", newchat);
+          onStartChat(newchat);
         } else {
-          console.error("Không tạo được chat mới", newChat.message || newChat);
+          console.error("Không tạo được chat mới", newchat.message || newchat);
         }
       }
     } catch (error) {
       console.error("Lỗi khi lấy/tạo chat:", error);
     }
   };
+  
 
   return (
     <div className="content-section">
@@ -90,7 +67,7 @@ const FriendList = () => {
         Danh sách bạn bè
       </h3>
       <div>
-        <span className="friend-count">Số lượng bạn bè: {friendCount}</span>
+        <span className="friend-count">Số lượng bạn bè: {friends.length}</span>
       </div>
 
       {/* Display error message if there's any */}
@@ -99,8 +76,8 @@ const FriendList = () => {
       {/* Display the list of friends */}
       {friends.length > 0 ? (
         friends.map((friend) => (
-          <button onClick={fetchatListChatFriend(friend)}>
-          <div key={friend.userID} className="friend-itemm">
+          <button key={friend._id} onClick={() => fetchatListChatFriend(friend)}>
+          <div  className="friend-itemm">
             <img
               src={friend.anhDaiDien || "https://example.com/default-avatar.jpg"} // Hiển thị ảnh đại diện
               alt="Avatar"
