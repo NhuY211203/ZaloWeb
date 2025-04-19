@@ -1,16 +1,30 @@
 import React, { useState } from "react";
 import * as FaIcons from "react-icons/fa";
 import AddFriendModal from "./AddFriendModal"; // Import Modal
+import AddGroupModal from "./AddGroupModal"; // Import AddGroupModal
 
-const SearchBar = ({user}) => {
-  const [isModalOpen, setIsModalOpen] = useState(false); // Quản lý trạng thái modal
+const SearchBar = ({ user }) => {
+  const [isFriendModalOpen, setIsFriendModalOpen] = useState(false); // Quản lý trạng thái Modal bạn bè
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false); // Quản lý trạng thái Modal nhóm
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true); // Mở modal
+  // Mở Modal bạn bè
+  const handleOpenFriendModal = () => {
+    setIsFriendModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false); // Đóng modal
+  // Đóng Modal bạn bè
+  const handleCloseFriendModal = () => {
+    setIsFriendModalOpen(false);
+  };
+
+  // Mở Modal nhóm
+  const handleOpenGroupModal = () => {
+    setIsGroupModalOpen(true);
+  };
+
+  // Đóng Modal nhóm
+  const handleCloseGroupModal = () => {
+    setIsGroupModalOpen(false);
   };
 
   return (
@@ -26,20 +40,29 @@ const SearchBar = ({user}) => {
         />
       </div>
       <div className="search-icons">
-        <button onClick={handleOpenModal}>
+        {/* Button mở Modal bạn bè */}
+        <button onClick={handleOpenFriendModal}>
           <FaIcons.FaUserPlus />
         </button>
 
-        {/* Modal sẽ được gọi ở đây */}
+        {/* Modal bạn bè */}
         <AddFriendModal 
-          isModalOpen={isModalOpen} 
-          handleCloseModal={handleCloseModal} 
-          user={user} // Truyền user vào modal
+          isModalOpen={isFriendModalOpen} 
+          handleCloseModal={handleCloseFriendModal} 
+          user={user} 
         />
 
-        <span className="add-group-icon">
+        {/* Button mở Modal nhóm */}
+        <span className="add-group-icon" onClick={handleOpenGroupModal}>
           <FaIcons.FaUsers />
         </span>
+
+        {/* Modal nhóm */}
+        <AddGroupModal
+          isModalOpen={isGroupModalOpen}
+          handleCloseModal={handleCloseGroupModal}
+          user={user}
+        />
       </div>
     </div>
   );

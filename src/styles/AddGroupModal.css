@@ -1,0 +1,146 @@
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modal.open {
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal-content-group {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.search-boxx {
+  margin: 10px;
+}
+
+.search-inputt {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.search-input-search {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+
+.search-result-item {
+  flex-direction: row;
+  display: flex;
+  align-items: center;
+}
+
+
+.search-result-item input {
+  margin-right: 10px;
+}
+
+.selected-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selected-member img.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.selected-member span {
+  flex: 1;
+}
+
+.selected-member button {
+  background-color: #f44336; /* Red */
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.selected-member button:hover {
+  background-color: #d32f2f;
+}
+
+
+/* Container của modal, thêm cuộn cho danh sách bạn bè */
+.search-results {
+  max-height: 210px; /* Giới hạn chiều cao */
+  overflow-y: auto;  /* Thêm cuộn dọc khi nội dung vượt quá chiều cao */
+  padding-right: 10px; /* Thêm khoảng cách phải cho cuộn dọc */
+  flex-direction: row;
+}
+
+/* Tùy chỉnh cho danh sách đã chọn */
+.selected-members {
+ padding: 10px;
+ border-radius: 10px;
+  background-color: beige;
+  border-color: #ccc;
+  max-height: 180px; /* Giới hạn chiều cao */
+  overflow-y: auto;  /* Thêm cuộn dọc khi nội dung vượt quá chiều cao */
+}
+
+
+
+.image-placeholder{
+  border-width: 1px;
+  border-color: #ccc;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin-right: 10px;
+}
+
+
+.create-group-btn {
+  background: #007bff;
+  color: white;
+  padding: 10px;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.create-group-btn:hover {
+  background: #0056b3;
+}
