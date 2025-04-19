@@ -3,7 +3,7 @@ import * as FaIcons from "react-icons/fa";
 import AddFriendModal from "./AddFriendModal"; // Import Modal
 import AddGroupModal from "./AddGroupModal"; // Import AddGroupModal
 
-const SearchBar = ({ user }) => {
+const SearchBar = ({ user,onStartChat  }) => {
   const [isFriendModalOpen, setIsFriendModalOpen] = useState(false); // Quản lý trạng thái Modal bạn bè
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false); // Quản lý trạng thái Modal nhóm
 
@@ -60,8 +60,10 @@ const SearchBar = ({ user }) => {
         {/* Modal nhóm */}
         <AddGroupModal
           isModalOpen={isGroupModalOpen}
-          handleCloseModal={handleCloseGroupModal}
+
           user={user}
+          onStartChat={onStartChat} // Truyền hàm onStartChat vào Modal nhóm
+          handleCloseModal={handleCloseGroupModal}
         />
       </div>
     </div>

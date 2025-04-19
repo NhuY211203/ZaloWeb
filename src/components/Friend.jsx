@@ -63,10 +63,13 @@ const Friend = ({onStartChat,user}) => {
   return (
     <div className="profile-container">
       <div className="button-group">
-        <SearchBar />
+        <SearchBar
+           user={user}
+        />
         <button
           className={`btn ${activeView === "friends" ? "active" : ""}`}
           onClick={() => handleViewChange("friends")}
+
         >
           <FaUserFriends className="icon" />
           Danh sách bạn bè

@@ -10,7 +10,7 @@ import { io } from 'socket.io-client';
 //const socket = io('http://192.168.1.20:5000');
 const socket = io('http://localhost:5000');
 
-const ChatList = ({ onSelectChat,user }) => {
+const ChatList = ({ onSelectChat,user , onStartChat}) => {
   const [Messages, setMessages] = useState([]);
 
   
@@ -131,7 +131,10 @@ const ChatList = ({ onSelectChat,user }) => {
 
   return (
     <div className="chat-list">
-      <SearchBar />
+      <SearchBar 
+        user={user}
+        onStartChat={onStartChat} // Truyền hàm onStartChat vào SearchBar
+      />
       <div className="tab-menu">
         <span className="active-tab">Tất cả</span>
         <span>Chưa đọc</span>

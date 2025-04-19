@@ -30,9 +30,16 @@ const HomePage = () => {
     <div className="main">
       <Sidebar user={user} onChangeView={handleViewChange}/> {/* Truyền hàm thay đổi view */}
       <div className="chat-container">
+        
         {view === "chat" && (
           <>
-            <ChatList onSelectChat={setSelectedChat} user={user} />
+
+            <ChatList onSelectChat={setSelectedChat} user={user} 
+              onStartChat={(chat) => {
+                setSelectedChat(chat);
+                setView("chat");
+              }}
+            />
             <ChatWindow selectedChat={selectedChat} user={user} />
           </>
         )}
