@@ -6,6 +6,7 @@ import * as BiIcons from "react-icons/bi";
 import EmojiPicker from "emoji-picker-react";
 import { AudioRecorder } from "react-audio-voice-recorder";
 import { io } from "socket.io-client";
+import AddGroupModal from "./AddGroupModal";
 
 const socket = io("http://localhost:5000");
 
@@ -25,11 +26,56 @@ const ChatWindow = ({ selectedChat, user }) => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [mediaLinks, setMediaLinks] = useState([]);
   const [previewMedia, setPreviewMedia] = useState(null);
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [groupInfo, setGroupInfo] = useState(null);
+  const [isEditingGroupName, setIsEditingGroupName] = useState(false);
   const fileInputRef = useRef(null);
   const attachmentInputRef = useRef(null);
   const bottomRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  const groupImageInputRef = useRef(null);
 
+  // Xác định vai trò của người dùng (admin hoặc member)
+  const userRole = groupInfo?.adminID === user.userID ? "admin" : "member";
+
+  // Lấy thông tin nhóm từ server
+  const fetchGroupInfo = async () => {
+    if (!selectedChat?.chatID || selectedChat.type !== "group") return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/group/${selectedChat.chatID}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setGroupInfo(data);
+      } else {
+        console.error("❌ Error fetching group info:", data.message);
+      }
+    } catch (error) {
+      console.error("❌ Fetch failed:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedChat?.type === "group") {
+      fetchGroupInfo();
+    }
+  }, [selectedChat]);
+
+  // Lắng nghe sự kiện cập nhật nhóm qua socket
+  useEffect(() => {
+    socket.on("updateGroup", (updatedGroup) => {
+      if (updatedGroup.chatID === selectedChat.chatID) {
+        setGroupInfo(updatedGroup);
+      }
+    });
+
+    return () => {
+      socket.off("updateGroup");
+    };
+  }, [selectedChat]);
 
   const handleScroll = () => {
     const el = scrollContainerRef.current;
@@ -88,7 +134,6 @@ const ChatWindow = ({ selectedChat, user }) => {
         });
       }
     };
-    
 
     const handleStatusUpdate = ({ messageID, status }) => {
       setMessage((prev) =>
@@ -240,62 +285,54 @@ const ChatWindow = ({ selectedChat, user }) => {
 
   const sendSelectedFiles = async () => {
     if (!files.length) return;
-  
+
     setIsUploading(true);
-  
-    // Các form data để upload nhiều loại file
+
     const imageForm = new FormData();
     const videoForm = new FormData();
     const fileForm = new FormData();
-  
-    // Tách các file theo loại
+
     const imageFiles = [];
     const videoFiles = [];
     const otherFiles = [];
-  
+
     files.forEach((file) => {
       if (file.type.startsWith("image")) {
-        imageForm.append("files", file); // Thêm vào form data của ảnh
+        imageForm.append("files", file);
         imageFiles.push(file);
       } else if (file.type.startsWith("video")) {
         videoForm.append("files", file);
         videoFiles.push(file);
       } else {
-        fileForm.append("files", file); // Thêm vào form data của file khác
+        fileForm.append("files", file);
         otherFiles.push(file);
       }
     });
-  
+
     try {
-      // Gửi các file ảnh
       if (imageFiles.length > 0) {
         const res = await fetch("http://localhost:5000/api/upload", {
           method: "POST",
           body: imageForm,
         });
-        //if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
         const data = await res.json();
-  
-        // Tạo các tin nhắn cho ảnh
-        
-          const imageMsg = {
-            tempID: Date.now().toString(),
-            chatID: selectedChat.chatID,
-            senderID: user.userID,
-            content: "",
-            type: "image",
-            timestamp: new Date().toISOString(),
-            media_url: data.urls, // URL của ảnh
-            status: "sent",
-            senderInfo: { name: user.name, avatar: user.anhDaiDien },
-          };
-  
-          setMessage((prev) => [...prev, imageMsg]);
-          socket.emit("send_message", imageMsg);
-      
+
+        const imageMsg = {
+          tempID: Date.now().toString(),
+          chatID: selectedChat.chatID,
+          senderID: user.userID,
+          content: "",
+          type: "image",
+          timestamp: new Date().toISOString(),
+          media_url: data.urls,
+          status: "sent",
+          senderInfo: { name: user.name, avatar: user.anhDaiDien },
+        };
+
+        setMessage((prev) => [...prev, imageMsg]);
+        socket.emit("send_message", imageMsg);
       }
-  
-      // Gửi các file video
+
       if (videoFiles.length > 0) {
         const res = await fetch("http://localhost:5000/api/upload", {
           method: "POST",
@@ -303,8 +340,7 @@ const ChatWindow = ({ selectedChat, user }) => {
         });
         if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
         const data = await res.json();
-  
-        // Tạo các tin nhắn cho video
+
         data.urls.forEach((url) => {
           const videoMsg = {
             tempID: Date.now().toString(),
@@ -313,80 +349,69 @@ const ChatWindow = ({ selectedChat, user }) => {
             content: "",
             type: "video",
             timestamp: new Date().toISOString(),
-            media_url: url, // URL của video
+            media_url: url,
             status: "sent",
             senderInfo: { name: user.name, avatar: user.anhDaiDien },
           };
-  
+
           setMessage((prev) => [...prev, videoMsg]);
           socket.emit("send_message", videoMsg);
         });
       }
-  
-      // Gửi các file khác (word, pdf, ... nếu có)
+
       if (otherFiles.length > 0) {
-        try {
-          const res = await fetch("http://localhost:5000/api/upload", {
-            method: "POST",
-            body: fileForm,
-          });
-      
-          if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
-      
-          const data = await res.json();
-          console.log("File upload response:", data);
-           
-          // Check if the response contains the expected file URLs
-          if (!data.fileUrls || !Array.isArray(data.fileUrls)) {
+        const res = await fetch("http://localhost:5000/api/upload", {
+          method: "POST",
+          body: fileForm,
+        });
+
+        if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+        const data = await res.json();
+
+        if (!data.urls || !Array.isArray(data.urls)) {
+          const fileMsg = {
+            tempID: Date.now().toString(),
+            chatID: selectedChat.chatID,
+            senderID: user.userID,
+            content: otherFiles[0].name,
+            type: "file",
+            timestamp: new Date().toISOString(),
+            media_url: data.urls,
+            status: "sent",
+            senderInfo: { name: user.name, avatar: user.anhDaiDien },
+          };
+
+          setMessage((prev) => [...prev, fileMsg]);
+          socket.emit("send_message", fileMsg);
+        } else {
+          data.urls.forEach((url, i) => {
             const fileMsg = {
               tempID: Date.now().toString(),
               chatID: selectedChat.chatID,
               senderID: user.userID,
-              content:otherFiles[0].name, // File name
-              type: "file", // File type
+              content: otherFiles[i].name,
+              type: "file",
               timestamp: new Date().toISOString(),
-              media_url: data.urls, // URL of the uploaded file
-              status: "sent", // Sent status
+              media_url: url,
+              status: "sent",
               senderInfo: { name: user.name, avatar: user.anhDaiDien },
             };
-      
+
             setMessage((prev) => [...prev, fileMsg]);
-            socket.emit("send_message", fileMsg); // Emit the message
-          }else {
-          // Create and send a message for each uploaded file
-          data.fileUrls.forEach((url,i) => {
-            const fileMsg = {
-              tempID: Date.now().toString(),
-              chatID: selectedChat.chatID,
-              senderID: user.userID,
-              content:otherFiles[i].name, // File name
-              type: "file", // File type
-              timestamp: new Date().toISOString(),
-              media_url:url, // URL of the uploaded file
-              status: "sent", // Sent status
-              senderInfo: { name: user.name, avatar: user.anhDaiDien },
-            };
-      
-            setMessage((prev) => [...prev, fileMsg]);
-            socket.emit("send_message", fileMsg); // Emit the message
+            socket.emit("send_message", fileMsg);
           });
-        }
-        } catch (error) {
-          console.error("Upload error:", error);
-          alert("Error uploading files: " + error.message);
         }
       }
-      // Reset files sau khi upload
+
       setFiles([]);
       setSaveImage(false);
     } catch (error) {
       console.error("Upload error:", error);
       alert("Lỗi khi upload file: " + error.message);
     } finally {
-      setIsUploading(false); // Kết thúc quá trình upload
+      setIsUploading(false);
     }
   };
-  
 
   const handleEmojiClick = (emojiObject) => {
     const emoji = emojiObject.emoji;
@@ -422,7 +447,6 @@ const ChatWindow = ({ selectedChat, user }) => {
   const handleFileChange = (event) => {
     const selectedFiles = Array.from(event.target.files);
     setFiles(selectedFiles);
-    console.log("Selected files:", selectedFiles);
     setSaveImage(true);
   };
 
@@ -430,6 +454,122 @@ const ChatWindow = ({ selectedChat, user }) => {
     const updatedFiles = files.filter((_, i) => i !== index);
     setFiles(updatedFiles);
     if (updatedFiles.length === 0) setSaveImage(false);
+  };
+
+  const handleAddMember = () => {
+    setIsAddMemberModalOpen(true);
+  };
+
+  const handleCloseAddMemberModal = () => {
+    setIsAddMemberModalOpen(false);
+  };
+
+  const handleRemoveMember = async (memberId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/removeMember/${selectedChat.chatID}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId, adminID: user.userID }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setGroupInfo(data);
+        socket.emit("updateGroup", data);
+      } else {
+        console.error("❌ Error removing member:", data.message);
+      }
+    } catch (error) {
+      console.error("❌ Remove failed:", error.message);
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/leaveGroup/${selectedChat.chatID}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userID: user.userID }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log("✅ Left group successfully");
+      } else {
+        console.error("❌ Error leaving group:", data.message);
+      }
+    } catch (error) {
+      console.error("❌ Leave failed:", error.message);
+    }
+  };
+
+  const handleDissolveGroup = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/dissolveGroup/${selectedChat.chatID}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log("✅ Group dissolved successfully");
+      } else {
+        console.error("❌ Error dissolving group:", data.message);
+      }
+    } catch (error) {
+      console.error("❌ Dissolve failed:", error.message);
+    }
+  };
+
+  const handleChangeRole = (memberId, newRole) => {
+    console.log(`Thay đổi vai trò của ${memberId} thành ${newRole}`);
+  };
+
+  const handleTransferRole = (memberId) => {
+    console.log(`Chuyển giao vai trò admin cho ${memberId}`);
+  };
+
+  const handleEditGroupInfo = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/updateGroup/${selectedChat.chatID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: groupInfo.name,
+          avatar: groupInfo.avatar,
+        }),
+      });
+      const updatedGroup = await response.json();
+      if (response.ok) {
+        setGroupInfo(updatedGroup);
+        socket.emit("updateGroup", updatedGroup);
+        setIsEditingGroupName(false);
+      } else {
+        console.error("❌ Error updating group info:", updatedGroup.message);
+      }
+    } catch (error) {
+      console.error("❌ Update failed:", error.message);
+    }
+  };
+
+  const handleGroupImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append("files", file);
+
+      try {
+        const res = await fetch("http://localhost:5000/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setGroupInfo((prev) => ({ ...prev, avatar: data.urls[0] }));
+        } else {
+          console.error("❌ Error uploading image:", data.message);
+        }
+      } catch (error) {
+        console.error("❌ Upload failed:", error.message);
+      }
+    }
   };
 
   if (!selectedChat) {
@@ -471,6 +611,13 @@ const ChatWindow = ({ selectedChat, user }) => {
                     className="avatar"
                   />
                 )}
+              {selectedChat.type === "group" && (
+                <img
+                  src={groupInfo?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
+                  alt="group avatar"
+                  className="avatar"
+                />
+              )}
             </div>
             <div className="header-info">
               <h2>{selectedChat.name}</h2>
@@ -566,8 +713,7 @@ const ChatWindow = ({ selectedChat, user }) => {
                             </div>
                           );
                         })
-                      )
-                       : (
+                      ) : (
                         <span className="message-text">{msg.content}</span>
                       )}
                       {isMine && msg.type !== "unsent" && (
@@ -716,145 +862,287 @@ const ChatWindow = ({ selectedChat, user }) => {
           </div>
         </div>
         {isInfoOpen && (
-          <div className="content2">
-            <h2>Thông tin hội thoại</h2>
-            <div className="chat-info">
-              <div>
-                {selectedChat.type === "private" &&
-                  selectedChat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
-                    <img
-                      src={
-                        selectedChat.lastMessage.find((msg) => msg.senderID !== user.userID)
-                          ?.senderInfo?.avatar
-                      }
-                      alt="avatar"
-                      className="avatar"
-                    />
+        <div className="content2">
+          <h2>{selectedChat.type === "group" ? "Thông tin nhóm" : "Thông tin hội thoại"}</h2>
+          <div className="chat-info">
+            <div style={{ position: "relative" }}>
+              {selectedChat.type === "private" &&
+                selectedChat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
+                  <img
+                    src={
+                      selectedChat.lastMessage.find((msg) => msg.senderID !== user.userID)
+                        ?.senderInfo?.avatar
+                    }
+                    alt="avatar"
+                    className="avatar"
+                  />
+                )}
+              {selectedChat.type === "group" && (
+                <>
+                  <img
+                    src={groupInfo?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
+                    alt="group avatar"
+                    className="avatar"
+                    onClick={() => userRole === "admin" && groupImageInputRef.current?.click()}
+                  />
+                  {userRole === "admin" && (
+                    <>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        ref={groupImageInputRef}
+                        onChange={handleGroupImageChange}
+                      />
+                      <FaIcons.FaPencilAlt
+                        className="edit-icon"
+                        onClick={() => groupImageInputRef.current?.click()}
+                      />
+                    </>
                   )}
-              </div>
-              <h3>{selectedChat.name}</h3>
-            </div>
-            <div className="info-section">
-              <div className="info-header">
-                <FaIcons.FaBell className="info-icon" />
-                <h4>Danh sách nhắc hẹn</h4>
-              </div>
-              <p>Chưa có nhắc hẹn</p>
-            </div>
-            <div className="info-section">
-              <div className="info-header">
-                <FaIcons.FaImage className="info-icon" />
-                <h4>Ảnh/Video</h4>
-                <FaIcons.FaChevronDown className="chevron-icon" />
-              </div>
-              {mediaImages.length > 0 || mediaVideos.length > 0 ? (
-                <div className="media-grid">
-                  {mediaImages.map((img) => (
-                    <img
-                      key={img.id}
-                      src={img.url}
-                      alt="media"
-                      onClick={() => openMediaPreview({ type: "image", url: img.url })}
-                    />
-                  ))}
-                  {mediaVideos.map((vid) => (
-                    <video
-                      key={vid.id}
-                      src={vid.url}
-                      onClick={() => openMediaPreview({ type: "video", url: vid.url })}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p>Chưa có Ảnh/Video được chia sẻ trong hội thoại này</p>
+                </>
               )}
-              <button className="view-all">Xem tất cả</button>
             </div>
-            <div className="info-section">
-              <div className="info-header">
-                <FaIcons.FaFileAlt className="info-icon" />
-                <h4>File</h4>
-                <FaIcons.FaChevronDown className="chevron-icon" />
+            {selectedChat.type === "group" ? (
+            isEditingGroupName ? (
+              <input
+                type="text"
+                value={groupInfo?.name || selectedChat.name || ""}
+                onChange={(e) =>
+                  setGroupInfo((prev) => ({ ...prev, name: e.target.value }))
+                }
+                onBlur={handleEditGroupInfo}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleEditGroupInfo();
+                  }
+                }}
+                autoFocus
+              />
+            ) : (
+              <h3 onClick={() => userRole === "admin" && setIsEditingGroupName(true)}>
+                {groupInfo?.name || selectedChat.name || "Tên nhóm chưa có"}
+                {userRole === "admin" && (
+                  <FaIcons.FaPencilAlt style={{ marginLeft: "8px", fontSize: "14px" }} />
+                )}
+              </h3>
+            )
+          ) : (
+            <h3>{selectedChat.name}
+            </h3>
+            )}
+          </div>
+
+          {selectedChat.type === "group" && (
+            <div>
+              <div className="group-actions">
+                <button className="group-action-btn" onClick={handleAddMember}>
+                  <FaIcons.FaUserPlus className="icon" />
+                  Thêm thành viên
+                </button>
+                {userRole === "admin" && (
+                  <button className="group-action-btn" onClick={handleDissolveGroup}>
+                    <FaIcons.FaTimes className="icon" style={{ color: "#ff4d4f" }} />
+                    Giải tán nhóm
+                  </button>
+                )}
               </div>
-              {mediaFiles.length > 0 ? (
-                mediaFiles.map((file) => (
-                  <div key={file.id} className="file-item">
-                    <img
-                      src={
-                        file.name.endsWith(".pdf")
-                          ? "/pdf-icon.png"
-                          : "/file-icon.png"
-                      }
-                      alt="file-icon"
-                    />
-                    <a href={file.url} download={file.name}>
-                      {file.name}
-                    </a>
-                    <span>{new Date(file.timestamp).toLocaleDateString("vi-VN")}</span>
+
+              <div className="info-section">
+                <div className="info-header">
+                  <FaIcons.FaUsers className="info-icon" />
+                  <h4>Thành viên nhóm</h4>
+                  <FaIcons.FaChevronDown className="chevron-icon" />
+                </div>
+                <div className="member-count">
+                  {groupInfo?.members?.length || 0} thành viên
+                </div>
+                {groupInfo?.members?.map((member) => (
+                  <div key={member.userID} className="member-item">
+                    <img src={member.anhDaiDien} alt="avatar" className="avatar-small" />
+                    <span>{member.name}</span>
+                    <span className="role-label">
+                      {member.userID === groupInfo.adminID ? "Admin" : "Thành viên"}
+                    </span>
+                    {userRole === "admin" && member.userID !== user.userID && (
+                      <div>
+                        <button
+                          className="remove-member-btn"
+                          onClick={() => handleRemoveMember(member.userID)}
+                        >
+                          Xóa
+                        </button>
+                        <button
+                          className="change-role-btn"
+                          onClick={() =>
+                            handleChangeRole(
+                              member.userID,
+                              member.role === "member" ? "admin" : "member"
+                            )
+                          }
+                        >
+                          {member.role === "member" ? "Chỉ định Admin" : "Hủy Admin"}
+                        </button>
+                        <button
+                          className="transfer-role-btn"
+                          onClick={() => handleTransferRole(member.userID)}
+                        >
+                          Chuyển giao Admin
+                        </button>
+                      </div>
+                    )}
                   </div>
-                ))
-              ) : (
-                <p>Chưa có File được chia sẻ trong hội thoại này</p>
-              )}
-              <button className="view-all">Xem tất cả</button>
-            </div>
-            <div className="info-section">
-              <div className="info-header">
-                <FaIcons.FaLink className="info-icon" />
-                <h4>Link</h4>
-                <FaIcons.FaChevronDown className="chevron-icon" />
+                ))}
               </div>
-              {mediaLinks.length > 0 ? (
-                mediaLinks.map((link) => (
-                  <div key={link.id} className="link-item">
-                    <a href={link.url} target="_blank" rel="noopener noreferrer">
-                      {link.url}
-                    </a>
-                    <span>{new Date(link.timestamp).toLocaleDateString("vi-VN")}</span>
-                  </div>
-                ))
-              ) : (
-                <p>Chưa có Link được chia sẻ trong hội thoại này</p>
-              )}
-              <button className="view-all">Xem tất cả</button>
             </div>
-            <div className="info-section">
-              <div className="info-header">
-                <FaIcons.FaLock className="info-icon" />
-                <h4>Thiết lập bảo mật</h4>
-                <FaIcons.FaChevronDown className="chevron-icon" />
+          )}
+
+          <div className="info-section">
+            <div className="info-header">
+              <FaIcons.FaBell className="info-icon" />
+              <h4>Danh sách nhắc hẹn</h4>
+            </div>
+            <p>Chưa có nhắc hẹn</p>
+          </div>
+          <div className="info-section">
+            <div className="info-header">
+              <FaIcons.FaImage className="info-icon" />
+              <h4>Ảnh/Video</h4>
+              <FaIcons.FaChevronDown className="chevron-icon" />
+            </div>
+            {mediaImages.length > 0 || mediaVideos.length > 0 ? (
+              <div className="media-grid">
+                {mediaImages.map((img) => (
+                  <img
+                    key={img.id}
+                    src={img.url}
+                    alt="media"
+                    onClick={() => openMediaPreview({ type: "image", url: img.url })}
+                  />
+                ))}
+                {mediaVideos.map((vid) => (
+                  <video
+                    key={vid.id}
+                    src={vid.url}
+                    onClick={() => openMediaPreview({ type: "video", url: vid.url })}
+                  />
+                ))}
               </div>
-              <div className="setting-item">
-                <div className="setting-label">
-                  <FaIcons.FaClock className="setting-icon" />
-                  <span>Tin nhắn tự xóa</span>
+            ) : (
+              <p>Chưa có Ảnh/Video được chia sẻ trong hội thoại này</p>
+            )}
+            <button className="view-all">Xem tất cả</button>
+          </div>
+          <div className="info-section">
+            <div className="info-header">
+              <FaIcons.FaFileAlt className="info-icon" />
+              <h4>File</h4>
+              <FaIcons.FaChevronDown className="chevron-icon" />
+            </div>
+            {mediaFiles.length > 0 ? (
+              mediaFiles.map((file) => (
+                <div key={file.id} className="file-item">
+                  <img
+                    src={
+                      file.name.endsWith(".pdf")
+                        ? "/pdf-icon.png"
+                        : "/file-icon.png"
+                    }
+                    alt="file-icon"
+                  />
+                  <a href={file.url} download={file.name}>
+                    {file.name}
+                  </a>
+                  <span>{new Date(file.timestamp).toLocaleDateString("vi-VN")}</span>
                 </div>
-                <span>Không bao giờ</span>
-              </div>
-              <div className="setting-item">
-                <div className="setting-label">
-                  <FaIcons.FaEyeSlash className="setting-icon" />
-                  <span>Ẩn trò chuyện</span>
+              ))
+            ) : (
+              <p>Chưa có File được chia sẻ trong hội thoại này</p>
+            )}
+            <button className="view-all">Xem tất cả</button>
+          </div>
+          <div className="info-section">
+            <div className="info-header">
+              <FaIcons.FaLink className="info-icon" />
+              <h4>Link</h4>
+              <FaIcons.FaChevronDown className="chevron-icon" />
+            </div>
+            {mediaLinks.length > 0 ? (
+              mediaLinks.map((link) => (
+                <div key={link.id} className="link-item">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    {link.url}
+                  </a>
+                  <span>{new Date(link.timestamp).toLocaleDateString("vi-VN")}</span>
                 </div>
-                <label className="switch">
-                  <input type="checkbox" />
-                  <span className="slider" />
-                </label>
-              </div>
+              ))
+            ) : (
+              <p>Chưa có Link được chia sẻ trong hội thoại này</p>
+            )}
+            <button className="view-all">Xem tất cả</button>
+          </div>
+          <div className="info-section">
+            <div className="info-header">
+              <FaIcons.FaLock className="info-icon" />
+              <h4>Thiết lập bảo mật</h4>
+              <FaIcons.FaChevronDown className="chevron-icon" />
             </div>
-            <div className="info-section">
-              <div className="info-header">
-                <BiIcons.BiError className="info-icon" />
-                <h4>Báo xấu</h4>
+            <div className="setting-item">
+              <div className="setting-label">
+                <FaIcons.FaClock className="setting-icon" />
+                <span>Tin nhắn tự xóa</span>
               </div>
+              <span>Không bao giờ</span>
             </div>
+            <div className="setting-item">
+              <div className="setting-label">
+                <FaIcons.FaEyeSlash className="setting-icon" />
+                <span>Ẩn trò chuyện</span>
+              </div>
+              <label className="switch">
+                <input type="checkbox" />
+                <span className="slider" />
+              </label>
+            </div>
+          </div>
+          <div className="info-section">
+            <div className="info-header">
+              <BiIcons.BiError className="info-icon" />
+              <h4>Báo xấu</h4>
+            </div>
+          </div>
+
+          {selectedChat.type === "group" && userRole !== "admin" && (
+            <button className="leave-group-btn" onClick={handleLeaveGroup}>
+              <FaIcons.FaSignOutAlt className="leave-icon" />
+              Rời nhóm
+            </button>
+          )}
+          {selectedChat.type !== "group" && (
             <button className="delete-chat">
               <FaIcons.FaTrash className="delete-icon" />
               Xóa lịch sử trò chuyện
             </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+              )}
+            </div>
+
+      {isAddMemberModalOpen && (
+        <AddGroupModal
+          isModalOpen={isAddMemberModalOpen}
+          handleCloseModal={handleCloseAddMemberModal}
+          user={user}
+          chatID={selectedChat.chatID}
+          mode="add"
+          onGroupCreate={() => {}}
+          onStartChat={() => {}}
+          onMembersAdded={(updatedGroup) => {
+            setGroupInfo(updatedGroup);
+          }}
+        />
+      )}
+
       {previewMedia && (
         <div className="media-preview-modal" onClick={closeMediaPreview}>
           <div className="media-preview-content">

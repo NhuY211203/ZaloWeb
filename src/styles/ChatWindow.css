@@ -1,3 +1,4 @@
+/* Khu vực chính của chat */
 .chat-window {
   flex: 1;
   display: flex;
@@ -13,6 +14,7 @@
   height: 100%;
 }
 
+/* Khu vực hiển thị tin nhắn (content1) */
 .content1 {
   width: 70%;
   height: 100%;
@@ -66,6 +68,7 @@
   border-radius: 50%;
   background-color: #ddd;
   margin-right: 15px;
+  object-fit: cover;
 }
 
 .content1 .header .header-info {
@@ -80,6 +83,7 @@
 
 .content1 .header .header-info p {
   margin: 0;
+  font-size: 13px;
 }
 
 .content1 .header .header-icons {
@@ -183,6 +187,7 @@
   height: 32px;
   border-radius: 50%;
   margin: 0 8px;
+  object-fit: cover;
 }
 
 /* Trạng thái tin nhắn (Đã gửi/Đã xem) */
@@ -327,47 +332,186 @@
 /* Khu vực thông tin hội thoại (content2) */
 .content2 {
   width: 30%;
-  padding: 15px;
-  background-color: #f9f9f9;
+  padding: 20px;
+  background-color: #f5f5f5;
   border-left: 1px solid #ddd;
   overflow-y: auto;
+  font-family: Arial, sans-serif;
 }
 
 .content2 h2 {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
 }
 
+/* Thông tin nhóm */
 .chat-info {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 25px;
+  text-align: center;
 }
 
 .chat-info .avatar {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background-color: #ddd;
+  object-fit: cover;
+  cursor: pointer;
+  position: relative;
+}
+
+.chat-info .avatar:hover {
+  opacity: 0.9;
+}
+
+.chat-info .edit-icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
 }
 
 .chat-info h3 {
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
+.chat-info input[type="text"] {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 5px;
+  outline: none;
+  width: 80%;
+  background: transparent;
+}
+
+.chat-info input[type="text"]:focus {
+  border-color: #007bff;
+}
+
+/* Phần hành động nhanh */
+.group-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.group-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+}
+
+.group-action-btn .icon {
+  font-size: 20px;
+  color: #007bff;
+}
+
+.group-action-btn:hover .icon {
+  color: #0056b3;
+}
+
+/* Phần danh sách thành viên */
+.member-count {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.member-item .avatar-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member-item span {
+  flex-grow: 1;
+  font-size: 14px;
+  color: #333;
+}
+
+.member-item .role-label {
+  font-size: 12px;
+  color: #007bff;
+}
+
+.member-item .remove-member-btn,
+.member-item .change-role-btn,
+.member-item .transfer-role-btn {
+  background: none;
+  border: 1px solid #ff4d4f;
+  color: #ff4d4f;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.member-item .change-role-btn,
+.member-item .transfer-role-btn {
+  border-color: #007bff;
+  color: #007bff;
+  margin-left: 10px;
+}
+
+.member-item .remove-member-btn:hover,
+.member-item .change-role-btn:hover,
+.member-item .transfer-role-btn:hover {
+  background-color: #ff4d4f;
+  color: white;
+}
+
+.member-item .change-role-btn:hover,
+.member-item .transfer-role-btn:hover {
+  background-color: #007bff;
+}
+
+/* Các mục thông tin (Ảnh/Video, File, Link, v.v.) */
 .info-section {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .info-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-weight: bold;
-  margin-bottom: 8px;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  cursor: pointer;
 }
 
 .info-icon {
@@ -383,8 +527,9 @@
 
 .info-section h4 {
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 600;
   margin: 0;
+  color: #333;
 }
 
 .info-section p {
@@ -393,6 +538,21 @@
   margin: 0;
 }
 
+/* Nút Xem tất cả */
+.view-all {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.view-all:hover {
+  text-decoration: underline;
+}
+
+/* Thiết lập bảo mật */
 .setting-item {
   display: flex;
   justify-content: space-between;
@@ -461,6 +621,7 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
+/* Nút Xóa lịch sử trò chuyện */
 .delete-chat {
   background-color: #ff4d4f;
   color: white;
@@ -481,6 +642,7 @@ input:checked + .slider:before {
   font-size: 16px;
 }
 
+/* Modal xem trước media */
 .media-preview-modal {
   position: fixed;
   top: 0;
@@ -518,6 +680,7 @@ input:checked + .slider:before {
   cursor: pointer;
 }
 
+/* Lưới hiển thị media (Ảnh/Video) */
 .media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -534,6 +697,7 @@ input:checked + .slider:before {
   border-radius: 5px;
 }
 
+/* File item */
 .file-item {
   display: flex;
   align-items: center;
@@ -552,6 +716,13 @@ input:checked + .slider:before {
   color: #007bff;
 }
 
+.file-item span {
+  font-size: 12px;
+  color: #666;
+  margin-left: auto;
+}
+
+/* Link item */
 .link-item {
   padding: 10px;
   border-bottom: 1px solid #eee;
@@ -561,4 +732,37 @@ input:checked + .slider:before {
   text-decoration: none;
   color: #007bff;
   word-break: break-all;
+}
+
+.link-item span {
+  font-size: 12px;
+  color: #666;
+  display: block;
+  margin-top: 5px;
+}
+
+/* Nút Rời nhóm */
+.leave-group-btn {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  width: 100%;
+  transition: background-color 0.2s ease;
+}
+
+.leave-group-btn:hover {
+  background-color: #e04348;
+}
+
+.leave-icon {
+  font-size: 16px;
 }
