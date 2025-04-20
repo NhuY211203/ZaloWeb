@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+
+import React, { useState ,useEffect} from "react";
 import { FaUsers, FaChevronDown, FaImage, FaFileAlt, FaLink, FaSignOutAlt, FaTrash } from "react-icons/fa";
 import GroupMembersModal from "./GroupMembersModal "; // Import modal mới
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000");
 
 const ChatInfo = ({
   selectedChat,
@@ -20,6 +24,50 @@ const ChatInfo = ({
 }) => {
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false); // State để mở/đóng modal
 
+  const [members, setMembers] = useState([]); // State để lưu danh sách thành viên nhóm
+  const [length, setLength] = useState(0); // State để lưu độ dài danh sách thành viên nhóm
+  const getMemberList = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/InforMember", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ members: selectedChat.members }), // Send members data to server
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMembers(data);
+        setLength(data.length); // Cập nhật độ dài danh sách thành viên nhóm
+        console.log("📦 members:", data);
+      } else {
+        console.error("❌ Error fetching friends list:", data.message);
+      }
+    } catch (error) {
+      console.error("❌ Fetch failed:", error.message);
+    }
+  };
+  useEffect(() => {
+      if (!user) return;
+      getMemberList(); // Gọi hàm lấy danh sách thành viên nhóm
+      socket.emit('join_user', user.userID); // Tham gia vào phòng socket của người dùng
+      socket.on("newMember",(data)=>{
+          setMembers(data)
+          setLength(data.length)
+      });
+
+      socket.on("outMember", (data) => {
+            setMembers(data);
+            setLength(data.length); // Cập nhật độ dài danh sách thành viên nhóm
+            console.log("📦 members:", data)
+            }
+        );
+      return () => {
+          socket.off("newMember");
+            socket.off("outMember"); // Dọn dẹp sự kiện khi component unmount
+
+      }
+    }, [user]);
+    console.log("📦 members:", members);
   const handleOpenMembersModal = () => {
     setIsMembersModalOpen(true); // Mở modal
   };
@@ -27,6 +75,14 @@ const ChatInfo = ({
   const handleCloseMembersModal = () => {
     setIsMembersModalOpen(false); // Đóng modal
   };
+
+  const handleOutGroup = () => {
+    socket.emit("removeMember", ({
+        chatID: selectedChat.chatID,
+        memberID: user.userID
+    }));
+
+  }
 
   return (
     <div className="content2">
@@ -77,7 +133,7 @@ const ChatInfo = ({
             <button onClick={handleOpenMembersModal} className="info-header">
               <div className="info-headerr">
                 <FaUsers className="info-icon" />
-                <h4>Thành viên nhóm: {groupInfo?.members?.length || 0} thành viên</h4>
+                <h4>Thành viên nhóm: {length || 0} thành viên</h4>
               </div>
             </button>
           </div>
@@ -141,7 +197,7 @@ const ChatInfo = ({
 
         {/* Leave or Delete */}
         {selectedChat.type === "group" && userRole !== "admin" && (
-          <button className="leave-group-btn" onClick={handleLeaveGroup}>
+          <button className="leave-group-btn" onClick={handleOutGroup}>
             <FaSignOutAlt className="leave-icon" />
             Rời nhóm
           </button>
@@ -158,13 +214,13 @@ const ChatInfo = ({
       <GroupMembersModal
         isOpen={isMembersModalOpen}
         handleClose={handleCloseMembersModal}
-        groupInfo={groupInfo}
         selectedChat={selectedChat}
         userRole={userRole}
         handleRemoveMember={handleRemoveMember}
         handleChangeRole={handleChangeRole}
         handleTransferRole={handleTransferRole}
         user={user}
+        members={members}
       />
     </div>
   );

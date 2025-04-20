@@ -1,3 +1,4 @@
+
 import React, { useState,useEffect } from "react";
 import ChatItem from "./ChatItem";
 import "../styles/ChatList.css";
@@ -100,13 +101,31 @@ const ChatList = ({ onSelectChat,user , onStartChat}) => {
       console.log("newChat",newChat);
       setMessages((prevMessages) =>[...prevMessages,newChat]);
     };
-  
+    const handleUpdateChat = (data) => {
+      console.log("📦 Update chat:", data);
+      setMessages((prev) => {
+        const chatIndex = prev.findIndex(chat => chat.chatID === data.chatID);
+        if (chatIndex !== -1) {
+          const updated = [...prev];
+          updated[chatIndex] = { ...updated[chatIndex], ...data };
+          return updated;
+        }
+        return [...prev, data];
+      });
+    };
     // Đăng ký socket listeners
     socket.on("ChatByUserID", handleChatByUserID);
     socket.on("new_message", handleNewMessage);
     socket.on("status_update_all", handleStatusUpdate);
     socket.on("newChat1-1", handleNewChat1to1);
     socket.emit("unsend_notification", handleNewMessage);
+    socket.on("updateChat", handleUpdateChat);
+
+    socket.on("updateMemberChat",handleUpdateChat);
+    socket.on("removeChat", (chatID) => {
+      console.log("📦 Remove chat:", chatID);
+      setMessages((prevMessages) => prevMessages.filter(chat => chat.chatID !== chatID));
+    });
   
     // Cleanup
     return () => {
@@ -116,6 +135,9 @@ const ChatList = ({ onSelectChat,user , onStartChat}) => {
       socket.off("status_update_all", handleStatusUpdate);
       socket.off("newChat1-1", handleNewChat1to1);
       socket.off("unsend_notification", handleNewMessage);
+      socket.off("updateChat", handleUpdateChat);
+      socket.off("updateMemberChat",handleUpdateChat);
+      socket.off("removeChat");
     };
   }, [socket, user?.userID]);
   

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import "../styles/ChatWindow.css";
 import * as FaIcons from "react-icons/fa";
@@ -6,8 +7,8 @@ import * as BiIcons from "react-icons/bi";
 import EmojiPicker from "emoji-picker-react";
 import { AudioRecorder } from "react-audio-voice-recorder";
 import { io } from "socket.io-client";
-import AddGroupModal from "./AddGroupModal";
 import ChatInfo from "./ChatInfo"; 
+import AddMemberGroup from "./AddMemberGroup";
 
 const socket = io("http://localhost:5000");
 
@@ -484,23 +485,23 @@ const ChatWindow = ({ selectedChat, user }) => {
     }
   };
 
-  const handleLeaveGroup = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/leaveGroup/${selectedChat.chatID}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userID: user.userID }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        console.log("✅ Left group successfully");
-      } else {
-        console.error("❌ Error leaving group:", data.message);
-      }
-    } catch (error) {
-      console.error("❌ Leave failed:", error.message);
-    }
-  };
+  // const handleLeaveGroup = async () => {
+  //   try {
+  //     const response = await fetch(`http://localhost:5000/api/leaveGroup/${selectedChat.chatID}`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ userID: user.userID }),
+  //     });
+  //     const data = await response.json();
+  //     if (response.ok) {
+  //       console.log("✅ Left group successfully");
+  //     } else {
+  //       console.error("❌ Error leaving group:", data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("❌ Leave failed:", error.message);
+  //   }
+  // };
 
   const handleDissolveGroup = async () => {
     try {
@@ -519,59 +520,59 @@ const ChatWindow = ({ selectedChat, user }) => {
     }
   };
 
-  const handleChangeRole = (memberId, newRole) => {
-    console.log(`Thay đổi vai trò của ${memberId} thành ${newRole}`);
-  };
+  // const handleChangeRole = (memberId, newRole) => {
+  //   console.log(`Thay đổi vai trò của ${memberId} thành ${newRole}`);
+  // };
 
-  const handleTransferRole = (memberId) => {
-    console.log(`Chuyển giao vai trò admin cho ${memberId}`);
-  };
+  // const handleTransferRole = (memberId) => {
+  //   console.log(`Chuyển giao vai trò admin cho ${memberId}`);
+  // };
 
-  const handleEditGroupInfo = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/updateGroup/${selectedChat.chatID}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: groupInfo.name,
-          avatar: groupInfo.avatar,
-        }),
-      });
-      const updatedGroup = await response.json();
-      if (response.ok) {
-        setGroupInfo(updatedGroup);
-        socket.emit("updateGroup", updatedGroup);
-        setIsEditingGroupName(false);
-      } else {
-        console.error("❌ Error updating group info:", updatedGroup.message);
-      }
-    } catch (error) {
-      console.error("❌ Update failed:", error.message);
-    }
-  };
+  // const handleEditGroupInfo = async () => {
+  //   try {
+  //     const response = await fetch(`http://localhost:5000/api/updateGroup/${selectedChat.chatID}`, {
+  //       method: "PUT",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         name: groupInfo.name,
+  //         avatar: groupInfo.avatar,
+  //       }),
+  //     });
+  //     const updatedGroup = await response.json();
+  //     if (response.ok) {
+  //       setGroupInfo(updatedGroup);
+  //       socket.emit("updateGroup", updatedGroup);
+  //       setIsEditingGroupName(false);
+  //     } else {
+  //       console.error("❌ Error updating group info:", updatedGroup.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("❌ Update failed:", error.message);
+  //   }
+  // };
 
-  const handleGroupImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append("files", file);
+  // const handleGroupImageChange = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (file) {
+  //     const formData = new FormData();
+  //     formData.append("files", file);
 
-      try {
-        const res = await fetch("http://localhost:5000/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setGroupInfo((prev) => ({ ...prev, avatar: data.urls[0] }));
-        } else {
-          console.error("❌ Error uploading image:", data.message);
-        }
-      } catch (error) {
-        console.error("❌ Upload failed:", error.message);
-      }
-    }
-  };
+  //     try {
+  //       const res = await fetch("http://localhost:5000/api/upload", {
+  //         method: "POST",
+  //         body: formData,
+  //       });
+  //       const data = await res.json();
+  //       if (res.ok) {
+  //         setGroupInfo((prev) => ({ ...prev, avatar: data.urls[0] }));
+  //       } else {
+  //         console.error("❌ Error uploading image:", data.message);
+  //       }
+  //     } catch (error) {
+  //       console.error("❌ Upload failed:", error.message);
+  //     }
+  //   }
+  // };
 
   if (!selectedChat) {
     return (
@@ -871,11 +872,6 @@ const ChatWindow = ({ selectedChat, user }) => {
           groupInfo={groupInfo}
           user={user}
           handleAddMember={handleAddMember}
-          handleDissolveGroup={handleDissolveGroup}
-          handleRemoveMember={() => {}}
-          handleChangeRole={() => {}}
-          handleTransferRole={() => {}}
-          handleLeaveGroup={handleLeaveGroup}
           mediaImages={mediaImages}
           mediaVideos={mediaVideos}
           mediaFiles={mediaFiles}
@@ -884,7 +880,7 @@ const ChatWindow = ({ selectedChat, user }) => {
         )}
       </div>
 
-      {isAddMemberModalOpen && (
+      {/* {isAddMemberModalOpen && (
         <AddGroupModal
           isModalOpen={isAddMemberModalOpen}
           handleCloseModal={handleCloseAddMemberModal}
@@ -893,6 +889,19 @@ const ChatWindow = ({ selectedChat, user }) => {
           mode="add"
           onGroupCreate={() => {}}
           onStartChat={() => {}}
+          onMembersAdded={(updatedGroup) => {
+            setGroupInfo(updatedGroup);
+          }}
+        />
+      )} */}
+
+      {isAddMemberModalOpen && (
+        <AddMemberGroup
+          isModalOpen={isAddMemberModalOpen}
+          handleCloseModal={handleCloseAddMemberModal}
+          user={user}
+          chatID={selectedChat.chatID}
+          groupInfo={groupInfo}
           onMembersAdded={(updatedGroup) => {
             setGroupInfo(updatedGroup);
           }}

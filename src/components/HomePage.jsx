@@ -40,7 +40,8 @@ const HomePage = () => {
                 setView("chat");
               }}
             />
-            <ChatWindow selectedChat={selectedChat} user={user} />
+            <ChatWindow selectedChat={selectedChat} user={user} 
+             />
           </>
         )}
         {view === "friend" && 
