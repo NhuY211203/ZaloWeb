@@ -159,6 +159,7 @@ const ChatInfo = ({
         isOpen={isMembersModalOpen}
         handleClose={handleCloseMembersModal}
         groupInfo={groupInfo}
+        selectedChat={selectedChat}
         userRole={userRole}
         handleRemoveMember={handleRemoveMember}
         handleChangeRole={handleChangeRole}
