@@ -24,6 +24,7 @@ const AppRoutes = () => {
         <Route path="/verify-otp" element={<VerifyOtpDK />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="*" element={<Navigate to="/" />} />
+        
       </Routes>
     </Router>
   );

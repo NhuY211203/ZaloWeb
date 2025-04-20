@@ -7,11 +7,12 @@ import EmojiPicker from "emoji-picker-react";
 import { AudioRecorder } from "react-audio-voice-recorder";
 import { io } from "socket.io-client";
 import AddGroupModal from "./AddGroupModal";
+import ChatInfo from "./ChatInfo"; 
 
 const socket = io("http://localhost:5000");
 
 const ChatWindow = ({ selectedChat, user }) => {
-  const [isInfoOpen, setIsInfoOpen] = useState(true);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [messages, setMessages] = useState("");
   const [message, setMessage] = useState([]);
   const [saveImage, setSaveImage] = useState(false);
@@ -172,7 +173,7 @@ const ChatWindow = ({ selectedChat, user }) => {
   }, [selectedChat, user.userID]);
 
   useEffect(() => {
-    if (!message.length) return;
+    if (!message) return;
 
     const images = [];
     const videos = [];
@@ -861,272 +862,27 @@ const ChatWindow = ({ selectedChat, user }) => {
             </div>
           </div>
         </div>
+        {/* <button onClick={() => setIsInfoOpen(!isInfoOpen)}>Toggle Info</button> */}
+
         {isInfoOpen && (
-        <div className="content2">
-          <h2>{selectedChat.type === "group" ? "Thông tin nhóm" : "Thông tin hội thoại"}</h2>
-          <div className="chat-info">
-            <div style={{ position: "relative" }}>
-              {selectedChat.type === "private" &&
-                selectedChat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
-                  <img
-                    src={
-                      selectedChat.lastMessage.find((msg) => msg.senderID !== user.userID)
-                        ?.senderInfo?.avatar
-                    }
-                    alt="avatar"
-                    className="avatar"
-                  />
-                )}
-              {selectedChat.type === "group" && (
-                <>
-                  <img
-                    src={groupInfo?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
-                    alt="group avatar"
-                    className="avatar"
-                    onClick={() => userRole === "admin" && groupImageInputRef.current?.click()}
-                  />
-                  {userRole === "admin" && (
-                    <>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        ref={groupImageInputRef}
-                        onChange={handleGroupImageChange}
-                      />
-                      <FaIcons.FaPencilAlt
-                        className="edit-icon"
-                        onClick={() => groupImageInputRef.current?.click()}
-                      />
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-            {selectedChat.type === "group" ? (
-            isEditingGroupName ? (
-              <input
-                type="text"
-                value={groupInfo?.name || selectedChat.name || ""}
-                onChange={(e) =>
-                  setGroupInfo((prev) => ({ ...prev, name: e.target.value }))
-                }
-                onBlur={handleEditGroupInfo}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    handleEditGroupInfo();
-                  }
-                }}
-                autoFocus
-              />
-            ) : (
-              <h3 onClick={() => userRole === "admin" && setIsEditingGroupName(true)}>
-                {groupInfo?.name || selectedChat.name || "Tên nhóm chưa có"}
-                {userRole === "admin" && (
-                  <FaIcons.FaPencilAlt style={{ marginLeft: "8px", fontSize: "14px" }} />
-                )}
-              </h3>
-            )
-          ) : (
-            <h3>{selectedChat.name}
-            </h3>
-            )}
-          </div>
-
-          {selectedChat.type === "group" && (
-            <div>
-              <div className="group-actions">
-                <button className="group-action-btn" onClick={handleAddMember}>
-                  <FaIcons.FaUserPlus className="icon" />
-                  Thêm thành viên
-                </button>
-                {userRole === "admin" && (
-                  <button className="group-action-btn" onClick={handleDissolveGroup}>
-                    <FaIcons.FaTimes className="icon" style={{ color: "#ff4d4f" }} />
-                    Giải tán nhóm
-                  </button>
-                )}
-              </div>
-
-              <div className="info-section">
-                <div className="info-header">
-                  <FaIcons.FaUsers className="info-icon" />
-                  <h4>Thành viên nhóm</h4>
-                  <FaIcons.FaChevronDown className="chevron-icon" />
-                </div>
-                <div className="member-count">
-                  {groupInfo?.members?.length || 0} thành viên
-                </div>
-                {groupInfo?.members?.map((member) => (
-                  <div key={member.userID} className="member-item">
-                    <img src={member.anhDaiDien} alt="avatar" className="avatar-small" />
-                    <span>{member.name}</span>
-                    <span className="role-label">
-                      {member.userID === groupInfo.adminID ? "Admin" : "Thành viên"}
-                    </span>
-                    {userRole === "admin" && member.userID !== user.userID && (
-                      <div>
-                        <button
-                          className="remove-member-btn"
-                          onClick={() => handleRemoveMember(member.userID)}
-                        >
-                          Xóa
-                        </button>
-                        <button
-                          className="change-role-btn"
-                          onClick={() =>
-                            handleChangeRole(
-                              member.userID,
-                              member.role === "member" ? "admin" : "member"
-                            )
-                          }
-                        >
-                          {member.role === "member" ? "Chỉ định Admin" : "Hủy Admin"}
-                        </button>
-                        <button
-                          className="transfer-role-btn"
-                          onClick={() => handleTransferRole(member.userID)}
-                        >
-                          Chuyển giao Admin
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="info-section">
-            <div className="info-header">
-              <FaIcons.FaBell className="info-icon" />
-              <h4>Danh sách nhắc hẹn</h4>
-            </div>
-            <p>Chưa có nhắc hẹn</p>
-          </div>
-          <div className="info-section">
-            <div className="info-header">
-              <FaIcons.FaImage className="info-icon" />
-              <h4>Ảnh/Video</h4>
-              <FaIcons.FaChevronDown className="chevron-icon" />
-            </div>
-            {mediaImages.length > 0 || mediaVideos.length > 0 ? (
-              <div className="media-grid">
-                {mediaImages.map((img) => (
-                  <img
-                    key={img.id}
-                    src={img.url}
-                    alt="media"
-                    onClick={() => openMediaPreview({ type: "image", url: img.url })}
-                  />
-                ))}
-                {mediaVideos.map((vid) => (
-                  <video
-                    key={vid.id}
-                    src={vid.url}
-                    onClick={() => openMediaPreview({ type: "video", url: vid.url })}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p>Chưa có Ảnh/Video được chia sẻ trong hội thoại này</p>
-            )}
-            <button className="view-all">Xem tất cả</button>
-          </div>
-          <div className="info-section">
-            <div className="info-header">
-              <FaIcons.FaFileAlt className="info-icon" />
-              <h4>File</h4>
-              <FaIcons.FaChevronDown className="chevron-icon" />
-            </div>
-            {mediaFiles.length > 0 ? (
-              mediaFiles.map((file) => (
-                <div key={file.id} className="file-item">
-                  <img
-                    src={
-                      file.name.endsWith(".pdf")
-                        ? "/pdf-icon.png"
-                        : "/file-icon.png"
-                    }
-                    alt="file-icon"
-                  />
-                  <a href={file.url} download={file.name}>
-                    {file.name}
-                  </a>
-                  <span>{new Date(file.timestamp).toLocaleDateString("vi-VN")}</span>
-                </div>
-              ))
-            ) : (
-              <p>Chưa có File được chia sẻ trong hội thoại này</p>
-            )}
-            <button className="view-all">Xem tất cả</button>
-          </div>
-          <div className="info-section">
-            <div className="info-header">
-              <FaIcons.FaLink className="info-icon" />
-              <h4>Link</h4>
-              <FaIcons.FaChevronDown className="chevron-icon" />
-            </div>
-            {mediaLinks.length > 0 ? (
-              mediaLinks.map((link) => (
-                <div key={link.id} className="link-item">
-                  <a href={link.url} target="_blank" rel="noopener noreferrer">
-                    {link.url}
-                  </a>
-                  <span>{new Date(link.timestamp).toLocaleDateString("vi-VN")}</span>
-                </div>
-              ))
-            ) : (
-              <p>Chưa có Link được chia sẻ trong hội thoại này</p>
-            )}
-            <button className="view-all">Xem tất cả</button>
-          </div>
-          <div className="info-section">
-            <div className="info-header">
-              <FaIcons.FaLock className="info-icon" />
-              <h4>Thiết lập bảo mật</h4>
-              <FaIcons.FaChevronDown className="chevron-icon" />
-            </div>
-            <div className="setting-item">
-              <div className="setting-label">
-                <FaIcons.FaClock className="setting-icon" />
-                <span>Tin nhắn tự xóa</span>
-              </div>
-              <span>Không bao giờ</span>
-            </div>
-            <div className="setting-item">
-              <div className="setting-label">
-                <FaIcons.FaEyeSlash className="setting-icon" />
-                <span>Ẩn trò chuyện</span>
-              </div>
-              <label className="switch">
-                <input type="checkbox" />
-                <span className="slider" />
-              </label>
-            </div>
-          </div>
-          <div className="info-section">
-            <div className="info-header">
-              <BiIcons.BiError className="info-icon" />
-              <h4>Báo xấu</h4>
-            </div>
-          </div>
-
-          {selectedChat.type === "group" && userRole !== "admin" && (
-            <button className="leave-group-btn" onClick={handleLeaveGroup}>
-              <FaIcons.FaSignOutAlt className="leave-icon" />
-              Rời nhóm
-            </button>
-          )}
-          {selectedChat.type !== "group" && (
-            <button className="delete-chat">
-              <FaIcons.FaTrash className="delete-icon" />
-              Xóa lịch sử trò chuyện
-            </button>
-          )}
-        </div>
-              )}
-            </div>
+        <ChatInfo
+          selectedChat={selectedChat}
+          userRole={userRole}
+          groupInfo={groupInfo}
+          user={user}
+          handleAddMember={handleAddMember}
+          handleDissolveGroup={handleDissolveGroup}
+          handleRemoveMember={() => {}}
+          handleChangeRole={() => {}}
+          handleTransferRole={() => {}}
+          handleLeaveGroup={handleLeaveGroup}
+          mediaImages={mediaImages}
+          mediaVideos={mediaVideos}
+          mediaFiles={mediaFiles}
+          mediaLinks={mediaLinks}
+        />
+        )}
+      </div>
 
       {isAddMemberModalOpen && (
         <AddGroupModal

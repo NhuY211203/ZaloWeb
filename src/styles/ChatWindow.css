@@ -345,7 +345,12 @@
   margin-bottom: 20px;
   color: #333;
 }
-
+.info-headerr {
+  display: flex;
+  border-color: #666;
+  border-width: 1px;
+  padding: 20px;
+}
 /* Thông tin nhóm */
 .chat-info {
   display: flex;
