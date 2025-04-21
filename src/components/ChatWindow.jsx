@@ -12,7 +12,7 @@ import AddMemberGroup from "./AddMemberGroup";
 
 const socket = io("http://localhost:5000");
 
-const ChatWindow = ({ selectedChat, user }) => {
+const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [messages, setMessages] = useState("");
   const [message, setMessage] = useState([]);
@@ -183,31 +183,38 @@ const ChatWindow = ({ selectedChat, user }) => {
 
     message.forEach((msg) => {
       if (msg.type === "image" && msg.media_url) {
-        images.push(
-          ...msg.media_url.map((url, index) => ({
+        // Đảm bảo rằng media_url luôn là mảng
+        const mediaUrls = Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url];
+        mediaUrls.forEach((url, index) => {
+          images.push({
             id: `${msg.tempID || msg._id}_${index}`,
             url: typeof url === "string" ? url : url.uri,
             timestamp: msg.timestamp,
-          }))
-        );
+          });
+        });
       } else if (msg.type === "video" && msg.media_url) {
-        videos.push(
-          ...msg.media_url.map((url, index) => ({
+        // Xử lý video tương tự như ảnh
+        const mediaUrls = Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url];
+        mediaUrls.forEach((url, index) => {
+          videos.push({
             id: `${msg.tempID || msg._id}_${index}`,
             url: typeof url === "string" ? url : url.uri,
             timestamp: msg.timestamp,
-          }))
-        );
+          });
+        });
       } else if (msg.type === "file" && msg.media_url) {
-        files.push(
-          ...msg.media_url.map((url, index) => ({
+        // Xử lý tệp tin tương tự
+        const mediaUrls = Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url];
+        mediaUrls.forEach((url, index) => {
+          files.push({
             id: `${msg.tempID || msg._id}_${index}`,
             url: typeof url === "string" ? url : url.uri,
             name: msg.content || `file_${index}`,
             timestamp: msg.timestamp,
-          }))
-        );
+          });
+        });
       } else if (msg.type === "link" && msg.content) {
+        // Xử lý liên kết
         links.push({
           id: msg.tempID || msg._id,
           url: msg.content,
@@ -215,6 +222,7 @@ const ChatWindow = ({ selectedChat, user }) => {
         });
       }
     });
+    
 
     setMediaImages(images);
     setMediaVideos(videos);
@@ -668,10 +676,11 @@ const ChatWindow = ({ selectedChat, user }) => {
                       />
                     )}
                     <div className="message-bubble">
-                      {msg.type === "unsend" ? (
+                    {msg.type === "unsend" ? (
                         <i style={{ color: "gray" }}>Tin nhắn đã được thu hồi</i>
                       ) : msg.type === "image" ? (
-                        msg.media_url?.map((img, i) => (
+                        // Xử lý hình ảnh
+                        (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((img, i) => (
                           <img
                             key={i}
                             src={typeof img === "string" ? img : img.uri}
@@ -683,7 +692,8 @@ const ChatWindow = ({ selectedChat, user }) => {
                           />
                         ))
                       ) : msg.type === "video" ? (
-                        msg.media_url.map((video, i) => (
+                        // Xử lý video
+                        (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((video, i) => (
                           <video
                             key={i}
                             src={typeof video === "string" ? video : video.uri}
@@ -692,7 +702,8 @@ const ChatWindow = ({ selectedChat, user }) => {
                           />
                         ))
                       ) : msg.type === "audio" ? (
-                        msg.media_url.map((audio, i) => (
+                        // Xử lý âm thanh
+                        (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((audio, i) => (
                           <audio
                             key={i}
                             controls
@@ -700,7 +711,8 @@ const ChatWindow = ({ selectedChat, user }) => {
                           />
                         ))
                       ) : msg.type === "file" ? (
-                        msg.media_url.map((file, i) => {
+                        // Xử lý tệp tin
+                        (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((file, i) => {
                           const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(file)}&embedded=true`;
                           return (
                             <div key={i} className="file-message">
@@ -716,8 +728,10 @@ const ChatWindow = ({ selectedChat, user }) => {
                           );
                         })
                       ) : (
+                        // Xử lý tin nhắn văn bản
                         <span className="message-text">{msg.content}</span>
                       )}
+
                       {isMine && msg.type !== "unsent" && (
                         <div className="status-text">
                           {msg.status === "read" ? "Đã xem" : "Đã gửi"}
@@ -876,6 +890,7 @@ const ChatWindow = ({ selectedChat, user }) => {
           mediaVideos={mediaVideos}
           mediaFiles={mediaFiles}
           mediaLinks={mediaLinks}
+          onLeaveGroupSuccess={onLeaveGroupSuccess}
         />
         )}
       </div>

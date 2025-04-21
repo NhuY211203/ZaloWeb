@@ -126,7 +126,18 @@ const ChatList = ({ onSelectChat,user , onStartChat}) => {
       console.log("📦 Remove chat:", chatID);
       setMessages((prevMessages) => prevMessages.filter(chat => chat.chatID !== chatID));
     });
-  
+    socket.on("removeChatt", (chatID) => {
+      console.log("❌ Chat removed:", chatID);  
+      setMessages((prev) => prev.filter(chat => chat.chatID !== chatID));
+    });
+      socket.on("updateMemberChattt",handleUpdateChat);
+      socket.on("removeChatt", (chatID) => {
+        console.log("❌ Chat removed:", chatID);  
+        setMessages((prev) => prev.filter(chat => chat.chatID !== chatID));
+      });
+      socket.on("updateMemberChat",handleUpdateChat);
+
+
     // Cleanup
     return () => {
       socket.off("connect", handleConnect);
@@ -138,6 +149,9 @@ const ChatList = ({ onSelectChat,user , onStartChat}) => {
       socket.off("updateChat", handleUpdateChat);
       socket.off("updateMemberChat",handleUpdateChat);
       socket.off("removeChat");
+      socket.off("removeChatt");
+      socket.off("updateMemberChattt",handleUpdateChat);
+
     };
   }, [socket, user?.userID]);
   

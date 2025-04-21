@@ -20,7 +20,8 @@ const ChatInfo = ({
   mediaImages,
   mediaVideos,
   mediaFiles,
-  mediaLinks
+  mediaLinks,
+  onLeaveGroupSuccess
 }) => {
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false); // State để mở/đóng modal
 
@@ -61,9 +62,15 @@ const ChatInfo = ({
             console.log("📦 members:", data)
             }
         );
+      socket.on("outMemberr",(data)=>{
+          setMembers([...data]);
+          setLength(data.length); // Cập nhật độ dài danh sách thành viên nhóm
+          console.log("📦 members:", data);
+      })
       return () => {
           socket.off("newMember");
-            socket.off("outMember"); // Dọn dẹp sự kiện khi component unmount
+          socket.off("outMember"); // Dọn dẹp sự kiện khi component unmount
+          socket.off("outMemberr");
 
       }
     }, [user]);
@@ -77,10 +84,11 @@ const ChatInfo = ({
   };
 
   const handleOutGroup = () => {
-    socket.emit("removeMember", ({
-        chatID: selectedChat.chatID,
-        memberID: user.userID
-    }));
+    console.log("Rời nhóm", selectedChat.chatID, user.userID);
+    socket.emit("removeMember", {chatID: selectedChat.chatID, memberID: user.userID});
+    if (onLeaveGroupSuccess) {
+      onLeaveGroupSuccess(); // 💥 QUAN TRỌNG
+    }
 
   }
 

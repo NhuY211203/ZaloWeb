@@ -106,12 +106,19 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
     >
       <div>
         {lastMessage?.find((msg) => msg.senderID !== user.userID) ? (
-          <img
+          chat.type === "group" ? 
+          (<img
+            key={lastMessage.find((msg) => msg.senderID !== user.userID)?._id}
+            src={chat.avatar}
+            alt="avatar"
+            className="avatar"
+          />):
+          (<img
             key={lastMessage.find((msg) => msg.senderID !== user.userID)?._id}
             src={avatar}
             alt="avatar"
             className="avatar"
-          />
+          />)
         ) : (
           chat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
             <img
