@@ -4,7 +4,7 @@ import "../styles/AddGroupModal.css"; // Import CSS for styling
 import axios from "axios"; // Import axios để gọi API
 import { io } from 'socket.io-client';
 const socket = io('http://localhost:5000');
-
+//const socket = io('https://cnm-service.onrender.com');
 
 const AddGroupModal = ({ isModalOpen, handleCloseModal, user, onGroupCreate, onStartChat }) => {
   const [groupName, setGroupName] = useState(""); // To store group name
@@ -24,7 +24,7 @@ const AddGroupModal = ({ isModalOpen, handleCloseModal, user, onGroupCreate, onS
     try {
       console.log("🔄 Fetching friends list with userID:", user.userID);
 
-      const response = await fetch("http://localhost:5000/api/ContacsFriendByUserID", {
+      const response = await fetch("https://echoapp-rho.vercel.app/api/ContacsFriendByUserID", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userID: user.userID }),
@@ -91,7 +91,7 @@ const AddGroupModal = ({ isModalOpen, handleCloseModal, user, onGroupCreate, onS
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/createGroupChat", {
+      const response = await fetch("https://echoapp-rho.vercel.app/api/createGroupChat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data }),

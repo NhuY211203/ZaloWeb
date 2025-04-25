@@ -3,7 +3,7 @@ import axios from "axios";
 import { io } from "socket.io-client"; // Import socket.io-client
 import "../styles/AddFriendModal.css";
 import InfoSearchModal from "../components/InfoSearchModal";
-
+//const socket = io('https://cnm-service.onrender.com');
 const socket = io("http://localhost:5000");  // Kết nối đến server socket
 
 const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {

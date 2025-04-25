@@ -144,6 +144,10 @@ const HomePage = () => {
               }}
              // Messagess={Messagess}
              // onUpdateMessages={handleUpdateMessages}
+             onLeaveGroupSuccess={() => {
+              setSelectedChat(null);
+              setView("chat");
+            }}
             />
             <ChatWindow
               selectedChat={selectedChat}

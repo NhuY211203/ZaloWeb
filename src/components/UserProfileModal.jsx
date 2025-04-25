@@ -5,6 +5,7 @@ const UserProfileModal = ({ onClose,user }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [profile, setProfile] = useState('');
     const [fileupload, setFileUpload] = useState(null);
+    const [fileavatarbia,setFileAvatarBia] = useState(null);
     const isValidPhoneNumber = (phoneNumber) => {
       const phoneRegex = /^(0[3|5|7|8|9][0-9]{8}|(\+84)[3|5|7|8|9][0-9]{8})$/;
       return phoneRegex.test(phoneNumber);
@@ -38,6 +39,7 @@ const UserProfileModal = ({ onClose,user }) => {
         name: user?.name || "Nguyen Thanh Quyen",
         email: user?.email || "user001@example.com",
         avatar: user?.anhDaiDien || "https://res.cloudinary.com/dgqppqcbd/image/upload/v1741595806/anh-dai-dien-hai-1_b33sa3.jpg",
+        anhbia: user?.anhBia || "https://res.cloudinary.com/dgqppqcbd/image/upload/v1741595806/anh-dai-dien-hai-1_b33sa3.jpg",
         dob: user?.ngaySinh || "22-05-1998",
         gender: user?.gioTinh || "Nam",
         phone: user?.sdt || "0977654319",
@@ -64,7 +66,7 @@ const UserProfileModal = ({ onClose,user }) => {
    const uploadToCloudinary = async (file) => {
     try {
       const formData = new FormData();
-      formData.append("image", file); // "image" phải đúng với `upload.single("image")`
+      formData.append("files", file); // "image" phải đúng với `upload.single("image")`
   
       const response = await fetch("http://localhost:5000/api/upload", {
         method: "POST",
@@ -76,13 +78,13 @@ const UserProfileModal = ({ onClose,user }) => {
       }
   
       const data = await response.json();
-      return data.url;
+      return data.urls;
     } catch (error) {
       console.error("❌ Upload error:", error);
       return null;
     }
   };
-  
+  // lay anh dai dien
     const handleImageChange = async(e) => {
       const file = e.target.files[0];
       if (file) {
@@ -95,18 +97,40 @@ const UserProfileModal = ({ onClose,user }) => {
   
       }
     };
-    const uploadImage = async () => {
-      const url = await uploadToCloudinary(fileupload);
-      console.log(url);
-    }
+
+// lay anh bia
+    const handleImagebiaChane = async(e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          alert('Chỉ cho phép ảnh định dạng PNG, JPEG, JPG hoặc WEBP');
+          return;
+        }
+        setFileAvatarBia(file);
+  
+      }
+    };
+    // lay link anh dai dien
+    // const uploadAvatar = async () => {
+    //   const data = await uploadToCloudinary(fileupload);
+    //   setAvatarUrl(data[0].url);
+    //   console.log(data);
+    // }
+    // /lay link anh bia
+    // const uploadImageBia = async () => {
+    //   const data = await uploadToCloudinary(fileavatarbia);
+    //   setAvatarBia(data[0].url);
+    //   console.log(data);
+    // }
   
   
     const handleSave = async () => {
-      // // Kiểm tra tính hợp lệ của thông tin
-      // if (!profile.userID || !profile.name || !profile.email || !profile.sdt) {
-      //   setErrorMessage("Thiếu thông tin cần thiết!");
-      //   return;
-      // }
+      // Kiểm tra tính hợp lệ của thông tin
+      if (!profile.userID || !profile.name || !profile.email || !profile.sdt) {
+        setErrorMessage("Thiếu thông tin cần thiết!");
+        return;
+      }
     
       if (!isValidEmail(profile.email)) {
         setErrorMessage("Email không hợp lệ!");
@@ -138,6 +162,14 @@ const UserProfileModal = ({ onClose,user }) => {
       if (fileupload) {
         avatarUrl = await uploadToCloudinary(fileupload); // Chỉ thay đổi ảnh nếu có ảnh mới
         if (!avatarUrl) {
+          setErrorMessage("Lỗi khi tải ảnh lên!");
+          return;
+        }
+      }
+      let avatarbia = profile.anhbia;
+      if (fileavatarbia) {
+        avatarbia = await uploadToCloudinary(fileavatarbia); // Chỉ thay đổi ảnh nếu có ảnh mới
+        if (!avatarbia) {
           setErrorMessage("Lỗi khi tải ảnh lên!");
           return;
         }
@@ -315,7 +347,7 @@ const UserProfileModal = ({ onClose,user }) => {
   
             {isEditing ? (
               <div className="button-group">
-                <button className="save-btn" onClick={handleSave}>
+                <button className="save-btn" >
                   Lưu
                 </button>
                 <button className="cancel-btn" onClick={handleEditToggle}>
@@ -323,8 +355,7 @@ const UserProfileModal = ({ onClose,user }) => {
                 </button>
               </div>
             ) : (
-              <button className="update-btn" onClick={()=>{handleEditToggle();
-                uploadImage()}}> 
+              <button className="update-btn" onClick={handleEditToggle}> 
                 <FaIcons.FaPen className="update-icon" />
                 Cập nhật
               </button>

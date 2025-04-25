@@ -10,32 +10,62 @@ const GroupMembersModal = ({
   isOpen,
   handleClose,
   selectedChat, // groupInfo directly containing members
-  userRole,
   user,
   members
 }) => {
   const [membersInfo, setMembersInfo] = useState([]); // State to store members info
   const [loading, setLoading] = useState(false); // Loading state
   const [friendsFromServer, setFriendsFromServer] = useState([]); // State to store friends from server
-  console.log("members", members); // Log members for debugging
+  const [chats, setChats] = useState([]); // State to store chats
+  //console.log("members",selectedChat.members); // Log members for debugging
 
   // Use groupInfo directly for members data
-  useEffect(() => {
-    if (isOpen && selectedChat.members) {
-      socket.emit("join_user", user.userID);
-      setFriendsFromServer(members || []); // Use members prop directly
-      setLoading(true);
-      setMembersInfo(selectedChat.members); // Directly use groupInfo.members
-      setLoading(false);
-      socket.on("outMemberr",(data)=>{
-        console.log("outMemberr",data);
-        setFriendsFromServer(data);
-    });
-    }
-    return () => {
-      socket.off("outMemberr"); // Clean up the event listener
-    }
-  }, [isOpen, selectedChat.members,user]);
+  // Define handlers outside useEffect
+  
+const handleOutMember = (data) => {
+  console.log("📦 outMember:", data);
+  setFriendsFromServer(data);
+};
+
+const handleUpdateRole = (data) => {
+  console.log("📦 UpdateRole:", data);
+  setFriendsFromServer([...data]);
+};
+
+const handleUpdateChatt = (data) => {
+  console.log("📦 updateChatt:", data);
+  setChats(data);
+};
+
+// useEffect remains clean
+useEffect(() => {
+  if (isOpen && selectedChat.members) {
+    socket.emit("join_user", user.userID);
+    setFriendsFromServer(members || []);
+    setLoading(true);
+    setMembersInfo(selectedChat.members);
+    setLoading(false);
+    setChats(selectedChat);
+    socket.on("newMember",(data)=>{
+      setFriendsFromServer(data)
+  });
+    socket.on("outMember", handleOutMember);
+    socket.on("UpdateRole", handleUpdateRole);
+    socket.on("updateChatt", handleUpdateChatt);
+    socket.on("updateMemberChattt", handleUpdateChatt);
+    socket.on("outMemberr", handleUpdateRole);
+  }
+
+  return () => {
+    socket.off("newMember");
+    socket.off("outMember", handleOutMember);
+    socket.off("UpdateRole", handleUpdateRole);
+    socket.off("updateChatt", handleUpdateChatt);
+    socket.off("updateMemberChattt", handleUpdateChatt);
+    socket.off("outMemberr", handleUpdateRole);
+  };
+}, [isOpen, selectedChat.members, user]);
+
 
 
 
@@ -50,7 +80,7 @@ const GroupMembersModal = ({
     
    
   };
-  const userRolee = selectedChat.members.find(
+  const userRolee = chats?.members?.find(
     (member) => member.userID === user.userID
   )?.role || null;  // Nếu không tìm thấy, trả về null
   console.log(userRolee);
@@ -72,13 +102,16 @@ const GroupMembersModal = ({
           ) : friendsFromServer.length === 0 ? (
             <p>Không có thành viên nào trong nhóm.</p>
           ) : (
-            friendsFromServer.map((member) => (
+            friendsFromServer.map((member,i) => (
               <div key={member.userID} className="member-item">
                 <img src={member.avatar} alt="avatar" className="avatar-small" />
-                <span>{member.name}</span>
+                {member.userID === user.userID ? (<span>Bạn</span>) : (
+                  <span>{member.name}</span>
+                )}
+                {/* Hiển thị tên thành viên */}
                 <span className="role-label">
-                  {/* Hiển thị Admin nếu là admin, nếu không thì là thành viên */}
-                  {member.userID === user.userID && userRolee === 'admin' ? 'Admin' : 'Thành viên'}
+                  {/* Hiể/n thị Admin nếu là admin, nếu không thì là thành viên */}
+                  { chats?.members[i]?.role === 'admin' ? 'Admin' : 'Thành viên'}
                 </span>
                 {userRolee === 'admin' && member.userID !== user.userID && (
                   <div>

@@ -105,8 +105,8 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
       style={{ cursor: "pointer" }}
     >
       <div>
-        {lastMessage?.find((msg) => msg.senderID !== user.userID) ? (
-          chat.type === "group" ? 
+        {/* {lastMessage?.find((msg) => msg.senderID !== user.userID) ? ( */}
+          {chat.type === "group" ? 
           (<img
             key={lastMessage.find((msg) => msg.senderID !== user.userID)?._id}
             src={chat.avatar}
@@ -118,17 +118,17 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
             src={avatar}
             alt="avatar"
             className="avatar"
-          />)
-        ) : (
-          chat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
-            <img
-              key={chat.lastMessage.find((msg) => msg.senderID !== user.userID)?._id}
-              src={chat.lastMessage.find((msg) => msg.senderID !== user.userID)?.senderInfo?.avatar}
-              alt="avatar"
-              className="avatar"
-            />
-          )
-        )}
+          />)}
+        {/* // ) : (
+        //   chat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
+        //     <img
+        //       key={chat.lastMessage.find((msg) => msg.senderID !== user.userID)?._id}
+        //       src={chat.lastMessage.find((msg) => msg.senderID !== user.userID)?.senderInfo?.avatar}
+        //       alt="avatar"
+        //       className="avatar"
+        //     />
+        //   )
+        // )} */}
       </div>
       <div className="chat-info">
         <p className="chat-name">{chat.name}</p>

@@ -11,6 +11,7 @@ import ChatInfo from "./ChatInfo";
 import AddMemberGroup from "./AddMemberGroup";
 
 const socket = io("http://localhost:5000");
+//const socket = io('https://cnm-service.onrender.com');
 
 const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -36,16 +37,15 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const bottomRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const groupImageInputRef = useRef(null);
-
+  console.log("📦 selectedChat:", selectedChat);
   // Xác định vai trò của người dùng (admin hoặc member)
-  const userRole = groupInfo?.adminID === user.userID ? "admin" : "member";
 
   // Lấy thông tin nhóm từ server
   const fetchGroupInfo = async () => {
     if (!selectedChat?.chatID || selectedChat.type !== "group") return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/group/${selectedChat.chatID}`, {
+      const response = await fetch(`https://echoapp-rho.vercel.app/api/group/${selectedChat.chatID}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -245,7 +245,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
     formData.append("files", audioBlob, "voice-message.webm");
 
     try {
-      const res = await fetch("http://localhost:5000/api/upload", {
+      const res = await fetch("https://cnm-service.onrender.com/api/upload", {
         method: "POST",
         body: formData,
       });
@@ -321,7 +321,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
 
     try {
       if (imageFiles.length > 0) {
-        const res = await fetch("http://localhost:5000/api/upload", {
+        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
           method: "POST",
           body: imageForm,
         });
@@ -344,7 +344,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
       }
 
       if (videoFiles.length > 0) {
-        const res = await fetch("http://localhost:5000/api/upload", {
+        const res = await fetch("https://cnm-service.onrender.com/api/upload", {
           method: "POST",
           body: videoForm,
         });
@@ -370,7 +370,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
       }
 
       if (otherFiles.length > 0) {
-        const res = await fetch("http://localhost:5000/api/upload", {
+        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
           method: "POST",
           body: fileForm,
         });
@@ -476,7 +476,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
 
   const handleRemoveMember = async (memberId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/removeMember/${selectedChat.chatID}`, {
+      const response = await fetch(`https://echoapp-rho.vercel.app/api/removeMember/${selectedChat.chatID}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ memberId, adminID: user.userID }),
@@ -513,7 +513,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
 
   const handleDissolveGroup = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/dissolveGroup/${selectedChat.chatID}`, {
+      const response = await fetch(`https://echoapp-rho.vercel.app/api/dissolveGroup/${selectedChat.chatID}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
@@ -623,7 +623,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
                 )}
               {selectedChat.type === "group" && (
                 <img
-                  src={groupInfo?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
+                  src={selectedChat?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
                   alt="group avatar"
                   className="avatar"
                 />
@@ -882,7 +882,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
         {isInfoOpen && (
         <ChatInfo
           selectedChat={selectedChat}
-          userRole={userRole}
+          
           groupInfo={groupInfo}
           user={user}
           handleAddMember={handleAddMember}

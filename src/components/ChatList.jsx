@@ -11,7 +11,7 @@ import { io } from 'socket.io-client';
 //const socket = io('http://192.168.1.20:5000');
 const socket = io('http://localhost:5000');
 
-const ChatList = ({ onSelectChat,user , onStartChat}) => {
+const ChatList = ({ onSelectChat,user , onStartChat,onLeaveGroupSuccess}) => {
   const [Messages, setMessages] = useState([]);
 
   
@@ -44,43 +44,37 @@ const ChatList = ({ onSelectChat,user , onStartChat}) => {
   
     const handleNewMessage = (newMsg) => {
       setMessages((prevMessages) => {
-        const updatedMessages = [...prevMessages];
-        const chatIndex = updatedMessages.findIndex(c => c.chatID === newMsg.chatID);
-    
+        const updated = [...prevMessages];
+        const chatIndex = updated.findIndex(c => c.chatID === newMsg.chatID);
+  
         if (chatIndex !== -1) {
-          const chat = updatedMessages[chatIndex];
+          const chat = updated[chatIndex];
           const oldMessages = chat.lastMessage || [];
-    
-          // Kiểm tra xem đã có tin nhắn này chưa (dựa vào messageID hoặc tempID)
           const msgIndex = oldMessages.findIndex(
             m => m.messageID === newMsg.messageID || m.tempID === newMsg.tempID
           );
-    
+  
           if (msgIndex !== -1) {
-            // Nếu đã có, cập nhật nội dung
             oldMessages[msgIndex] = { ...oldMessages[msgIndex], ...newMsg };
           } else {
-            // Nếu chưa có, thêm vào đầu mảng
             oldMessages.unshift({ ...newMsg, senderInfo: newMsg.senderInfo || {} });
             chat.unreadCount = (chat.unreadCount || 0) + 1;
           }
-    
+  
           chat.lastMessage = oldMessages;
         } else {
-          // Nếu chưa có đoạn chat này, tạo mới
-          updatedMessages.unshift({
+          updated.unshift({
             chatID: newMsg.chatID,
-            name: newMsg.senderInfo?.name || 'Tin nhắn mới',
+            name: newMsg.senderInfo?.name || "Tin nhắn mới",
             unreadCount: 1,
             lastMessage: [{ ...newMsg, senderInfo: newMsg.senderInfo || {} }],
           });
         }
-    
-        // Sắp xếp lại các cuộc trò chuyện theo thời gian
-        return updatedMessages.sort((a, b) => {
-          const aTime = a.lastMessage?.[0]?.timestamp || 0;
-          const bTime = b.lastMessage?.[0]?.timestamp || 0;
-          return new Date(bTime) - new Date(aTime);
+  
+        return updated.sort((a, b) => {
+          const aTime = new Date(a.lastMessage?.[0]?.timestamp || 0);
+          const bTime = new Date(b.lastMessage?.[0]?.timestamp || 0);
+          return bTime - aTime;
         });
       });
     };
@@ -129,13 +123,20 @@ const ChatList = ({ onSelectChat,user , onStartChat}) => {
     socket.on("removeChatt", (chatID) => {
       console.log("❌ Chat removed:", chatID);  
       setMessages((prev) => prev.filter(chat => chat.chatID !== chatID));
+      if (onLeaveGroupSuccess) {
+        onLeaveGroupSuccess(); // 💥 QUAN TRỌNG
+      }
     });
       socket.on("updateMemberChattt",handleUpdateChat);
-      socket.on("removeChatt", (chatID) => {
+      socket.on("removeChattt", (chatID) => {
         console.log("❌ Chat removed:", chatID);  
         setMessages((prev) => prev.filter(chat => chat.chatID !== chatID));
+        if (onLeaveGroupSuccess) {
+          onLeaveGroupSuccess(); // 💥 QUAN TRỌNG
+        }
       });
-      socket.on("updateMemberChat",handleUpdateChat);
+      socket.on("updateChatt", handleUpdateChat);
+      socket.on("updateChatmember", handleUpdateChat);
 
 
     // Cleanup
@@ -151,6 +152,10 @@ const ChatList = ({ onSelectChat,user , onStartChat}) => {
       socket.off("removeChat");
       socket.off("removeChatt");
       socket.off("updateMemberChattt",handleUpdateChat);
+      socket.off("updateChatt", handleUpdateChat);
+      socket.off("updateChatmember", handleUpdateChat);
+      socket.off("updateMemberChat",handleUpdateChat);
+
 
     };
   }, [socket, user?.userID]);
