@@ -37,6 +37,11 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const bottomRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const groupImageInputRef = useRef(null);
+  const [showActionModal, setShowActionModal] = useState(null); // Lưu ID tin nhắn để hiển thị modal
+  const [selectedMessage, setSelectedMessage] = useState(null); // Lưu tin nhắn được chọn
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // State để mở/đóng giao diện tìm kiếm
+  const [searchKeyword, setSearchKeyword] = useState(""); // State để lưu từ khóa tìm kiếm
+  const [searchResults, setSearchResults] = useState([]); // State để lưu kết quả tìm kiếm
   console.log("📦 selectedChat:", selectedChat);
   // Xác định vai trò của người dùng (admin hoặc member)
 
@@ -493,24 +498,17 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
     }
   };
 
-  // const handleLeaveGroup = async () => {
-  //   try {
-  //     const response = await fetch(`http://localhost:5000/api/leaveGroup/${selectedChat.chatID}`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ userID: user.userID }),
-  //     });
-  //     const data = await response.json();
-  //     if (response.ok) {
-  //       console.log("✅ Left group successfully");
-  //     } else {
-  //       console.error("❌ Error leaving group:", data.message);
-  //     }
-  //   } catch (error) {
-  //     console.error("❌ Leave failed:", error.message);
-  //   }
-  // };
-
+  const handleUnsendMessage = (message) => {
+    if (message._id || message.tempID) {
+      socket.emit("unsend_message", {
+        chatID: selectedChat.chatID,
+        messageID: message._id || message.tempID,
+        senderID: user.userID,
+      });
+      setShowActionModal(null); // Đóng modal sau khi thu hồi
+    }
+  };
+  
   const handleDissolveGroup = async () => {
     try {
       const response = await fetch(`https://echoapp-rho.vercel.app/api/dissolveGroup/${selectedChat.chatID}`, {
@@ -528,59 +526,6 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
     }
   };
 
-  // const handleChangeRole = (memberId, newRole) => {
-  //   console.log(`Thay đổi vai trò của ${memberId} thành ${newRole}`);
-  // };
-
-  // const handleTransferRole = (memberId) => {
-  //   console.log(`Chuyển giao vai trò admin cho ${memberId}`);
-  // };
-
-  // const handleEditGroupInfo = async () => {
-  //   try {
-  //     const response = await fetch(`http://localhost:5000/api/updateGroup/${selectedChat.chatID}`, {
-  //       method: "PUT",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         name: groupInfo.name,
-  //         avatar: groupInfo.avatar,
-  //       }),
-  //     });
-  //     const updatedGroup = await response.json();
-  //     if (response.ok) {
-  //       setGroupInfo(updatedGroup);
-  //       socket.emit("updateGroup", updatedGroup);
-  //       setIsEditingGroupName(false);
-  //     } else {
-  //       console.error("❌ Error updating group info:", updatedGroup.message);
-  //     }
-  //   } catch (error) {
-  //     console.error("❌ Update failed:", error.message);
-  //   }
-  // };
-
-  // const handleGroupImageChange = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     const formData = new FormData();
-  //     formData.append("files", file);
-
-  //     try {
-  //       const res = await fetch("http://localhost:5000/api/upload", {
-  //         method: "POST",
-  //         body: formData,
-  //       });
-  //       const data = await res.json();
-  //       if (res.ok) {
-  //         setGroupInfo((prev) => ({ ...prev, avatar: data.urls[0] }));
-  //       } else {
-  //         console.error("❌ Error uploading image:", data.message);
-  //       }
-  //     } catch (error) {
-  //       console.error("❌ Upload failed:", error.message);
-  //     }
-  //   }
-  // };
 
   if (!selectedChat) {
     return (
@@ -629,38 +574,50 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
                 />
               )}
             </div>
+
             <div className="header-info">
-              <h2>{selectedChat.name}</h2>
-              <p
-                style={{
-                  color: selectedChat.trangthai === "online" ? "green" : "gray",
-                  fontSize: "13px",
-                }}
-              >
-                Truy cập {selectedChat.thoigiantruycap || "chưa rõ"} trước
-              </p>
-            </div>
-            <div className="header-icons">
-              <span className="header-icon">
-                <BsIcons.BsTelephoneFill />
-              </span>
-              <span className="header-icon">
-                <BsIcons.BsCameraVideoFill />
-              </span>
-              <span className="header-icon">
-                <FaIcons.FaSearch />
-              </span>
-              <span className="header-icon" onClick={toggleInfo}>
-                <FaIcons.FaInfoCircle />
-              </span>
-            </div>
+  <h2>{selectedChat.name}</h2>
+  {/* Hiển thị số thành viên nếu là nhóm */}
+  {selectedChat.type === "group" && (
+    <p style={{ fontSize: "13px", color: "#666", margin: "2px 0 0 0" }}>
+      {selectedChat.members?.length || 0} thành viên
+    </p>
+  )}
+  {/* Hiển thị trạng thái chỉ khi không phải nhóm */}
+  {selectedChat.type !== "group" && (
+    <p
+      style={{
+        color: selectedChat.trangthai === "online" ? "green" : "gray",
+        fontSize: "13px",
+        margin: "2px 0 0 0",
+      }}
+    >
+      Truy cập {selectedChat.thoigiantruycap || "chưa rõ"} trước
+    </p>
+  )}
+</div>
+
+          <div className="header-icons">
+            <span className="header-icon">
+              <BsIcons.BsTelephoneFill />
+            </span>
+            <span className="header-icon">
+              <BsIcons.BsCameraVideoFill />
+            </span>
+            <span className="header-icon" onClick={() => { setIsSearchOpen(true); setIsInfoOpen(true); }}>
+              <FaIcons.FaSearch />
+            </span>
+            <span className="header-icon" onClick={toggleInfo}>
+              <FaIcons.FaInfoCircle />
+            </span>
+          </div>
           </div>
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
             style={{ height: "600px", overflowY: "auto" }}
           >
-            <div className="messages">
+            {/* <div className="messages">
               {visibleMessages.map((msg, index) => {
                 const isMine = msg.senderID === user.userID;
                 return (
@@ -748,8 +705,125 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
                   </div>
                 );
               })}
-              <div ref={bottomRef} />
-            </div>
+              <div ref={bottomRef} /> */}
+
+              <div className="messages">
+                {visibleMessages.map((msg, index) => {
+                  const isMine = msg.senderID === user.userID;
+                  return (
+                    <div
+                      key={msg._id || index}
+                      className={`message-row ${isMine ? "my-message" : "other-message"}`}
+                      onMouseLeave={() => setShowActionModal(null)} // Đóng modal khi rời chuột
+                    >
+                      {!isMine && msg.senderInfo?.avatar && (
+                        <img
+                          src={msg.senderInfo.avatar}
+                          alt="avatar"
+                          className="avatar-small"
+                        />
+                      )}
+                      <div className="message-bubble-wrapper">
+                        <div className="message-bubble">
+                          {msg.type === "unsend" ? (
+                            <i style={{ color: "gray" }}>Tin nhắn đã được thu hồi</i>
+                          ) : msg.type === "image" ? (
+                            (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((img, i) => (
+                              <img
+                                key={i}
+                                src={typeof img === "string" ? img : img.uri}
+                                className="chat-image"
+                                alt="media"
+                                onClick={() =>
+                                  window.open(typeof img === "string" ? img : img.uri, "_blank")
+                                }
+                              />
+                            ))
+                          ) : msg.type === "video" ? (
+                            (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((video, i) => (
+                              <video
+                                key={i}
+                                src={typeof video === "string" ? video : video.uri}
+                                className="chat-video"
+                                controls
+                              />
+                            ))
+                          ) : msg.type === "audio" ? (
+                            (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((audio, i) => (
+                              <audio
+                                key={i}
+                                controls
+                                src={typeof audio === "string" ? audio : audio.uri}
+                              />
+                            ))
+                          ) : msg.type === "file" ? (
+                            (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((file, i) => {
+                              const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(file)}&embedded=true`;
+                              return (
+                                <div key={i} className="file-message">
+                                  <a
+                                    href={viewerUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    download={msg.content}
+                                  >
+                                    {msg.content || `file_${i}`}
+                                  </a>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <span className="message-text">{msg.content}</span>
+                          )}
+
+                          {isMine && msg.type !== "unsent" && (
+                            <div className="status-text">
+                              {msg.status === "read" ? "Đã xem" : "Đã gửi"}
+                            </div>
+                          )}
+                        </div>
+                        {isMine && msg.type !== "unsent" && (
+                          <div className="message-actions">
+                            <FaIcons.FaEllipsisH
+                              className="action-icon"
+                              size={16}
+                              onClick={() => {
+                                setShowActionModal(msg._id || index);
+                                setSelectedMessage(msg);
+                              }}
+                            />
+                            {showActionModal === (msg._id || index) && (
+                              <div className="action-modal">
+                                <button
+                                  onClick={() => console.log("Trả lời tin nhắn:", msg)}
+                                >
+                                  Trả lời tin nhắn
+                                </button>
+                                <button
+                                  onClick={() => console.log("Chuyển tiếp tin nhắn:", msg)}
+                                >
+                                  Chuyển tiếp tin nhắn
+                                </button>
+                                <button onClick={() => handleUnsendMessage(msg)}>
+                                  Thu hồi tin nhắn
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {isMine && msg.senderInfo?.avatar && (
+                        <img
+                          src={msg.senderInfo.avatar}
+                          alt="avatar"
+                          className="avatar-small"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+                <div ref={bottomRef} />
+              </div>
           </div>
           <div className="chat-input">
             <div className="input-icons left">
@@ -891,6 +965,12 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
           mediaFiles={mediaFiles}
           mediaLinks={mediaLinks}
           onLeaveGroupSuccess={onLeaveGroupSuccess}
+          isSearchOpen={isSearchOpen}
+          setIsSearchOpen={setIsSearchOpen}
+          searchKeyword={searchKeyword}
+          setSearchKeyword={setSearchKeyword}
+          searchResults={searchResults}
+          setSearchResults={setSearchResults}
         />
         )}
       </div>

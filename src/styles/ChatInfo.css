@@ -1,0 +1,368 @@
+/* Khu vực thông tin hội thoại (content2) */
+.content2 {
+    width: 30%;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-left: 1px solid #ddd;
+    overflow-y: auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  .content2 h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .info-headerr {
+    display: flex;
+    border-color: #666;
+    border-width: 1px;
+    padding: 20px;
+  }
+  
+  /* Thông tin nhóm */
+  .chat-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  
+  .chat-info .avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .chat-info .avatar:hover {
+    opacity: 0.9;
+  }
+  
+  .chat-info .edit-icon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: #fff;
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+  }
+  
+  .chat-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .chat-info input[type="text"] {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px;
+    outline: none;
+    width: 80%;
+    background: transparent;
+  }
+  
+  .chat-info input[type="text"]:focus {
+    border-color: #007bff;
+  }
+  
+  /* Phần hành động nhanh */
+  .group-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .group-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #666;
+  }
+  
+  .group-action-btn .icon {
+    font-size: 20px;
+    color: #007bff;
+  }
+  
+  .group-action-btn:hover .icon {
+    color: #0056b3;
+  }
+  
+  /* Các mục thông tin (Ảnh/Video, File, Link, v.v.) */
+  .info-section {
+    margin-bottom: 20px;
+  }
+  
+  .info-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  
+  .info-icon {
+    font-size: 18px;
+    color: #666;
+  }
+  
+  .chevron-icon {
+    margin-left: auto;
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .info-section h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+  }
+  
+  .info-section p {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+  }
+  
+  /* Nút Xem tất cả */
+  .view-all {
+    background: none;
+    border: none;
+    color: #007bff;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .view-all:hover {
+    text-decoration: underline;
+  }
+  
+  /* File item */
+  .file-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .file-item img {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+  }
+  
+  .file-item a {
+    text-decoration: none;
+    color: #007bff;
+  }
+  
+  .file-item span {
+    font-size: 12px;
+    color: #666;
+    margin-left: auto;
+  }
+  
+  /* Link item */
+  .link-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .link-item a {
+    text-decoration: none;
+    color: #007bff;
+    word-break: break-all;
+  }
+  
+  /* Nút Rời nhóm */
+  .leave-group-btn {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    width: 100%;
+    transition: background-color 0.2s ease;
+  }
+  
+  .leave-group-btn:hover {
+    background-color: #e04348;
+  }
+  
+  .leave-icon {
+    font-size: 16px;
+  }
+  
+  /* Nút Xóa lịch sử trò chuyện */
+  .delete-chat {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    width: 100%;
+  }
+  
+  .delete-icon {
+    font-size: 16px;
+  }
+  
+  /* Hiển thị đầy đủ media */
+  .media-full-view {
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #fff;
+  }
+  
+  .media-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .media-tabs button {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-bottom: 2px solid transparent;
+  }
+  
+  .media-tabs button.active {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    font-weight: bold;
+  }
+  
+  .media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 cột */
+    gap: 10px;
+    padding: 10px;
+    max-height: 400px; /* Giới hạn chiều cao để cuộn nếu cần */
+    overflow-y: auto;
+  }
+  
+  .media-grid img,
+  .media-grid video {
+    width: 100%;
+    height: 100px; /* Đảm bảo kích thước đồng đều */
+    object-fit: cover;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  h5 {
+    font-size: 14px;
+    color: #333;
+    margin: 10px 0 5px;
+    font-weight: 600;
+  }
+
+  /* Hiển thị đầy đủ media */
+.media-full-view {
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #fff;
+}
+
+.media-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.media-tabs button {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-bottom: 2px solid transparent;
+}
+
+.media-tabs button.active {
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+  font-weight: bold;
+}
+
+.media-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.media-date {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.file-item, .link-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 5px 10px;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+}

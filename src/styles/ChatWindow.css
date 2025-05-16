@@ -112,6 +112,8 @@
   display: flex;
   align-items: flex-end;
   margin-bottom: 12px;
+  position: relative; /* Thêm để hỗ trợ modal */
+  width: 100%; /* Đảm bảo không bị tràn ra ngoài */
 }
 
 .my-message {
@@ -122,7 +124,7 @@
   justify-content: flex-start;
 }
 
-/* Bong bóng tin nhắn */
+/* Bao gọn bong bóng tin nhắn và xử lý chiều rộng */
 .message-bubble {
   max-width: 60%;
   padding: 10px 15px;
@@ -134,12 +136,16 @@
   display: inline-block;
   line-height: 1.4;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Thêm bóng nhẹ */
+  margin-left: 8px; /* Đảm bảo khoảng cách với avatar */
+  margin-right: 8px; /* Đảm bảo không bị tràn khi có action */
+  min-width: 60px;
 }
 
 /* Tin nhắn của mình */
 .my-message .message-bubble {
   background-color: #007bff;
   color: white;
+  margin-left: auto; /* Đẩy tin nhắn của mình sang phải */
 }
 
 /* Văn bản trong tin nhắn */
@@ -148,13 +154,6 @@
   word-break: break-word;
   display: block;
   font-size: 14px;
-}
-
-/* Tin nhắn emoji */
-.message-emoji {
-  font-size: 28px;
-  line-height: 1;
-  display: block;
 }
 
 /* Hình ảnh trong tin nhắn */
@@ -199,7 +198,7 @@
   position: absolute;
   bottom: -18px;
   right: 0;
-  width: 100%;
+  min-width: 60px;
 }
 
 /* Khu vực nhập tin nhắn */
@@ -329,324 +328,6 @@
   }
 }
 
-/* Khu vực thông tin hội thoại (content2) */
-.content2 {
-  width: 30%;
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-left: 1px solid #ddd;
-  overflow-y: auto;
-  font-family: Arial, sans-serif;
-}
-
-.content2 h2 {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #333;
-}
-.info-headerr {
-  display: flex;
-  border-color: #666;
-  border-width: 1px;
-  padding: 20px;
-}
-/* Thông tin nhóm */
-.chat-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 25px;
-  text-align: center;
-}
-
-.chat-info .avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-  position: relative;
-}
-
-.chat-info .avatar:hover {
-  opacity: 0.9;
-}
-
-.chat-info .edit-icon {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background-color: #fff;
-  border-radius: 50%;
-  padding: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-}
-
-.chat-info h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.chat-info input[type="text"] {
-  font-size: 16px;
-  font-weight: 600;
-  text-align: center;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 5px;
-  outline: none;
-  width: 80%;
-  background: transparent;
-}
-
-.chat-info input[type="text"]:focus {
-  border-color: #007bff;
-}
-
-/* Phần hành động nhanh */
-.group-actions {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.group-action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  color: #666;
-}
-
-.group-action-btn .icon {
-  font-size: 20px;
-  color: #007bff;
-}
-
-.group-action-btn:hover .icon {
-  color: #0056b3;
-}
-
-/* Phần danh sách thành viên */
-.member-count {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 10px;
-}
-
-.member-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-}
-
-.member-item .avatar-small {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.member-item span {
-  flex-grow: 1;
-  font-size: 14px;
-  color: #333;
-}
-
-.member-item .role-label {
-  font-size: 12px;
-  color: #007bff;
-}
-
-.member-item .remove-member-btn,
-.member-item .change-role-btn,
-.member-item .transfer-role-btn {
-  background: none;
-  border: 1px solid #ff4d4f;
-  color: #ff4d4f;
-  font-size: 13px;
-  padding: 4px 8px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.member-item .change-role-btn,
-.member-item .transfer-role-btn {
-  border-color: #007bff;
-  color: #007bff;
-  margin-left: 10px;
-}
-
-.member-item .remove-member-btn:hover,
-.member-item .change-role-btn:hover,
-.member-item .transfer-role-btn:hover {
-  background-color: #ff4d4f;
-  color: white;
-}
-
-.member-item .change-role-btn:hover,
-.member-item .transfer-role-btn:hover {
-  background-color: #007bff;
-}
-
-/* Các mục thông tin (Ảnh/Video, File, Link, v.v.) */
-.info-section {
-  margin-bottom: 20px;
-}
-
-.info-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  cursor: pointer;
-}
-
-.info-icon {
-  font-size: 18px;
-  color: #666;
-}
-
-.chevron-icon {
-  margin-left: auto;
-  font-size: 14px;
-  color: #666;
-}
-
-.info-section h4 {
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0;
-  color: #333;
-}
-
-.info-section p {
-  font-size: 13px;
-  color: #666;
-  margin: 0;
-}
-
-/* Nút Xem tất cả */
-.view-all {
-  background: none;
-  border: none;
-  color: #007bff;
-  font-size: 13px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.view-all:hover {
-  text-decoration: underline;
-}
-
-/* Thiết lập bảo mật */
-.setting-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.setting-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.setting-icon {
-  font-size: 16px;
-  color: #666;
-}
-
-.setting-item span {
-  font-size: 13px;
-  color: #333;
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 20px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.4s;
-  border-radius: 50%;
-}
-
-input:checked + .slider {
-  background-color: #007bff;
-}
-
-input:checked + .slider:before {
-  transform: translateX(20px);
-}
-
-/* Nút Xóa lịch sử trò chuyện */
-.delete-chat {
-  background-color: #ff4d4f;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: bold;
-  width: 100%;
-}
-
-.delete-icon {
-  font-size: 16px;
-}
-
 /* Modal xem trước media */
 .media-preview-modal {
   position: fixed;
@@ -685,89 +366,58 @@ input:checked + .slider:before {
   cursor: pointer;
 }
 
-/* Lưới hiển thị media (Ảnh/Video) */
-.media-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 10px;
-  padding: 10px;
-}
-
-.media-grid img,
-.media-grid video {
-  width: 100%;
-  height: 100px;
-  object-fit: cover;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-/* File item */
-.file-item {
+/* Đảm bảo wrapper không bị che khuất */
+.message-bubble-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  width: 100%; /* Đảm bảo bao toàn bộ nội dung */
 }
 
-.file-item img {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
+/* Cải thiện vị trí và hiển thị của biểu tượng hành động */
+.message-actions {
+  display: none; /* Ẩn mặc định */
+  position: absolute;
+  right: -30px; /* Điều chỉnh vị trí để không bị che */
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1001; /* Đảm bảo hiển thị trên các phần tử khác */
 }
 
-.file-item a {
-  text-decoration: none;
-  color: #007bff;
-}
-
-.file-item span {
-  font-size: 12px;
-  color: #666;
-  margin-left: auto;
-}
-
-/* Link item */
-.link-item {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-}
-
-.link-item a {
-  text-decoration: none;
-  color: #007bff;
-  word-break: break-all;
-}
-
-.link-item span {
-  font-size: 12px;
-  color: #666;
+/* Hiển thị biểu tượng khi hover */
+.message-row:hover .message-actions {
   display: block;
-  margin-top: 5px;
 }
 
-/* Nút Rời nhóm */
-.leave-group-btn {
-  background-color: #ff4d4f;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: bold;
+/* Cải thiện modal hành động để không bị che */
+.action-modal {
+  position: absolute;
+  top: -10px; /* Điều chỉnh vị trí để hiển thị trên tin nhắn */
+  right: 20px; /* Đẩy modal ra xa biểu tượng ba chấm */
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1002; /* Tăng z-index để modal luôn hiển thị trên cùng */
+  padding: 5px 0;
+  min-width: 150px; /* Đảm bảo modal đủ rộng để hiển thị nội dung */
+}
+
+/* Định dạng nút trong modal */
+.action-modal button {
+  display: block;
   width: 100%;
-  transition: background-color 0.2s ease;
+  padding: 8px 15px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap; /* Ngăn text bị ngắt dòng */
 }
 
-.leave-group-btn:hover {
-  background-color: #e04348;
-}
-
-.leave-icon {
-  font-size: 16px;
+/* Hiệu ứng hover cho nút */
+.action-modal button:hover {
+  background-color: #f0f0f0;
 }
