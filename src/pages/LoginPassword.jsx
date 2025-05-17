@@ -2,6 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 import logo from "../assets/logo.png";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000");
 
 // Bắt đầu 03, 05, 07, 08, 09 và có 10 chữ số
 const isValidPhoneNumber = (phoneNumber) => {
@@ -41,14 +44,17 @@ const LoginPassword = () => {
         sdt,
         matKhau,
       });
-  
-      console.log("Đăng nhập thành công!", response.data.user);
-      
-      sessionStorage.setItem("userID", response.data.user.userID); // Lưu userID vào sessionStorage
-      sessionStorage.setItem("user", JSON.stringify(response.data.user)); // Lưu thông tin người dùng
-  
+
       alert("Đăng nhập thành công!");
-      navigate("/home", { state: { user: response.data.user } }); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
+      const res = await axios.post("http://localhost:5000/api/updateStatus", {
+        userID: response.data.user.userID,
+        trangThai:"online"
+      });
+      console.log("Đăng nhập thành công!", res.data.user);
+      sessionStorage.setItem("userID", res.data.user.userID); // Lưu userID vào sessionStorage
+      sessionStorage.setItem("user", JSON.stringify(res.data.user)); // Lưu thông tin người dùng
+      socket.emit("updateStatus", res.data.user); // Gửi sự kiện đến server để cập nhật trạng thái
+      navigate("/home", { state: { user: res.data.user } }); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
     } catch (err) {
       console.error("Lỗi đăng nhập:", err.message);
       setError("Sai số điện thoại hoặc mật khẩu");

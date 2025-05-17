@@ -2,9 +2,9 @@ import React, { useState ,useEffect} from "react";
 import { FaUsers, FaChevronDown, FaImage, FaFileAlt, FaLink, FaSignOutAlt, FaTrash, FaExchangeAlt } from "react-icons/fa";
 //import { FaUsers, FaChevronDown, FaImage, FaFileAlt, FaLink, FaSignOutAlt, FaTrash } from "react-icons/fa";
 import GroupMembersModal from "./GroupMembersModal "; // Import modal mới
-import { io } from "socket.io-client";
+import LeaveGroupModal from "./LeaveGroupModal"; // Import modal mới
 import "../styles/ChatInfo.css";
-
+import { io } from "socket.io-client";
 const socket = io("http://localhost:5000");
 //const socket = io('https://cnm-service.onrender.com');
 const ChatInfo = ({
@@ -31,11 +31,14 @@ const ChatInfo = ({
   setSearchResults // Thêm prop để cập nhật kết quả tìm kiếm
 }) => {
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false); // State để mở/đóng modal
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [chats, setChats] = useState([]);
   const [members, setMembers] = useState([]); // State để lưu danh sách thành viên nhóm
   const [length, setLength] = useState(0); // State để lưu độ dài danh sách thành viên nhóm
+  const [leave,setLeave] = useState(false); // State để lưu trạng thái loading
   const [showAllMedia, setShowAllMedia] = useState({ images: false, videos: false, files: false, links: false });
   const [activeTab, setActiveTab] = useState("images");
+  const [userRolee, setUserRole] = useState(null); // State để lưu vai trò của người dùng trong nhóm
 
   const toggleMediaView = (type) => {
     setShowAllMedia(prev => ({ ...prev, [type]: !prev[type] }));
@@ -61,14 +64,17 @@ const ChatInfo = ({
       console.error("❌ Fetch failed:", error.message);
     }
   };
-  
+ 
+
 const handleUpdateChatt = (data) => {
   console.log("📦 updateChatt:", data);
+  setUserRole(data?.members?.find((member) => member.userID === user.userID)?.role || null);
   setChats(data);
 };
   useEffect(() => {
       if (!user) return;
       setChats(selectedChat);
+      console.log("📦 selectedChat:",chats);
       getMemberList(); // Gọi hàm lấy danh sách thành viên nhóm
       socket.emit('join_user', user.userID); // Tham gia vào phòng socket của người dùng
       socket.on("newMember",(data)=>{
@@ -88,7 +94,7 @@ const handleUpdateChatt = (data) => {
           console.log("📦 members:", data);
       })
       socket.on("UpdateRole", (data) => {
-        setMembers(data);
+        setMembers([...data]);
         setLength(data.length); // Cập nhật độ dài danh sách thành viên nhóm
         console.log("📦 members:", data)
         });
@@ -103,11 +109,14 @@ const handleUpdateChatt = (data) => {
           socket.off("updateChatt", handleUpdateChatt);
           socket.off("updateMemberChattt", handleUpdateChatt);
           socket.off("updateChatmember",handleUpdateChatt);
-
-
       }
     }, [user,selectedChat]);
     console.log("📦 members:", members);
+     useEffect(() => {
+  if (!chats || !user) return;
+  const role = chats?.members?.find((member) => member.userID === user.userID)?.role || null;
+  setUserRole(role);
+}, [chats, user]);
   const handleOpenMembersModal = () => {
     setIsMembersModalOpen(true); // Mở modal
   };
@@ -115,19 +124,43 @@ const handleUpdateChatt = (data) => {
   const handleCloseMembersModal = () => {
     setIsMembersModalOpen(false); // Đóng modal
   };
-  const userRolee = chats?.members?.find(
-    (member) => member.userID === user.userID
-  )?.role || null;  // Nếu không tìm thấy, trả về null
-  const handleOutGroup = () => {
+  const openLeaveModal = () => setIsLeaveModalOpen(true);
+  const closeLeaveModal = () => setIsLeaveModalOpen(false);
+ 
+ 
+  const sendNotification = (content) => {
+  if (!content.trim()) return;
+
+  const tempID = Date.now().toString();
+
+  const newNotification = {
+    tempID,
+    chatID: selectedChat.chatID,
+    senderID: user.userID,
+    content,
+    type: "notification",
+    timestamp: new Date().toISOString(),
+    media_url: [],
+    status: "sent",
+    senderInfo: { name: user.name, avatar: user.anhDaiDien },
+  };
+  socket.emit("send_message", newNotification);
+};
+   const handleOutGroup = () => {
     if(userRolee === "admin"){
-      alert("Bạn không thể rời nhóm khi đang là quản trị viên!");
-      return;
-     }
+      // alert("Bạn không thể rời nhóm khi đang là quản trị viên!");
+      // return;
+      setLeave(true);
+      openLeaveModal();
+     } else{
     console.log("Rời nhóm", selectedChat.chatID, user.userID);
+    const content = `${user.name} đã rời khỏi nhóm chat.`;
+    sendNotification(content);
     socket.emit("removeMember", {chatID: selectedChat.chatID, memberID: user.userID});
     if (onLeaveGroupSuccess) {
       onLeaveGroupSuccess(); // 💥 QUAN TRỌNG
     }
+  }
   }
 
   const handleSearch = () => {
@@ -251,21 +284,21 @@ return (
     ) : (
       <>
         {/* Giao diện thông tin nhóm/hội thoại hiện tại */}
-        <h2>{selectedChat.type === "group" ? "Thông tin nhóm" : "Thông tin hội thoại"}</h2>
+        <h2>{chats.type === "group" ? "Thông tin nhóm" : "Thông tin hội thoại"}</h2>
         <div className="chat-info">
           <div style={{ position: "relative" }}>
-            {selectedChat.type === "private" &&
-              selectedChat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
+            {chats.type === "private" &&
+              chats.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
                 <img
-                  src={selectedChat.lastMessage.find((msg) => msg.senderID !== user.userID)?.senderInfo?.avatar}
+                  src={chats.lastMessage.find((msg) => msg.senderID !== user.userID)?.senderInfo?.avatar}
                   alt="avatar"
                   className="avatar"
                 />
               )}
-            {selectedChat.type === "group" && (
+            {chats.type === "group" && (
               <>
                 <img
-                  src={selectedChat?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
+                  src={chats?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
                   alt="group avatar"
                   className="avatar"
                 />
@@ -274,19 +307,21 @@ return (
           </div>
 
           {/* Group Name */}
-          <h3>{selectedChat.type === "group" ? groupInfo?.name || selectedChat.name : selectedChat.name}</h3>
+          <h3>{chats.type === "group" ? groupInfo?.name || chats.name : chats.name}</h3>
 
           {/* Group Actions */}
-          {selectedChat.type === "group" && (
+          {chats.type === "group" && (
             <div className="group-actions">
               <button className="group-action-btn" onClick={handleAddMember}>
                 <FaUsers className="icon" />
                 Thêm thành viên
               </button>
-              {selectedChat.members.find(m => m.userID === user.userID && m.role === 'admin') && (
+              {chats.members.find(m => m.userID === user.userID && m.role === 'admin') && (
                 <button className="group-action-btn" onClick={() => {
-                  console.log("Chuyển quyền với chatID:", selectedChat.chatID);
-                  socket.emit("transferRole", { chatID: selectedChat.chatID });
+                  openLeaveModal();
+                  setLeave(false);
+                  // console.log("Chuyển quyền với chatID:", selectedChat.chatID);
+                  // socket.emit("transferRole", { chatID: selectedChat.chatID });
                 }}>
                   <FaExchangeAlt className="icon" style={{ color: "#007bff" }} />
                   Chuyển quyền
@@ -296,7 +331,7 @@ return (
           )}
 
           {/* Members Section */}
-          {selectedChat.type === "group" && (
+          {chats.type === "group" && (
             <div className="info-section">
               <button onClick={handleOpenMembersModal} className="info-header">
                 <div className="info-headerr">
@@ -599,7 +634,7 @@ return (
           </div>
 
           {/* Leave or Delete */}
-          {selectedChat.type === "group" && (
+          {chats.type === "group" && (
             <>
               {userRolee !== "admin" ? (
                 <button className="leave-group-btn" onClick={handleOutGroup}>
@@ -615,8 +650,8 @@ return (
                   <button
                     className="leave-group-btn"
                     onClick={() => {
-                      console.log("Giải tán nhóm với chatID:", selectedChat.chatID);
-                      socket.emit("deleteGroupAndMessages", { chatID: selectedChat.chatID });
+                      console.log("Giải tán nhóm với chatID:", chats.chatID);
+                      socket.emit("deleteGroupAndMessages", { chatID: chats.chatID });
                     }}
                     style={{ marginTop: "10px" }}
                   >
@@ -627,7 +662,7 @@ return (
               )}
             </>
           )}
-          {selectedChat.type !== "group" && (
+          {chats.type !== "group" && (
             <button className="delete-chat">
               <FaTrash className="delete-icon" />
               Xóa lịch sử trò chuyện
@@ -641,13 +676,24 @@ return (
     <GroupMembersModal
       isOpen={isMembersModalOpen}
       handleClose={handleCloseMembersModal}
-      selectedChat={selectedChat}
+      selectedChat={chats}
       handleRemoveMember={handleRemoveMember}
       handleChangeRole={handleChangeRole}
       handleTransferRole={handleTransferRole}
       user={user}
       members={members}
     />
+    <LeaveGroupModal
+    isOpen={isLeaveModalOpen}
+    handleClose={closeLeaveModal}
+    selectedChat={chats} // nhóm đang chọn
+    handleLeaveGroup={handleLeaveGroup} // hàm xử lý rời nhóm
+    user={user}
+    members={members} // danh sách thành viên nhóm
+    leave={leave} // trạng thái loading
+    setLeave={setLeave} // hàm cập nhật trạng thái loading
+    />
+
   </div>
 );
 }

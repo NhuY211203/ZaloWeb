@@ -2,33 +2,127 @@ import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa"; 
 import axios from "axios";
 import "../styles/GroupMembersModal.css"; // Import CSS for modal
-
+import { io } from "socket.io-client";
+const socket = io("http://localhost:5000");
 const LeaveGroupModal = ({
   isOpen,
   handleClose,
   selectedChat,
   handleLeaveGroup,
   user,
+  members,
+  leave,
+  setLeave
 }) => {
   const [newAdmin, setNewAdmin] = useState(null); // State to store the selected new admin
+  const [chats, setChats] = useState([]);
+  const [memberss, setMembers] = useState([]);
+  const handleUpdateChatt = (data) => {
+    console.log("📦 updateChatt:", data);
+    setChats(data);
+  };
+    useEffect(() => {
+        if (!user) return;
+        setChats(selectedChat);
+        setMembers(members);
+        console.log("📦 selectedChat:", chats);
+        socket.emit('join_user', user.userID); // Tham gia vào phòng socket của người dùng
+        socket.on("newMember",(data)=>{
+            setMembers(data)  
+        });
+  
+        socket.on("outMember", (data) => {
+              setMembers(data);
+              console.log("📦 members:", data)
+              }
+          );
+        socket.on("outMemberr",(data)=>{
+            setMembers([...data]);
+            console.log("📦 members:", data);
+        })
+        socket.on("UpdateRole", (data) => {
+          setMembers(data);
+          console.log("📦 members:", data)
+          });
+          socket.on("updateChatt", handleUpdateChatt);
+      socket.on("updateMemberChattt", handleUpdateChatt);
+      socket.on("updateChatmember",handleUpdateChatt);
+        return () => {
+            socket.off("newMember");
+            socket.off("outMember"); // Dọn dẹp sự kiện khi component unmount
+            socket.off("outMemberr");
+            socket.off("UpdateRole");
+            socket.off("updateChatt", handleUpdateChatt);
+            socket.off("updateMemberChattt", handleUpdateChatt);
+            socket.off("updateChatmember",handleUpdateChatt);
+  
+  
+        }
+      }, [user,selectedChat,members]);
+      
+  const sendNotification = (content) => {
+  if (!content.trim()) return;
+
+  const tempID = Date.now().toString();
+
+  const newNotification = {
+    tempID,
+    chatID: chats.chatID,
+    senderID: user.userID,
+    content,
+    type: "notification",
+    timestamp: new Date().toISOString(),
+    media_url: [],
+    status: "sent",
+    senderInfo: { name: user.name, avatar: user.anhDaiDien },
+  };
+  socket.emit("send_message", newNotification);
+};
 
   // Lọc các thành viên trừ admin
-  const membersExcludingAdmin = selectedChat.members.filter(
-    (member) => member.role !== "admin"
-  );
+const adminIDs = chats?.members?.filter((member) => member.role === "admin")
+  .map((admin) => admin.userID);
+
+const membersExcludingAdmin = memberss?.filter(
+  (member) => !adminIDs.includes(member.userID)
+);
+
+  console.log("📦 membersExcludingAdmin:",membersExcludingAdmin);
 
   // Hàm xử lý khi người dùng chọn một thành viên làm admin mới
-  const handleAdminSelect = (userID) => {
-    setNewAdmin(userID); // Cập nhật người admin mới khi chọn
+  const handleAdminSelect = (member) => {
+    setNewAdmin(member); // Cập nhật người admin mới khi chọn
   };
 
   // Hàm xác nhận khi người dùng rời nhóm
   const handleConfirmLeave = () => {
-    if (newAdmin) {
-      handleLeaveGroup(newAdmin); // Rời nhóm và chuyển quyền admin
-    } else {
-      alert("Vui lòng chọn một thành viên làm admin mới.");
-    }
+    if(leave){
+        // alert("chuyển giao quyền admin và rời nhóm");
+          socket.emit("updateAdmin",{
+                        chatID:chats.chatID,
+                        adminID:user.userID,
+                        memberID: newAdmin.userID,
+                    }); 
+        const content1 = `${newAdmin.name} đã được bổ nhiệm là nhóm trưởng.`;
+        sendNotification(content1);
+        setTimeout(() => {
+        const content = `${user.name} đã rời khỏi nhóm chat.`;
+        sendNotification(content);
+        socket.emit("removeMember", {chatID:chats.chatID, memberID:user.userID});
+        setLeave(false);
+        handleClose();
+    }, 2000);
+    } else{
+       //alert("chuyển giao quyền admin ");
+        socket.emit("updateAdmin",{
+                        chatID:chats.chatID,
+                        adminID:user.userID,
+                        memberID: newAdmin.userID,
+                    }); 
+        const content = `${newAdmin.name} đã được bổ nhiệm là nhóm trưởng.`;
+        sendNotification(content);
+        handleClose();
+    } 
   };
 
   if (!isOpen) return null; // Không render khi modal không mở
@@ -49,7 +143,7 @@ const LeaveGroupModal = ({
               <div 
                 key={member.userID} 
                 className="member-item" 
-                onClick={() => handleAdminSelect(member.userID)}
+                onClick={() => handleAdminSelect(member)}
                 style={{
                   cursor: 'pointer', 
                   padding: '10px', 
@@ -57,7 +151,7 @@ const LeaveGroupModal = ({
                   marginBottom: '10px', 
                   display: 'flex', 
                   alignItems: 'center',
-                  backgroundColor: newAdmin === member.userID ? '#d3d3d3' : 'transparent'
+                  backgroundColor: newAdmin === member ? '#d3d3d3' : 'transparent'
                 }}
               >
                 <img 
@@ -70,7 +164,9 @@ const LeaveGroupModal = ({
               </div>
             ))}
           </div>
-          <button onClick={handleConfirmLeave}>Rời nhóm</button>
+         <button className="leave-group-button" onClick={handleConfirmLeave}>
+          Rời nhóm
+        </button>
         </div>
       </div>
     </div>

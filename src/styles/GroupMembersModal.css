@@ -59,4 +59,24 @@
     padding: 5px 10px;
     cursor: pointer;
   }
+
+  /* CSS cho nút Rời nhóm */
+.leave-group-button {
+  background-color: #e53e3e; /* đỏ đậm */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+  width: 100%;
+  font-weight: bold;
+}
+
+.leave-group-button:hover {
+  background-color: #c53030; /* đỏ đậm hơn khi hover */
+}
+
   

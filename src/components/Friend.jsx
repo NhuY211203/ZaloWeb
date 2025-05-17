@@ -40,6 +40,27 @@ const Friend = ({onStartChat,user}) => {
         setFriends((prevRequests) =>[...prevRequests,data]); // Xóa yêu cầu đã chấp nhận
       }
     });
+     socket.on("update_user", (updatedUser) => {
+  setFriends((prevRequests) =>
+    prevRequests.map((res) => {
+      if (res.userID === updatedUser.userID) {
+        return {
+          ...res,
+          name: updatedUser.name,
+          anhDaiDien: updatedUser.anhDaiDien,
+          sdt: updatedUser.sdt,
+          trangThai: updatedUser.trangThai,
+        };
+      }
+      return res;
+    })
+  );
+});
+
+    return () => {
+      socket.off("friend_request_accepted");
+      socket.off("update_user");
+    }
 
   }, [user.userID]);
   

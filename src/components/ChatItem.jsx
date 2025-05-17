@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../styles/ChatItem.css";
+import axios from "axios";
 import { io } from 'socket.io-client';
 
 // Khởi tạo socket
@@ -10,34 +11,32 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
   const [lastMessage, setLastMessage] = useState(chat.lastMessage || []);
   const [messageTime, setMessageTime] = useState('');
   const [isRead, setIsRead] = useState(chat.isRead || false);
-  const [avatar, setAvatar] = useState(''); // Đường dẫn đến ảnh đại diện mặc định
-  
-  console.log("ChatItem", chat);
-  const fetchAvatar = async (chat) => {
+  //const [avatar, setAvatar] = useState(''); // Đường dẫn đến ảnh đại diện mặc định
+  const [member, setMember] = useState(null);
+ 
+  const handleMember = async(memberID)=>{
     try{
-        const createResponse = await fetch("http://localhost:5000/api/chatmemberBychatID&userID", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userID: user.userID,
-            chatID: chat.chatID
-          }),
+        const res = await axios.post("http://localhost:5000/api/usersID", {
+          userID: memberID
         });
-        const data = await createResponse.json();
-        console.log(data);
-        if (createResponse.ok) {
-          setAvatar(data?.anhDaiDien);
-        }
-    }catch (error) {
-      console.error('Error fetching friends list:', error);
-    }
+          console.log("Member data:", res.data);
+          setMember(res.data);
+      }
+      catch (error) {
+        console.error("Error fetching member data:", error);
+      }
   }
+
   useEffect(() => {
-    if (!chat) return;
-    fetchAvatar(chat);
-  },[chat]);
+    if (!chat || chat.type !== "private") return;
+  
+    const memberID = chat.members.find((m) => m.userID !== user.userID)?.userID;
+    console.log("memberID", memberID);
+  
+    if (memberID) {
+      handleMember(memberID);
+    }
+  }, [chat]);
 
   // Lắng nghe socket để cập nhật tin nhắn và thời gian
   useEffect(() => {
@@ -58,6 +57,7 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
     };
 
     socket.emit('join_chat', chat.chatID);
+     socket.emit("join_user", user.userID);
     socket.on(chat.chatID, handleNewMessage);
     socket.on(`status_update_${chat.chatID}`, handleStatusUpdate);
 
@@ -65,10 +65,13 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
     if (chat.lastMessage?.[0]?.timestamp) {
       setMessageTime(chat.lastMessage[0].timestamp ? new Date(chat.lastMessage[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '');
     }
-    
+    socket.on("updatee_user", (updatedUser) => {
+      setMember(updatedUser);
+    });
     return () => {
       socket.off(chat.chatID, handleNewMessage);
       socket.off(`status_update_${chat.chatID}`, handleStatusUpdate);
+      socket.off("updatee_user");
     };
   }, [chat.chatID, user.userID, chat.lastMessage]);
 
@@ -114,8 +117,8 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
             className="avatar"
           />):
           (<img
-            key={lastMessage.find((msg) => msg.senderID !== user.userID)?._id}
-            src={avatar}
+            key={chat._id}
+            src={member?.anhDaiDien}
             alt="avatar"
             className="avatar"
           />)}

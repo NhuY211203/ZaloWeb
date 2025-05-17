@@ -86,47 +86,25 @@ const AddMemberGroup = ({
     setSelectedMembers(selectedMembers.filter((id) => id !== userId));
   };
 
-  // 🛠 Thêm thành viên vào nhóm
-//   const handleAddMembersToGroup = async () => {
-//     if (selectedMembers.length === 0) {
-//       alert("Vui lòng chọn ít nhất một thành viên để thêm vào nhóm.");
-//       return;
-//     }
+const sendNotification = (content) => {
+  if (!content.trim()) return;
 
-//     const newMembers = selectedMembers.map((memberId) => ({
-//       userID: memberId,
-//     }));
+  const tempID = Date.now().toString();
 
-//     const data = {
-//       chatID: chatID,
-//       members: newMembers,
-//       adminID: user.userID,
-//     };
+  const newNotification = {
+    tempID,
+    chatID:chatID,
+    senderID: user.userID,
+    content,
+    type: "notification",
+    timestamp: new Date().toISOString(),
+    media_url: [],
+    status: "sent",
+    senderInfo: { name: user.name, avatar: user.anhDaiDien },
+  };
 
-//     try {
-//       const response = await fetch("http://localhost:5000/api/addMemberGroup", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify(data),
-//       });
-
-//       const updatedGroup = await response.json();
-//       if (response.ok) {
-//         // Cập nhật groupInfo trong component cha (ChatWindow)
-//         onMembersAdded(updatedGroup);
-//         // Emit sự kiện socket để thông báo nhóm đã được cập nhật
-//         socket.emit("updateGroup", updatedGroup);
-//         handleCloseModal(); // Đóng modal sau khi thêm thành công
-//         console.log("✅ Đã thêm thành viên vào nhóm:", updatedGroup);
-//       } else {
-//         console.error("❌ Lỗi khi thêm thành viên:", updatedGroup.message);
-//         alert("Lỗi khi thêm thành viên: " + updatedGroup.message);
-//       }
-//     } catch (error) {
-//       console.error("❌ Lỗi khi gọi API:", error.message);
-//       alert("Lỗi khi thêm thành viên: " + error.message);
-//     }
-//   };
+  socket.emit("send_message", newNotification);
+};
 
 
 const handleAddMembersToGroup = async () => {
@@ -134,21 +112,24 @@ const handleAddMembersToGroup = async () => {
     alert("Vui lòng chọn ít nhất một thành viên để thêm vào nhóm.");
     return;
   }
-  console.log("🔄 Gửi yêu cầu thêm thành viên:", selectedMembers);
-if(!chatID){
+  if (!chatID) {
   console.error("❌ chatID không hợp lệ:", chatID);   
   return
 }
   const newMembers = selectedMembers.map((member) =>member.userID);
-
   const data = {
     chatID: chatID,
     members: selectedMembers, // Đổi từ "members" thành "memberIDs"
   };
   console.log("📦 Dữ liệu gửi đến server:", newMembers);
   console.log("🔄 Gửi yêu cầu thêm thành viên:", data);
-     socket.emit("AddMember",data);
-     handleCloseModal();
+   const selected = users.find(friend => friend.userID === data.members[0]);
+   console.log("📦 selected:", selected);
+   const namemember = selected ? selected.name : '';
+   const content = `${namemember} đã được ${user.name} thêm vào nhóm.`;
+   sendNotification(content);
+   socket.emit("AddMember", data);
+   handleCloseModal();
    
 };
 

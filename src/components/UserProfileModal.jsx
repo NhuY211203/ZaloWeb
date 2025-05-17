@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import * as FaIcons from "react-icons/fa";
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:5000');
 
 // Hàm kiểm tra tính hợp lệ của số điện thoại
 const isValidPhoneNumber = (phoneNumber) => {
@@ -13,9 +16,10 @@ const isValidEmail = (email) => {
   return emailRegex.test(email);
 };
 
-const UserProfileModal = ({ onClose, user }) => {
+const UserProfileModal = ({ onClose, user,setUser }) => {
   const [isEditing, setIsEditing] = useState(false);  // Chế độ chỉnh sửa
   const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
+  const [file, setFile] = useState(null); // Hình ảnh tải lên
   const [profile, setProfile] = useState({
     userID: '',
     name: '',
@@ -80,6 +84,18 @@ const UserProfileModal = ({ onClose, user }) => {
       [name]: value,
     }));
   };
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setFile(file); // Lưu file để sử dụng sau này
+    console.log(file);
+    const imageUrl = URL.createObjectURL(file); // hoặc dùng FileReader nếu muốn base64
+
+    setProfile((prev) => ({
+      ...prev,
+      avatar: imageUrl, // cập nhật ảnh preview
+    }));
+  };
 
   const handleSave = async () => {
     if (!profile.userID || !profile.name || !profile.email || !profile.phone) {
@@ -104,14 +120,27 @@ const UserProfileModal = ({ onClose, user }) => {
       setErrorMessage("Ngày sinh không hợp lệ hoặc bạn chưa đủ 18 tuổi.");
       return;
     }
-  
+    let url =[];
+    if (!file) {
+      url.push(user?.anhDaiDien);
+    } else{
+    const imageForm = new FormData();
+    imageForm.append("files",file);
+
+    const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+          method: "POST",
+          body: imageForm,
+        });
+        const data = await res.json();
+        url.push(data.urls[0]);
+      }
     const updateData = {
       name: profile.name,
       email: profile.email,
       sdt: profile.phone,
       ngaysinh: dob,
       gioTinh: profile.gender,
-      anhDaiDien: profile.avatar,
+      anhDaiDien:url[0],
       anhBia: profile.anhbia,
     };
   
@@ -129,17 +158,23 @@ const UserProfileModal = ({ onClose, user }) => {
         setErrorMessage(data.error);
       } else {
         alert("Cập nhật thông tin thành công!");
-        setProfile((prev) => ({
-          ...prev,
-          ...data.user,
-          dobDay: new Date(data.user.ngaysinh).getDate().toString().padStart(2, "0"),
-          dobMonth: (new Date(data.user.ngaysinh).getMonth() + 1).toString().padStart(2, "0"),
-          dobYear: new Date(data.user.ngaysinh).getFullYear().toString(),
-          phone: data.user.sdt,
-          gender: data.user.gioTinh,
-        }));
+        const dobParts = new Date(data.user?.ngaysinh);
+        setProfile({
+          userID: data.user?.userID,
+          name: data.user?.name,
+          email: data.user?.email,
+          avatar: data.user?.anhDaiDien,
+          anhbia: data.user?.anhBia,
+          dobDay: dobParts.getDate() < 10 ? `0${dobParts.getDate()}` : `${dobParts.getDate()}`,
+          dobMonth: dobParts.getMonth() + 1 < 10 ? `0${dobParts.getMonth() + 1}` : `${dobParts.getMonth() + 1}`,
+          dobYear: `${dobParts.getFullYear()}`,
+          gender: data.user?.gioTinh,
+          phone: data.user?.sdt
+        });
         sessionStorage.setItem("user", JSON.stringify(data.user));
-        window.location.reload(); // Nếu bạn không muốn truyền `setUser`
+      //  window.location.reload(); // Nếu bạn không muốn truyền `setUser`
+        socket.emit("updateUser",data.user);
+        setUser(data.user);
         console.log("Cập nhật thành công:", data.user);
         setIsEditing(false);
         onClose();
@@ -178,17 +213,18 @@ const UserProfileModal = ({ onClose, user }) => {
           </button>
         </div>
         <div className="modal-body profile-info">
-          <div className="avatar-section">
-            <img src={profile.avatar} alt="Avatar" className="avatar-img" />
-            {isEditing && (
-              <input
-                type="file"
-                name="avatar"
-                accept="image/png, image/jpeg, image/jpg, image/webp"
-                className="edit-input"
-              />
-            )}
-          </div>
+        <div className="avatar-section">
+      <img src={profile.avatar} alt="Avatar" className="avatar-img" />
+      {isEditing && (
+        <input
+          type="file"
+          name="avatar"
+          accept="image/png, image/jpeg, image/jpg, image/webp"
+          className="edit-input"
+          onChange={handleImageChange} // Gắn hàm xử lý
+        />
+      )}
+    </div>
           <h3>{profile.name}</h3>
           <div className="info-section">
             <h4>Thông tin cá nhân</h4>

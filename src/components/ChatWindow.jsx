@@ -9,6 +9,7 @@ import { AudioRecorder } from "react-audio-voice-recorder";
 import { io } from "socket.io-client";
 import ChatInfo from "./ChatInfo"; 
 import AddMemberGroup from "./AddMemberGroup";
+import axios from "axios";
 
 const socket = io("http://localhost:5000");
 //const socket = io('https://cnm-service.onrender.com');
@@ -16,7 +17,7 @@ const socket = io("http://localhost:5000");
 const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [messages, setMessages] = useState("");
-  const [message, setMessage] = useState([]);
+  const [message, setMessage] = useState([]);// tim kiem
   const [saveImage, setSaveImage] = useState(false);
   const [files, setFiles] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -43,33 +44,59 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const [searchKeyword, setSearchKeyword] = useState(""); // State để lưu từ khóa tìm kiếm
   const [searchResults, setSearchResults] = useState([]); // State để lưu kết quả tìm kiếm
   console.log("📦 selectedChat:", selectedChat);
+  const [member, setMember] = useState(null);
+ 
+  const handleMember = async(memberID)=>{
+    try{
+        const res = await axios.post("http://localhost:5000/api/usersID", {
+          userID: memberID
+        });
+          console.log("Member data:", res.data);
+          setMember(res.data);
+      }
+      catch (error) {
+        console.error("Error fetching member data:", error);
+      }
+  }
+
+  useEffect(() => {
+    if (!selectedChat || selectedChat.type !== "private") return;
+  
+    const memberID = selectedChat.members.find((m) => m.userID !== user.userID)?.userID;
+    console.log("memberID", memberID);
+  
+    if (memberID) {
+      handleMember(memberID);
+    }
+  }, [selectedChat]);
+  console.log("member",member);
   // Xác định vai trò của người dùng (admin hoặc member)
 
   // Lấy thông tin nhóm từ server
-  const fetchGroupInfo = async () => {
-    if (!selectedChat?.chatID || selectedChat.type !== "group") return;
+  // const fetchGroupInfo = async () => {
+  //   if (!selectedChat?.chatID || selectedChat.type !== "group") return;
 
-    try {
-      const response = await fetch(`https://echoapp-rho.vercel.app/api/group/${selectedChat.chatID}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setGroupInfo(data);
-      } else {
-        console.error("❌ Error fetching group info:", data.message);
-      }
-    } catch (error) {
-      console.error("❌ Fetch failed:", error.message);
-    }
-  };
+  //   try {
+  //     const response = await fetch(`https://echoapp-rho.vercel.app/api/group/${selectedChat.chatID}`, {
+  //       method: "GET",
+  //       headers: { "Content-Type": "application/json" },
+  //     });
+  //     const data = await response.json();
+  //     if (response.ok) {
+  //       setGroupInfo(data);
+  //     } else {
+  //       console.error("❌ Error fetching group info:", data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("❌ Fetch failed:", error.message);
+  //   }
+  // };
 
-  useEffect(() => {
-    if (selectedChat?.type === "group") {
-      fetchGroupInfo();
-    }
-  }, [selectedChat]);
+  // useEffect(() => {
+  //   if (selectedChat?.type === "group") {
+  //     fetchGroupInfo();
+  //   }
+  // }, [selectedChat]);
 
   // Lắng nghe sự kiện cập nhật nhóm qua socket
   useEffect(() => {
@@ -127,6 +154,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
 
   useEffect(() => {
     if (!selectedChat) return;
+    socket.emit("join_user", user.userID);
     socket.emit("join_chat", selectedChat.chatID);
 
     const handleNewMessage = (data) => {
@@ -169,12 +197,53 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
         )
       );
     });
+     socket.on("status_update",(data) => {
+      setMember(data);
+    });
+    socket.on("updatee_user", (updatedUser) => {
+      setMember(updatedUser);
+  setMessage((prevMessages) =>
+    prevMessages.map((msg) => {
+      if (msg.senderID === updatedUser.userID) {
+        return {
+          ...msg,
+          senderInfo: {
+            ...msg.senderInfo,
+            name: updatedUser.name,
+            avatar: updatedUser.anhDaiDien,
+          },
+        };
+      }
+      return msg;
+    })
+  );
+});
+  socket.on("update_user", (updatedUser) => {  
+    setMessage((prevMessages) =>
+      prevMessages.map((msg) => {
+        if (msg.senderID === updatedUser.userID) {
+          return {
+            ...msg,
+            senderInfo: {
+              ...msg.senderInfo,
+              name: updatedUser.name,
+              avatar: updatedUser.anhDaiDien,
+            },
+          };
+        }
+        return msg;
+      })
+    );
+  });
 
     return () => {
       socket.off(selectedChat.chatID, handleNewMessage);
       socket.off(`status_update_${selectedChat.chatID}`, handleStatusUpdate);
       socket.off(`unsend_${selectedChat.chatID}`, handleUnsendMessage);
       socket.off("unsend_notification");
+      socket.off("updatee_user");
+      socket.off("status_update");
+      socket.off("update_user");
     };
   }, [selectedChat, user.userID]);
 
@@ -499,12 +568,8 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   };
 
   const handleUnsendMessage = (message) => {
-    if (message._id || message.tempID) {
-      socket.emit("unsend_message", {
-        chatID: selectedChat.chatID,
-        messageID: message._id || message.tempID,
-        senderID: user.userID,
-      });
+    if (message.messageID) {
+      socket.emit('unsend_message', { chatID: selectedChat.chatID, messageID: message.messageID, senderID: user.userID })
       setShowActionModal(null); // Đóng modal sau khi thu hồi
     }
   };
@@ -555,16 +620,12 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
         <div className={`content1 ${!isInfoOpen ? "full-width" : ""}`}>
           <div className="header">
             <div>
-              {selectedChat.type === "private" &&
-                selectedChat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
-                  <img
-                    src={
-                      selectedChat.lastMessage.find((msg) => msg.senderID !== user.userID)
-                        ?.senderInfo?.avatar
-                    }
-                    alt="avatar"
-                    className="avatar"
-                  />
+              {selectedChat.type === "private" &&(
+                <img
+                  src={member?.anhDaiDien || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
+                  alt="avatar"
+                  className="avatar" 
+                /> 
                 )}
               {selectedChat.type === "group" && (
                 <img
@@ -587,12 +648,12 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   {selectedChat.type !== "group" && (
     <p
       style={{
-        color: selectedChat.trangthai === "online" ? "green" : "gray",
+        color: member?.trangThai === "online" ? "green" : "gray",
         fontSize: "13px",
         margin: "2px 0 0 0",
       }}
     >
-      Truy cập {selectedChat.thoigiantruycap || "chưa rõ"} trước
+      {member?.trangThai || "chưa rõ"}
     </p>
   )}
 </div>
@@ -617,98 +678,16 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
             onScroll={handleScroll}
             style={{ height: "600px", overflowY: "auto" }}
           >
-            {/* <div className="messages">
-              {visibleMessages.map((msg, index) => {
-                const isMine = msg.senderID === user.userID;
-                return (
-                  <div
-                    key={msg._id || index}
-                    className={`message-row ${isMine ? "my-message" : "other-message"}`}
-                  >
-                    {!isMine && msg.senderInfo?.avatar && (
-                      <img
-                        src={msg.senderInfo.avatar}
-                        alt="avatar"
-                        className="avatar-small"
-                      />
-                    )}
-                    <div className="message-bubble">
-                    {msg.type === "unsend" ? (
-                        <i style={{ color: "gray" }}>Tin nhắn đã được thu hồi</i>
-                      ) : msg.type === "image" ? (
-                        // Xử lý hình ảnh
-                        (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((img, i) => (
-                          <img
-                            key={i}
-                            src={typeof img === "string" ? img : img.uri}
-                            className="chat-image"
-                            alt="media"
-                            onClick={() =>
-                              window.open(typeof img === "string" ? img : img.uri, "_blank")
-                            }
-                          />
-                        ))
-                      ) : msg.type === "video" ? (
-                        // Xử lý video
-                        (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((video, i) => (
-                          <video
-                            key={i}
-                            src={typeof video === "string" ? video : video.uri}
-                            className="chat-video"
-                            controls
-                          />
-                        ))
-                      ) : msg.type === "audio" ? (
-                        // Xử lý âm thanh
-                        (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((audio, i) => (
-                          <audio
-                            key={i}
-                            controls
-                            src={typeof audio === "string" ? audio : audio.uri}
-                          />
-                        ))
-                      ) : msg.type === "file" ? (
-                        // Xử lý tệp tin
-                        (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((file, i) => {
-                          const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(file)}&embedded=true`;
-                          return (
-                            <div key={i} className="file-message">
-                              <a
-                                href={viewerUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                download={msg.content}
-                              >
-                                {msg.content || `file_${i}`}
-                              </a>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        // Xử lý tin nhắn văn bản
-                        <span className="message-text">{msg.content}</span>
-                      )}
-
-                      {isMine && msg.type !== "unsent" && (
-                        <div className="status-text">
-                          {msg.status === "read" ? "Đã xem" : "Đã gửi"}
-                        </div>
-                      )}
-                    </div>
-                    {isMine && msg.senderInfo?.avatar && (
-                      <img
-                        src={msg.senderInfo.avatar}
-                        alt="avatar"
-                        className="avatar-small"
-                      />
-                    )}
-                  </div>
-                );
-              })}
-              <div ref={bottomRef} /> */}
-
               <div className="messages">
                 {visibleMessages.map((msg, index) => {
+                  // Hiển thị thông báo
+                  if (msg.type === "notification") {
+                    return (
+                      <div key={msg._id || index} className="message-row notification-message">
+                        <div className="notification-text">{msg.content}</div>
+                      </div>
+                    );
+                  }
                   const isMine = msg.senderID === user.userID;
                   return (
                     <div

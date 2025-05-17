@@ -9,12 +9,36 @@ const socket = io('http://localhost:5000');
 
 const FriendList = ({friends,onStartChat,user}) => {
   const [errorMessage, setErrorMessage] = useState(""); // Store error message state
+  const [banbe, setFriends] = useState([]); // Store friends data
+  useEffect(() => {
+    setFriends(friends);
+  },[friends]);
+  console.log("friends",banbe);
    const navigate = useNavigate();
    console.log("friends",friends.length);
    useEffect(() => {
-    if (!user?.userID) return;
+    if (!user?.userID) return; 
     socket.emit("join_user", user.userID);
-  }, []);
+    socket.on("update_user", (updatedUser) => {
+  setFriends((prevRequests) =>
+    prevRequests.map((res) => {
+      if (res.userID === updatedUser.userID) {
+        return {
+          ...res,
+          name: updatedUser.name,
+          anhDaiDien: updatedUser.anhDaiDien,
+          sdt: updatedUser.sdt,
+          trangThai: updatedUser.trangThai,
+        };
+      }
+      return res;
+    })
+  );
+});
+return () => {
+  socket.off("update_user");
+}
+  }, [user]);
 
  // const user = JSON.parse(sessionStorage.getItem("user")); // Lấy thông tin người dùng từ sessionStorage
 
@@ -74,8 +98,8 @@ const FriendList = ({friends,onStartChat,user}) => {
       {errorMessage && <div className="error-message">{errorMessage}</div>}
 
       {/* Display the list of friends */}
-      {friends.length > 0 ? (
-        friends.map((friend) => (
+      {banbe.length > 0 ? (
+        banbe.map((friend) => (
           <button key={friend._id} onClick={() => fetchatListChatFriend(friend)}>
           <div  className="friend-itemm">
             <img

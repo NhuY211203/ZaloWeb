@@ -13,6 +13,7 @@ const AddGroupModal = ({ isModalOpen, handleCloseModal, user, onGroupCreate, onS
   const [selectedGroupImage, setSelectedGroupImage] = useState(null); // To store selected group image
   const [users, setUsers] = useState([]); // To store the list of friends
   const [loading, setLoading] = useState(true); // To track if users are being loaded
+  const [files, setFiles] = useState(null); // To store uploaded files
 
   // 📥 Lấy danh sách bạn bè từ server
   const getFriendsList = async () => {
@@ -79,19 +80,31 @@ const AddGroupModal = ({ isModalOpen, handleCloseModal, user, onGroupCreate, onS
       alert("Vui lòng nhập tên nhóm.");
       return;
     }
+    if (!files){
+      alert("Vui lòng chọn ảnh nhóm.");
+      return;
+    }
+    const imageForm = new FormData();
+    imageForm.append("files",files);
+    const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+          method: "POST",
+          body: imageForm,
+        });
+        const image = await res.json();
     const members = selectedMembers.map((memberId) => ({
       userID: memberId,
     }));
+
 
     const data = {
       adminID: user.userID,
       name: groupName,
       members: members,
-      avatar: selectedGroupImage || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png",
+      avatar: image.urls[0],
     };
 
     try {
-      const response = await fetch("https://echoapp-rho.vercel.app/api/createGroupChat", {
+      const response = await fetch("http://localhost:5000/api/createGroupChat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data }),
@@ -120,6 +133,7 @@ const AddGroupModal = ({ isModalOpen, handleCloseModal, user, onGroupCreate, onS
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setFiles(file); // Lưu file vào state
       setSelectedGroupImage(URL.createObjectURL(file)); // Create a temporary URL for the uploaded image
     }
   };

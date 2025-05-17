@@ -11,7 +11,7 @@ import ProfileModal from "./ProfileModal";
 import UserProfileModal from "./UserProfileModal";
 import "../styles/Sidebar.css";
 
-const Sidebar = ({ user, onChangeView }) => {
+const Sidebar = ({ user, onChangeView,setUser}) => {
   const navigate = useNavigate();
   const [activeButton, setActiveButton] = useState("chat");
 
@@ -96,12 +96,12 @@ const Sidebar = ({ user, onChangeView }) => {
       {modals.profile && (
         <ProfileModal 
         onClose={() => closeModal("profile")} 
-        user={user} navigate={navigate}  
+        user={user} navigate={navigate} 
         onOpenProfile={() => openModal("userProfile")}
         onOpenSettings={() => openModal("generalSettings")}
         />
       )}
-      {modals.userProfile && <UserProfileModal onClose={() => closeModal("userProfile")} user={user} />}
+      {modals.userProfile && <UserProfileModal onClose={() => closeModal("userProfile")} user={user} setUser={setUser} />}
       {modals.generalSettings && (
         <GeneralSettingsModal
           onClose={() => closeModal("generalSettings")}

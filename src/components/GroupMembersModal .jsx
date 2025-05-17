@@ -66,19 +66,37 @@ useEffect(() => {
   };
 }, [isOpen, selectedChat.members, user]);
 
+const sendNotification = (content) => {
+  if (!content.trim()) return;
 
+  const tempID = Date.now().toString();
+
+  const newNotification = {
+    tempID,
+    chatID: chats.chatID,
+    senderID: user.userID,
+    content,
+    type: "notification",
+    timestamp: new Date().toISOString(),
+    media_url: [],
+    status: "sent",
+    senderInfo: { name: user.name, avatar: user.anhDaiDien },
+  };
+
+  socket.emit("send_message", newNotification);
+};
 
 
   // Handle remove member
-  const handleRemoveMember = (memberID) => {
-    //setLoading(true);
+  const handleRemoveMember = (member) => {
     socket.emit("deleteMember",{
-      chatID: selectedChat.chatID,
+      chatID: chats.chatID,
       adminID:user.userID,
-      memberID: memberID,
+      memberID: member.userID,
     });
-    
-   
+    const content = `${member.name} đã được ${user.name} xoá khỏi nhóm.`;
+   sendNotification(content);
+   setLoading(true);
   };
   const userRolee = chats?.members?.find(
     (member) => member.userID === user.userID
@@ -117,7 +135,7 @@ useEffect(() => {
                   <div>
                     <button
                       className="remove-member-btn"
-                      onClick={() => handleRemoveMember(member.userID)}
+                      onClick={() => handleRemoveMember(member)}
                     >
                       Xóa
                     </button>
