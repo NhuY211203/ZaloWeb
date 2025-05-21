@@ -37,7 +37,7 @@ const isValidPassword = (password) => {
       const matKhau = newPassword; // Đặt lại tên biến cho dễ hiểu
       // Gửi yêu cầu cập nhật mật khẩu mới đến server
       const response = await axios.post(
-        "https://echoapp-rho.vercel.app/api/users/doimatkhau",
+        "https://cnm-service.onrender.com/api/users/doimatkhau",
         {sdt, matKhau }, // Thêm email và sdt vào payload
         { headers: { "Content-Type": "application/json" } }
       ).catch((err) => {

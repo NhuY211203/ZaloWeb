@@ -39,7 +39,7 @@ const ForgotPassword = () => {
     }
 
     // Kiểm tra số điện thoại
-    const responseSDT = await axios.post('https://echoapp-rho.vercel.app/api/users/checksdt', 
+    const responseSDT = await axios.post('https://cnm-service.onrender.com/api/users/checksdt', 
       { sdt },
       { headers: { 'Content-Type': 'application/json' } }
     ).catch(err => {
@@ -47,7 +47,7 @@ const ForgotPassword = () => {
     });
 
     // Kiểm tra email
-    const responseEmail = await axios.post('https://echoapp-rho.vercel.app/api/users/email', 
+    const responseEmail = await axios.post('https://cnm-service.onrender.com/api/users/email', 
       { email },
       { headers: { 'Content-Type': 'application/json' } }
     ).catch(err => {

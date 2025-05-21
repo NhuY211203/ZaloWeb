@@ -4,7 +4,7 @@ import { FaSearch, FaUserPlus, FaUsers } from "react-icons/fa";
 import "../styles/AddMemberGroup.css"; // Tạo file CSS mới cho modal này
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://cnm-service.onrender.com");
 
 const AddMemberGroup = ({
   isModalOpen,
@@ -35,7 +35,7 @@ const AddMemberGroup = ({
     try {
       console.log("🔄 Đang lấy danh sách bạn bè với userID:", user.userID, "và chatID:", chatID);
 
-      const response = await fetch("http://localhost:5000/api/getMemberAddMember", {
+      const response = await fetch("https://cnm-service.onrender.com/api/getMemberAddMember", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userID: user.userID, chatID: chatID }),

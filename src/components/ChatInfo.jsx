@@ -5,7 +5,7 @@ import GroupMembersModal from "./GroupMembersModal "; // Import modal mới
 import LeaveGroupModal from "./LeaveGroupModal"; // Import modal mới
 import "../styles/ChatInfo.css";
 import { io } from "socket.io-client";
-const socket = io("http://localhost:5000");
+const socket = io("https://cnm-service.onrender.com");
 //const socket = io('https://cnm-service.onrender.com');
 const ChatInfo = ({
   selectedChat,
@@ -46,7 +46,7 @@ const ChatInfo = ({
   console.log("📦 selectedChat:", selectedChat);
   const getMemberList = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/InforMember", {
+      const response = await fetch("https://cnm-service.onrender.com/api/InforMember", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ members: selectedChat.members }), // Send members data to server

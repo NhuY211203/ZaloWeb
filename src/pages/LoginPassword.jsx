@@ -4,7 +4,7 @@ import axios from "axios";
 import logo from "../assets/logo.png";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://cnm-service.onrender.com");
 
 // Bắt đầu 03, 05, 07, 08, 09 và có 10 chữ số
 const isValidPhoneNumber = (phoneNumber) => {
@@ -40,13 +40,13 @@ const LoginPassword = () => {
     }
   
     try {
-      const response = await axios.post("https://echoapp-rho.vercel.app/api/login", {
+      const response = await axios.post("https://cnm-service.onrender.com/api/login", {
         sdt,
         matKhau,
       });
 
       alert("Đăng nhập thành công!");
-      const res = await axios.post("http://localhost:5000/api/updateStatus", {
+      const res = await axios.post("https://cnm-service.onrender.com/api/updateStatus", {
         userID: response.data.user.userID,
         trangThai:"online"
       });

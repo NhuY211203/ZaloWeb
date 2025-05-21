@@ -14,7 +14,7 @@ import PinnedMessageBar from "./PinnedMessageBar";
 import PinnedMessagesBar from "./PinnedMessageBar";
 import { data } from "autoprefixer";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://cnm-service.onrender.com");
 //const socket = io('https://cnm-service.onrender.com');
 
 const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
@@ -66,7 +66,8 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
  
   const handleMember = async(memberID)=>{
     try{
-        const res = await axios.post("http://localhost:5000/api/usersID", {
+        const res = await axios.post("https://cnm-service.onrender.com/api/usersID", {
+          
           userID: memberID
         });
           console.log("Member data:", res.data);
@@ -568,7 +569,7 @@ const handleEmojiClickk = (emojiObject) => {
 
     try {
       if (imageFiles.length > 0) {
-        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+        const res = await fetch("https://cnm-service.onrender.com/api/upload", {
           method: "POST",
           body: imageForm,
         });
@@ -631,7 +632,7 @@ const handleEmojiClickk = (emojiObject) => {
       }
 
       if (otherFiles.length > 0) {
-        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+        const res = await fetch("https://cnm-service.onrender.com/api/upload", {
           method: "POST",
           body: fileForm,
         });
@@ -727,7 +728,7 @@ const handleEmojiClickk = (emojiObject) => {
 
     try {
       if (imageFiles.length > 0) {
-        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+        const res = await fetch("https://cnm-service.onrender.com/api/upload", {
           method: "POST",
           body: imageForm,
         });
@@ -776,7 +777,7 @@ const handleEmojiClickk = (emojiObject) => {
       }
 
       if (otherFiles.length > 0) {
-        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+        const res = await fetch("https://cnm-service.onrender.com/api/upload", {
           method: "POST",
           body: fileForm,
         });
@@ -883,7 +884,7 @@ const handleEmojiClickk = (emojiObject) => {
 
   const handleRemoveMember = async (memberId) => {
     try {
-      const response = await fetch(`https://echoapp-rho.vercel.app/api/removeMember/${selectedChatt.chatID}`, {
+      const response = await fetch(`https://cnm-service.onrender.com/api/removeMember/${selectedChatt.chatID}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ memberId, adminID: user.userID }),
@@ -949,7 +950,7 @@ const handleEmojiClickk = (emojiObject) => {
 
   const handleDissolveGroup = async () => {
     try {
-      const response = await fetch(`https://echoapp-rho.vercel.app/api/dissolveGroup/${selectedChatt.chatID}`, {
+      const response = await fetch(`https://cnm-service.onrender.com/api/dissolveGroup/${selectedChatt.chatID}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });

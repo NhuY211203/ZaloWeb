@@ -5,7 +5,7 @@ import { io } from 'socket.io-client';
 
 // Khởi tạo socket
 //const socket = io('https://cnm-service.onrender.com');
-const socket = io('http://localhost:5000');
+const socket = io('https://cnm-service.onrender.com');
 
 const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
   const [lastMessage, setLastMessage] = useState(chat.lastMessage || []);
@@ -16,7 +16,7 @@ const ChatItem = ({ chat, onSelectChat, isSelected, user }) => {
  
   const handleMember = async(memberID)=>{
     try{
-        const res = await axios.post("http://localhost:5000/api/usersID", {
+        const res = await axios.post("https://cnm-service.onrender.com/api/usersID", {
           userID: memberID
         });
           console.log("Member data:", res.data);

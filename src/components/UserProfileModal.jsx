@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import * as FaIcons from "react-icons/fa";
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:5000');
+const socket = io('https://cnm-service.onrender.com');
 
 // Hàm kiểm tra tính hợp lệ của số điện thoại
 const isValidPhoneNumber = (phoneNumber) => {
@@ -127,7 +127,7 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
     const imageForm = new FormData();
     imageForm.append("files",file);
 
-    const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+    const res = await fetch("https://cnm-service.onrender.com/api/upload", {
           method: "POST",
           body: imageForm,
         });
@@ -145,7 +145,7 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
     };
   
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${profile.userID}`, {
+      const response = await fetch(`https://cnm-service.onrender.com/api/users/${profile.userID}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

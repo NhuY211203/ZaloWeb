@@ -4,7 +4,7 @@ import "../styles/FriendList.css"; // Import CSS
 import { FaUserFriends } from "react-icons/fa"; // Import icon from react-icons
 import { useNavigate } from "react-router-dom";
 import { io } from 'socket.io-client';
-const socket = io('http://localhost:5000');
+const socket = io('https://cnm-service.onrender.com');
 
 
 const FriendList = ({friends,onStartChat,user}) => {
@@ -45,7 +45,7 @@ return () => {
 
   const fetchatListChatFriend = async (friend) => {
     try {
-      const response = await fetch("http://localhost:5000/api/chats1-1ByUserID", {
+      const response = await fetch("https://cnm-service.onrender.com/api/chats1-1ByUserID", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -59,7 +59,7 @@ return () => {
       if (response.ok && chat && chat.chatID) {
         onStartChat(chat);
       } else {
-        const createResponse = await fetch("http://localhost:5000/api/createChat1-1", {
+        const createResponse = await fetch("https://cnm-service.onrender.com/api/createChat1-1", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

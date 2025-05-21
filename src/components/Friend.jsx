@@ -6,7 +6,7 @@ import FriendList from "./FriendList";
 import GroupList from "./GroupList";
 import FriendRequest from "./FriendRequest";
 import { io } from 'socket.io-client';
-const socket = io('http://localhost:5000');
+const socket = io('https://cnm-service.onrender.com');
 
 const Friend = ({onStartChat,user}) => {
   const [friends, setFriends] = useState([]); // Store friends data
@@ -14,7 +14,7 @@ const Friend = ({onStartChat,user}) => {
       // Fetch friends data ngay sau khi setUser xong
       const fetchFriends = async () => {
         try {
-          const response = await fetch("http://localhost:5000/api/ContacsFriendByUserID", {
+          const response = await fetch("https://cnm-service.onrender.com/api/ContacsFriendByUserID", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

@@ -3,7 +3,7 @@ import { FaTimes } from "react-icons/fa";
 import axios from "axios";
 import "../styles/GroupMembersModal.css"; // Import CSS for modal
 import { io } from "socket.io-client";
-const socket = io("http://localhost:5000");
+const socket = io("https://cnm-service.onrender.com");
 const LeaveGroupModal = ({
   isOpen,
   handleClose,

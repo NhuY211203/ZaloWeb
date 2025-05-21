@@ -4,7 +4,7 @@ import { io } from "socket.io-client"; // Import socket.io-client
 import "../styles/AddFriendModal.css";
 import InfoSearchModal from "../components/InfoSearchModal";
 //const socket = io('https://cnm-service.onrender.com');
-const socket = io("http://localhost:5000");  // Kết nối đến server socket
+const socket = io("https://cnm-service.onrender.com");  // Kết nối đến server socket
 
 const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -32,7 +32,7 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {
         return;
       }
 
-      const response = await axios.post("https://echoapp-rho.vercel.app/api/search-friend-by-phone", {
+      const response = await axios.post("https://cnm-service.onrender.com/api/search-friend-by-phone", {
         phoneNumber: phoneNumber,
         userID: userID,
       });
@@ -42,6 +42,7 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {
         setUserData(userDetails);
         setFriendStatus(friendStatus);
         setErrorMessage("");
+         handleCloseModal();
         setIsSearchResultModalOpen(true);
       } else {
         setErrorMessage(response.data.message);

@@ -38,7 +38,7 @@ const SignUpInfoScreen = () => {
       return;
     }
     try {
-      const response = await fetch("https://echoapp-rho.vercel.app/api/registerUser", {
+      const response = await fetch("https://cnm-service.onrender.com/api/registerUser", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -23,7 +23,7 @@ const SignUpScreen = () => {
       return;
     }
       // Kiểm tra email
-      const responseSDT = await axios.post('https://echoapp-rho.vercel.app/api/users/checksdt', 
+      const responseSDT = await axios.post('https://cnm-service.onrender.com/api/users/checksdt', 
         { sdt },
         { headers: { 'Content-Type': 'application/json' } }
       ).catch(err => {
