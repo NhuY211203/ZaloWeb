@@ -1,0 +1,71 @@
+.pinned-message-bar {
+  display: flex;
+  align-items: center;
+  background-color: #e1dfdb;
+  padding: 8px 12px;
+  border-bottom: 1px solid #fcd34d;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.pinned-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.pinned-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.pinned-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.pinned-label {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.pinned-text {
+  font-size: 13px;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pinned-image {
+  width: 60px;
+  height: auto;
+  border-radius: 6px;
+}
+
+.unpin-btn {
+  background: transparent;
+  border: none;
+  color: #d97706;
+  font-weight: bold;
+  cursor: pointer;
+}
+.toggle-pinned-btn {
+  background-color: #dedcd6;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  margin-left: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #78350f;
+  transition: background-color 0.2s;
+}
+
+.toggle-pinned-btn:hover {
+  background-color: #fde68a;
+}
+

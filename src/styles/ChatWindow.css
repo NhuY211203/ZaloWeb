@@ -225,6 +225,8 @@
   padding: 10px;
   border-top: 1px solid #ddd;
   background: white;
+  position: relative;
+  padding-top: 60px; /* Thêm khoảng trống phía trên khi modal hiển thị */
 }
 
 .chat-input .input-icons {
@@ -393,34 +395,57 @@
 
 /* Cải thiện vị trí và hiển thị của biểu tượng hành động */
 .message-actions {
-  display: none; /* Ẩn mặc định */
+  display: none;
   position: absolute;
-  right: -30px; /* Điều chỉnh vị trí để không bị che */
   top: 50%;
   transform: translateY(-50%);
-  z-index: 1001; /* Đảm bảo hiển thị trên các phần tử khác */
+  z-index: 1001;
+  padding: 0 5px;
 }
 
-/* Hiển thị biểu tượng khi hover */
+.my-message .message-actions {
+  right: -25px;
+}
+
+.other-message .message-actions {
+  left: -25px;
+}
+
 .message-row:hover .message-actions {
-  display: block;
+  display: flex;
+  align-items: center;
 }
 
-/* Cải thiện modal hành động để không bị che */
+.action-icon {
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.action-icon:hover {
+  color: #007bff;
+}
+
 .action-modal {
   position: absolute;
-  top: -10px; /* Điều chỉnh vị trí để hiển thị trên tin nhắn */
-  right: 20px; /* Đẩy modal ra xa biểu tượng ba chấm */
+  top: -10px;
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  z-index: 1002; /* Tăng z-index để modal luôn hiển thị trên cùng */
+  z-index: 1002;
   padding: 5px 0;
-  min-width: 150px; /* Đảm bảo modal đủ rộng để hiển thị nội dung */
+  min-width: 150px;
 }
 
-/* Định dạng nút trong modal */
+.my-message .action-modal {
+  right: 20px;
+}
+
+.other-message .action-modal {
+  left: 20px;
+}
+
 .action-modal button {
   display: block;
   width: 100%;
@@ -431,10 +456,104 @@
   cursor: pointer;
   font-size: 14px;
   color: #333;
-  white-space: nowrap; /* Ngăn text bị ngắt dòng */
+  white-space: nowrap;
 }
 
-/* Hiệu ứng hover cho nút */
 .action-modal button:hover {
   background-color: #f0f0f0;
+}
+
+.unsent-message {
+  font-style: italic;
+  color: #999999 !important; /* Màu xám trung tính cho tin nhắn nhận */
+  display: block;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  min-width: 60px;
+}
+
+.my-message .unsent-message {
+  color: #cccccc !important; /* Màu sáng hơn cho tin nhắn gửi trên nền xanh */
+}
+
+/* Modal trả lời tin nhắn */
+.reply-modal {
+  position: absolute;
+  bottom: 100%; /* Đặt modal ngay phía trên .chat-input */
+  left: 0;
+  width: 100%;
+  background-color: #e9ecef;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px; /* Thêm khoảng cách giữa modal và khu vực nhập */
+}
+
+.reply-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reply-header span {
+  font-weight: bold;
+  color: #617487;
+  font-size: 14px;
+}
+
+.close-reply {
+  cursor: pointer;
+  color: #666;
+  font-size: 16px;
+}
+
+.close-reply:hover {
+  color: #24282d;
+}
+
+.reply-content {
+  font-size: 13px;
+  color: #7d4c4c;
+  padding: 4px 8px;
+  background-color: #fff;
+  border-radius: 4px;
+  word-break: break-word;
+}
+
+/* Phần hiển thị tin nhắn trả lời trong bong bóng tin nhắn */
+.reply-to {
+  border-left: 2px solid #007bff;
+  padding-left: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #785757;
+}
+
+.reply-to-sender {
+  font-weight: bold;
+  color: #c3ccd6;
+  display: block;
+}
+
+.reply-to-content {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.reply-preview {
+  font-size: 13px;
+  color: #666;
+  padding: 4px 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-top: 4px;
+  word-break: break-word;
 }

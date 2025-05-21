@@ -100,6 +100,7 @@ const handleUpdateChatt = (data) => {
         });
         socket.on("updateChatt", handleUpdateChatt);
     socket.on("updateMemberChattt", handleUpdateChatt);
+    socket.on("updateMemberChat", handleUpdateChatt);
     socket.on("updateChatmember",handleUpdateChatt);
       return () => {
           socket.off("newMember");
@@ -108,10 +109,12 @@ const handleUpdateChatt = (data) => {
           socket.off("UpdateRole");
           socket.off("updateChatt", handleUpdateChatt);
           socket.off("updateMemberChattt", handleUpdateChatt);
+          socket.off("updateMemberChat", handleUpdateChatt);
           socket.off("updateChatmember",handleUpdateChatt);
       }
     }, [user,selectedChat]);
     console.log("📦 members:", members);
+    console.log("📦 chats:", chats);
      useEffect(() => {
   if (!chats || !user) return;
   const role = chats?.members?.find((member) => member.userID === user.userID)?.role || null;
@@ -142,6 +145,7 @@ const handleUpdateChatt = (data) => {
     timestamp: new Date().toISOString(),
     media_url: [],
     status: "sent",
+     pinnedInfo: null,
     senderInfo: { name: user.name, avatar: user.anhDaiDien },
   };
   socket.emit("send_message", newNotification);
@@ -173,7 +177,7 @@ const handleUpdateChatt = (data) => {
     const results = [];
   
     // Tìm trong nội dung tin nhắn (text, emoji)
-    selectedChat.lastMessage.forEach((msg) => {
+    chats.lastMessage.forEach((msg) => {
       if (msg.type === "text" || msg.type === "emoji") {
         if (msg.content.toLowerCase().includes(keyword)) {
           results.push({ type: "message", content: msg.content, timestamp: msg.timestamp });
@@ -284,21 +288,21 @@ return (
     ) : (
       <>
         {/* Giao diện thông tin nhóm/hội thoại hiện tại */}
-        <h2>{chats.type === "group" ? "Thông tin nhóm" : "Thông tin hội thoại"}</h2>
+        <h2>{selectedChat.type === "group" ? "Thông tin nhóm" : "Thông tin hội thoại"}</h2>
         <div className="chat-info">
           <div style={{ position: "relative" }}>
-            {chats.type === "private" &&
-              chats.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
+            {selectedChat.type === "private" &&
+              selectedChat.lastMessage?.find((msg) => msg.senderID !== user.userID) && (
                 <img
-                  src={chats.lastMessage.find((msg) => msg.senderID !== user.userID)?.senderInfo?.avatar}
+                  src={selectedChat.lastMessage.find((msg) => msg.senderID !== user.userID)?.senderInfo?.avatar}
                   alt="avatar"
                   className="avatar"
                 />
               )}
-            {chats.type === "group" && (
+            {selectedChat.type === "group" && (
               <>
                 <img
-                  src={chats?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
+                  src={selectedChat?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
                   alt="group avatar"
                   className="avatar"
                 />
@@ -307,16 +311,16 @@ return (
           </div>
 
           {/* Group Name */}
-          <h3>{chats.type === "group" ? groupInfo?.name || chats.name : chats.name}</h3>
+          <h3>{selectedChat.type === "group" ? groupInfo?.name || selectedChat.name : selectedChat.name}</h3>
 
           {/* Group Actions */}
-          {chats.type === "group" && (
+          {selectedChat.type === "group" && (
             <div className="group-actions">
               <button className="group-action-btn" onClick={handleAddMember}>
                 <FaUsers className="icon" />
                 Thêm thành viên
               </button>
-              {chats.members.find(m => m.userID === user.userID && m.role === 'admin') && (
+              {selectedChat.members.find(m => m.userID === user.userID && m.role === 'admin') && (
                 <button className="group-action-btn" onClick={() => {
                   openLeaveModal();
                   setLeave(false);
@@ -331,7 +335,7 @@ return (
           )}
 
           {/* Members Section */}
-          {chats.type === "group" && (
+          {selectedChat.type === "group" && (
             <div className="info-section">
               <button onClick={handleOpenMembersModal} className="info-header">
                 <div className="info-headerr">
@@ -634,7 +638,7 @@ return (
           </div>
 
           {/* Leave or Delete */}
-          {chats.type === "group" && (
+          {selectedChat.type === "group" && (
             <>
               {userRolee !== "admin" ? (
                 <button className="leave-group-btn" onClick={handleOutGroup}>
@@ -662,7 +666,7 @@ return (
               )}
             </>
           )}
-          {chats.type !== "group" && (
+          {selectedChat.type !== "group" && (
             <button className="delete-chat">
               <FaTrash className="delete-icon" />
               Xóa lịch sử trò chuyện
@@ -676,7 +680,7 @@ return (
     <GroupMembersModal
       isOpen={isMembersModalOpen}
       handleClose={handleCloseMembersModal}
-      selectedChat={chats}
+      selectedChat={selectedChat}
       handleRemoveMember={handleRemoveMember}
       handleChangeRole={handleChangeRole}
       handleTransferRole={handleTransferRole}
@@ -686,7 +690,7 @@ return (
     <LeaveGroupModal
     isOpen={isLeaveModalOpen}
     handleClose={closeLeaveModal}
-    selectedChat={chats} // nhóm đang chọn
+    selectedChat={selectedChat} // nhóm đang chọn
     handleLeaveGroup={handleLeaveGroup} // hàm xử lý rời nhóm
     user={user}
     members={members} // danh sách thành viên nhóm

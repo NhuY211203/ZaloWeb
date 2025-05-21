@@ -80,6 +80,7 @@ const sendNotification = (content) => {
     timestamp: new Date().toISOString(),
     media_url: [],
     status: "sent",
+     pinnedInfo: null,
     senderInfo: { name: user.name, avatar: user.anhDaiDien },
   };
 
@@ -96,7 +97,8 @@ const sendNotification = (content) => {
     });
     const content = `${member.name} đã được ${user.name} xoá khỏi nhóm.`;
    sendNotification(content);
-   setLoading(true);
+   //setLoading(true);
+   handleClose();
   };
   const userRolee = chats?.members?.find(
     (member) => member.userID === user.userID

@@ -100,6 +100,7 @@ const sendNotification = (content) => {
     timestamp: new Date().toISOString(),
     media_url: [],
     status: "sent",
+     pinnedInfo: null,
     senderInfo: { name: user.name, avatar: user.anhDaiDien },
   };
 

@@ -10,6 +10,9 @@ import { io } from "socket.io-client";
 import ChatInfo from "./ChatInfo"; 
 import AddMemberGroup from "./AddMemberGroup";
 import axios from "axios";
+import PinnedMessageBar from "./PinnedMessageBar";
+import PinnedMessagesBar from "./PinnedMessageBar";
+import { data } from "autoprefixer";
 
 const socket = io("http://localhost:5000");
 //const socket = io('https://cnm-service.onrender.com');
@@ -17,6 +20,7 @@ const socket = io("http://localhost:5000");
 const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [messages, setMessages] = useState("");
+  const [pinnedMessages, setPinnedMessages] = useState([]);
   const [message, setMessage] = useState([]);// tim kiem
   const [saveImage, setSaveImage] = useState(false);
   const [files, setFiles] = useState([]);
@@ -38,13 +42,27 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const bottomRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const groupImageInputRef = useRef(null);
+  const [length, setLength] = useState(0);
   const [showActionModal, setShowActionModal] = useState(null); // Lưu ID tin nhắn để hiển thị modal
   const [selectedMessage, setSelectedMessage] = useState(null); // Lưu tin nhắn được chọn
   const [isSearchOpen, setIsSearchOpen] = useState(false); // State để mở/đóng giao diện tìm kiếm
   const [searchKeyword, setSearchKeyword] = useState(""); // State để lưu từ khóa tìm kiếm
   const [searchResults, setSearchResults] = useState([]); // State để lưu kết quả tìm kiếm
-  console.log("📦 selectedChat:", selectedChat);
+  const [selectedChatt,setSelectedChatt]= useState(null);
   const [member, setMember] = useState(null);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false); // State cho modal trả lời
+  const [replyMessage, setReplyMessage] = useState(null); // Tin nhắn cần trả lời
+  const handleReplyMessage = (msg) => {
+    console.log("Selected message to reply:", msg);
+    setReplyMessage(msg);
+    setIsReplyModalOpen(true);
+  };
+  
+  const handleCloseReplyModal = () => {
+    setIsReplyModalOpen(false);
+    setReplyMessage(null);
+  };
+
  
   const handleMember = async(memberID)=>{
     try{
@@ -60,16 +78,14 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   }
 
   useEffect(() => {
-    if (!selectedChat || selectedChat.type !== "private") return;
-  
-    const memberID = selectedChat.members.find((m) => m.userID !== user.userID)?.userID;
-    console.log("memberID", memberID);
+    if (!selectedChatt || selectedChatt.type !== "private") return;
+
+    const memberID = selectedChatt.members.find((m) => m.userID !== user.userID)?.userID;
   
     if (memberID) {
       handleMember(memberID);
     }
-  }, [selectedChat]);
-  console.log("member",member);
+  }, [selectedChatt]);
   // Xác định vai trò của người dùng (admin hoặc member)
 
   // Lấy thông tin nhóm từ server
@@ -101,7 +117,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   // Lắng nghe sự kiện cập nhật nhóm qua socket
   useEffect(() => {
     socket.on("updateGroup", (updatedGroup) => {
-      if (updatedGroup.chatID === selectedChat.chatID) {
+      if (updatedGroup.chatID === selectedChatt.chatID) {
         setGroupInfo(updatedGroup);
       }
     });
@@ -109,7 +125,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
     return () => {
       socket.off("updateGroup");
     };
-  }, [selectedChat]);
+  }, [selectedChatt]);
 
   const handleScroll = () => {
     const el = scrollContainerRef.current;
@@ -139,23 +155,27 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [message]);
+  useEffect(() => {
+    setSelectedChatt(selectedChat);
+    setLength(selectedChat?.members?.length);
+  },[selectedChat]);
 
   useEffect(() => {
-    setMessage(selectedChat?.lastMessage || []);
-  }, [selectedChat]);
+    setMessage(selectedChatt?.lastMessage || []);
+  }, [selectedChatt]);
 
   useEffect(() => {
-    if (!selectedChat) return;
+    if (!selectedChatt) return;
     socket.emit("read_messages", {
-      chatID: selectedChat.chatID,
+      chatID: selectedChatt.chatID,
       userID: user.userID,
     });
-  }, [selectedChat]);
+  }, [selectedChatt]);
 
   useEffect(() => {
-    if (!selectedChat) return;
+    if (!selectedChatt) return;
     socket.emit("join_user", user.userID);
-    socket.emit("join_chat", selectedChat.chatID);
+    socket.emit("join_chat", selectedChatt.chatID);
 
     const handleNewMessage = (data) => {
       setMessage((prev) => {
@@ -164,7 +184,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
       });
       if (data.senderID !== user.userID) {
         socket.emit("read_messages", {
-          chatID: selectedChat.chatID,
+          chatID: selectedChatt.chatID,
           userID: user.userID,
         });
       }
@@ -187,9 +207,9 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
       );
     };
 
-    socket.on(selectedChat.chatID, handleNewMessage);
-    socket.on(`status_update_${selectedChat.chatID}`, handleStatusUpdate);
-    socket.on(`unsend_${selectedChat.chatID}`, handleUnsendMessage);
+    socket.on(selectedChatt.chatID, handleNewMessage);
+    socket.on(`status_update_${selectedChatt.chatID}`, handleStatusUpdate);
+    socket.on(`unsend_${selectedChatt.chatID}`, handleUnsendMessage);
     socket.on("unsend_notification", (updatedMessage) => {
       setMessage((prevMessages) =>
         prevMessages.map((m) =>
@@ -234,18 +254,75 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
         return msg;
       })
     );
+  })
+  socket.on("unghim_notification", (message) => {
+    setPinnedMessages((prevPinned) =>
+      prevPinned.filter((msg) => msg.messageID !== message.messageID)
+    );
+    setMessage((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.messageID === message.messageID ? { ...msg, pinnedInfo: null } : msg
+      )
+    );
   });
+  socket.on("ghim_notification", (message) => {
+    setPinnedMessages((prevPinned) => {
+      const existingMessage = prevPinned.find((msg) => msg.messageID === message.messageID);
+      if (existingMessage) {
+        return prevPinned.map((msg) =>
+          msg.messageID === message.messageID ? { ...msg, pinnedInfo: message.pinnedInfo } : msg
+        );
+      } else {
+        return [...prevPinned, { ...message, pinnedInfo: message.pinnedInfo }];
+      }
+    });
+    setMessage((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.messageID === message.messageID ? { ...msg, pinnedInfo: message.pinnedInfo } : msg
+      )
+    );
+  });
+  socket.on("updateChatmember",(data)=>{
+    setLength(data.members.length);
+    setSelectedChatt(data);
+  });
+  socket.on("updateChat",(data)=>{
+    setSelectedChatt(data);
+    setLength(data.members.length);
+  });
+
+  socket.on("updateMemberChattt",(data)=>{
+    setSelectedChatt(data);
+    setLength(data.members.length);
+  });
+  
+
+
+
 
     return () => {
       socket.off(selectedChat.chatID, handleNewMessage);
-      socket.off(`status_update_${selectedChat.chatID}`, handleStatusUpdate);
-      socket.off(`unsend_${selectedChat.chatID}`, handleUnsendMessage);
+      socket.off(`status_update_${selectedChatt.chatID}`, handleStatusUpdate);
+      socket.off(`unsend_${selectedChatt.chatID}`, handleUnsendMessage);
       socket.off("unsend_notification");
       socket.off("updatee_user");
       socket.off("status_update");
       socket.off("update_user");
+      socket.off("unghim_notification");
+      socket.off("updateChatmember");
+      socket.off("updateChat");
+      socket.off("updateMemberChattt");
+      
     };
-  }, [selectedChat, user.userID]);
+  }, [selectedChatt, user.userID]);
+  useEffect(() => {
+  if (!message || !Array.isArray(message)) return;
+
+  const pinned = message.filter((msg) => msg.pinnedInfo);
+  setPinnedMessages(pinned);
+}, [message]);
+console.log("Pinned messages:", pinnedMessages);
+
 
   useEffect(() => {
     if (!message) return;
@@ -311,8 +388,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const closeMediaPreview = () => {
     setPreviewMedia(null);
   };
-
-  const sendVoiceMessage = async () => {
+  const sendVoiceMessagee = async () => {
     if (!audioBlob) return;
 
     const formData = new FormData();
@@ -337,6 +413,50 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
         media_url: data.urls,
         status: "sent",
         senderInfo: { name: user.name, avatar: user.anhDaiDien },
+      replyTo: replyMessage ? {
+      messageID: replyMessage.messageID,
+      senderName: replyMessage.senderID,
+      content: replyMessage.content,
+      type: replyMessage.type,
+      media_url: replyMessage.media_url,
+    } : null,
+  };
+      socket.emit("send_message", newMsg);
+      setMessage((prev) => [...prev, newMsg]);
+      setAudioBlob(null);
+      setAudioUrl(null);
+      handleCloseReplyModal(); // Đóng modal sau khi gửi
+    } catch (error) {
+      console.error("Upload audio error:", error);
+      alert("Lỗi khi upload audio: " + error.message);
+    }
+  };
+
+  const sendVoiceMessage = async () => {
+    if (!audioBlob) return;
+
+    const formData = new FormData();
+    formData.append("files", audioBlob, "voice-message.webm");
+
+    try {
+      const res = await fetch("https://cnm-service.onrender.com/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+      const data = await res.json();
+      const tempID = Date.now().toString();
+      const newMsg = {
+        tempID,
+        chatID: selectedChatt.chatID,
+        senderID: user.userID,
+        content: "",
+        type: "audio",
+        timestamp: new Date().toISOString(),
+        media_url: data.urls,
+        status: "sent",
+        senderInfo: { name: user.name, avatar: user.anhDaiDien },
       };
       socket.emit("send_message", newMsg);
       setMessage((prev) => [...prev, newMsg]);
@@ -347,13 +467,67 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
       alert("Lỗi khi upload audio: " + error.message);
     }
   };
+  const sendMessagee = () => {
+  if (!messages.trim()) return;
+  const tempID = Date.now().toString();
+  const newMsg = {
+    tempID,
+    chatID: selectedChatt.chatID,
+    senderID: user.userID,
+    content: messages,
+    type: "text",
+    timestamp: new Date().toISOString(),
+    media_url: [],
+    status: "sent",
+    senderInfo: { name: user.name, avatar: user.anhDaiDien },
+    replyTo: replyMessage ? {
+      messageID: replyMessage.messageID,
+      senderName: replyMessage.senderID,
+      content: replyMessage.content,
+      type: replyMessage.type,
+      media_url: replyMessage.media_url,
+    } : null,
+  };
+  socket.emit("send_message", newMsg);
+  setMessage((prev) => [...prev, newMsg]);
+  setMessages("");
+  handleCloseReplyModal(); // Đóng modal sau khi gửi
+};
+const handleEmojiClickk = (emojiObject) => {
+    const emoji = emojiObject.emoji;
+    const tempID = Date.now().toString();
+    const emojiMsg = {
+      tempID,
+      chatID: selectedChatt.chatID,
+      senderID: user.userID,
+      content: emoji,
+      type: "emoji",
+      timestamp: new Date().toISOString(),
+      media_url: [],
+      status: "sent",
+      pinnedInfo: null,
+      senderInfo: { name: user.name, avatar: user.anhDaiDien },
+    replyTo: replyMessage ? {
+      messageID: replyMessage.messageID,
+      senderName: replyMessage.senderID,
+      content: replyMessage.content,
+      type: replyMessage.type,
+      media_url: replyMessage.media_url,
+    } : null,
+  };
+  socket.emit("send_message", newMsg);
+  setMessage((prev) => [...prev, newMsg]);
+  setMessages("");
+  handleCloseReplyModal(); // Đóng modal sau khi gửi
+  setShowEmojiPicker(false);
+  };
 
   const sendMessage = () => {
     if (!messages.trim()) return;
     const tempID = Date.now().toString();
     const newMsg = {
       tempID,
-      chatID: selectedChat.chatID,
+      chatID: selectedChatt.chatID,
       senderID: user.userID,
       content: messages,
       type: "text",
@@ -365,6 +539,164 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
     socket.emit("send_message", newMsg);
     setMessage((prev) => [...prev, newMsg]);
     setMessages("");
+  };
+  const sendSelectedFiless = async () => {
+    if (!files.length) return;
+
+    setIsUploading(true);
+
+    const imageForm = new FormData();
+    const videoForm = new FormData();
+    const fileForm = new FormData();
+
+    const imageFiles = [];
+    const videoFiles = [];
+    const otherFiles = [];
+
+    files.forEach((file) => {
+      if (file.type.startsWith("image")) {
+        imageForm.append("files", file);
+        imageFiles.push(file);
+      } else if (file.type.startsWith("video")) {
+        videoForm.append("files", file);
+        videoFiles.push(file);
+      } else {
+        fileForm.append("files", file);
+        otherFiles.push(file);
+      }
+    });
+
+    try {
+      if (imageFiles.length > 0) {
+        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+          method: "POST",
+          body: imageForm,
+        });
+        const data = await res.json();
+
+        const imageMsg = {
+          tempID: Date.now().toString(),
+          chatID: selectedChatt.chatID,
+          senderID: user.userID,
+          content: "",
+          type: "image",
+          timestamp: new Date().toISOString(),
+          media_url: data.urls,
+          status: "sent",
+          senderInfo: { name: user.name, avatar: user.anhDaiDien },
+            replyTo: replyMessage ? {
+          messageID: replyMessage.messageID,
+          senderName: replyMessage.senderID,
+          content: replyMessage.content,
+          type: replyMessage.type,
+          media_url: replyMessage.media_url,
+        } : null,
+      };
+
+        setMessage((prev) => [...prev, imageMsg]);
+        socket.emit("send_message", imageMsg);
+      }
+
+      if (videoFiles.length > 0) {
+        const res = await fetch("https://cnm-service.onrender.com/api/upload", {
+          method: "POST",
+          body: videoForm,
+        });
+        if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+        const data = await res.json();
+
+        data.urls.forEach((url) => {
+          const videoMsg = {
+            tempID: Date.now().toString(),
+            chatID: selectedChatt.chatID,
+            senderID: user.userID,
+            content: "",
+            type: "video",
+            timestamp: new Date().toISOString(),
+            media_url: url,
+            status: "sent",
+            senderInfo: { name: user.name, avatar: user.anhDaiDien },
+            replyTo: replyMessage ? {
+            messageID: replyMessage.messageID,
+            senderName: replyMessage.senderID,
+            content: replyMessage.content,
+            type: replyMessage.type,
+            media_url: replyMessage.media_url,
+          } : null,
+        };
+
+          setMessage((prev) => [...prev, videoMsg]);
+          socket.emit("send_message", videoMsg);
+        });
+      }
+
+      if (otherFiles.length > 0) {
+        const res = await fetch("https://echoapp-rho.vercel.app/api/upload", {
+          method: "POST",
+          body: fileForm,
+        });
+
+        if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+        const data = await res.json();
+
+        if (!data.urls || !Array.isArray(data.urls)) {
+          const fileMsg = {
+            tempID: Date.now().toString(),
+            chatID: selectedChatt.chatID,
+            senderID: user.userID,
+            content: otherFiles[0].name,
+            type: "file",
+            timestamp: new Date().toISOString(),
+            media_url: data.urls,
+            status: "sent",
+            senderInfo: { name: user.name, avatar: user.anhDaiDien },
+          replyTo: replyMessage ? {
+          messageID: replyMessage.messageID,
+          senderName: replyMessage.senderID,
+          content: replyMessage.content,
+          type: replyMessage.type,
+          media_url: replyMessage.media_url,
+        } : null,
+      };
+
+          setMessage((prev) => [...prev, fileMsg]);
+          socket.emit("send_message", fileMsg);
+        } else {
+          data.urls.forEach((url, i) => {
+            const fileMsg = {
+              tempID: Date.now().toString(),
+              chatID: selectedChatt.chatID,
+              senderID: user.userID,
+              content: otherFiles[i].name,
+              type: "file",
+              timestamp: new Date().toISOString(),
+              media_url: url,
+              status: "sent",
+              senderInfo: { name: user.name, avatar: user.anhDaiDien },
+           replyTo: replyMessage ? {
+      messageID: replyMessage.messageID,
+      senderName: replyMessage.senderID,
+      content: replyMessage.content,
+      type: replyMessage.type,
+      media_url: replyMessage.media_url,
+    } : null,
+  };
+
+            setMessage((prev) => [...prev, fileMsg]);
+            socket.emit("send_message", fileMsg);
+          });
+        }
+      }
+
+      setFiles([]);
+      setSaveImage(false);
+      handleCloseReplyModal();
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Lỗi khi upload file: " + error.message);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const sendSelectedFiles = async () => {
@@ -403,7 +735,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
 
         const imageMsg = {
           tempID: Date.now().toString(),
-          chatID: selectedChat.chatID,
+          chatID: selectedChatt.chatID,
           senderID: user.userID,
           content: "",
           type: "image",
@@ -428,7 +760,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
         data.urls.forEach((url) => {
           const videoMsg = {
             tempID: Date.now().toString(),
-            chatID: selectedChat.chatID,
+            chatID: selectedChatt.chatID,
             senderID: user.userID,
             content: "",
             type: "video",
@@ -455,7 +787,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
         if (!data.urls || !Array.isArray(data.urls)) {
           const fileMsg = {
             tempID: Date.now().toString(),
-            chatID: selectedChat.chatID,
+            chatID: selectedChatt.chatID,
             senderID: user.userID,
             content: otherFiles[0].name,
             type: "file",
@@ -471,7 +803,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
           data.urls.forEach((url, i) => {
             const fileMsg = {
               tempID: Date.now().toString(),
-              chatID: selectedChat.chatID,
+              chatID: selectedChatt.chatID,
               senderID: user.userID,
               content: otherFiles[i].name,
               type: "file",
@@ -502,13 +834,14 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
     const tempID = Date.now().toString();
     const emojiMsg = {
       tempID,
-      chatID: selectedChat.chatID,
+      chatID: selectedChatt.chatID,
       senderID: user.userID,
       content: emoji,
       type: "emoji",
       timestamp: new Date().toISOString(),
       media_url: [],
       status: "sent",
+      pinnedInfo: null,
       senderInfo: { name: user.name, avatar: user.anhDaiDien },
     };
     socket.emit("send_message", emojiMsg);
@@ -550,7 +883,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
 
   const handleRemoveMember = async (memberId) => {
     try {
-      const response = await fetch(`https://echoapp-rho.vercel.app/api/removeMember/${selectedChat.chatID}`, {
+      const response = await fetch(`https://echoapp-rho.vercel.app/api/removeMember/${selectedChatt.chatID}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ memberId, adminID: user.userID }),
@@ -566,17 +899,57 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
       console.error("❌ Remove failed:", error.message);
     }
   };
+  const sendNotification = (content) => {
+  if (!content.trim()) return;
+
+  const tempID = Date.now().toString();
+
+  const newNotification = {
+    tempID,
+    chatID: selectedChatt.chatID,
+    senderID: user.userID,
+    content,
+    type: "notification",
+    timestamp: new Date().toISOString(),
+    media_url: [],
+    status: "sent",
+    pinnedInfo: null,
+    senderInfo: { name: user.name, avatar: user.anhDaiDien },
+  };
+  socket.emit("send_message", newNotification);
+};
 
   const handleUnsendMessage = (message) => {
     if (message.messageID) {
-      socket.emit('unsend_message', { chatID: selectedChat.chatID, messageID: message.messageID, senderID: user.userID })
+      socket.emit('unsend_message', { chatID: selectedChatt.chatID, messageID: message.messageID, senderID: user.userID })
+      
       setShowActionModal(null); // Đóng modal sau khi thu hồi
     }
   };
-  
+  const handleGhimMessage = (message) => {
+    if (message.messageID) {
+      socket.emit('ghim_message', {
+        chatID: selectedChatt.chatID,
+        messageID: message.messageID,
+        senderID: user.userID
+      });
+
+    // Gửi thông báo ngay sau khi emit thành công
+    const content = `📌 ${user.name} đã ghim một tin nhắn.`;
+    sendNotification(content);
+
+    // Đóng modal sau một khoảng delay nhẹ (tùy thích)
+    setTimeout(() => {
+      setShowActionModal(null);
+    }, 1000); // không cần delay quá lâu
+
+       
+    }
+  }
+
   const handleDissolveGroup = async () => {
     try {
-      const response = await fetch(`https://echoapp-rho.vercel.app/api/dissolveGroup/${selectedChat.chatID}`, {
+      const response = await fetch(`https://echoapp-rho.vercel.app/api/dissolveGroup/${selectedChatt.chatID}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
@@ -592,7 +965,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   };
 
 
-  if (!selectedChat) {
+  if (!selectedChatt) {
     return (
       <div className="chat-window">
         <div className="chat-content">
@@ -620,16 +993,16 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
         <div className={`content1 ${!isInfoOpen ? "full-width" : ""}`}>
           <div className="header">
             <div>
-              {selectedChat.type === "private" &&(
+              {selectedChatt.type === "private" &&(
                 <img
                   src={member?.anhDaiDien || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
                   alt="avatar"
                   className="avatar" 
                 /> 
                 )}
-              {selectedChat.type === "group" && (
+              {selectedChatt.type === "group" && (
                 <img
-                  src={selectedChat?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
+                  src={selectedChatt?.avatar || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
                   alt="group avatar"
                   className="avatar"
                 />
@@ -637,15 +1010,15 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
             </div>
 
             <div className="header-info">
-  <h2>{selectedChat.name}</h2>
+  <h2>{selectedChatt.name}</h2>
   {/* Hiển thị số thành viên nếu là nhóm */}
-  {selectedChat.type === "group" && (
+  {selectedChatt.type === "group" && (
     <p style={{ fontSize: "13px", color: "#666", margin: "2px 0 0 0" }}>
-      {selectedChat.members?.length || 0} thành viên
+      {length || 0} thành viên
     </p>
   )}
   {/* Hiển thị trạng thái chỉ khi không phải nhóm */}
-  {selectedChat.type !== "group" && (
+  {selectedChatt.type !== "group" && (
     <p
       style={{
         color: member?.trangThai === "online" ? "green" : "gray",
@@ -673,12 +1046,21 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
             </span>
           </div>
           </div>
+          {pinnedMessages?.length > 0 && (
+            <PinnedMessagesBar
+              pinnedMessages={pinnedMessages}
+              onUnpin={() => setPinnedMessages([])}
+              user={user}
+            />
+          )}
+
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
             style={{ height: "600px", overflowY: "auto" }}
+
           >
-              <div className="messages">
+            <div className="messages">
                 {visibleMessages.map((msg, index) => {
                   // Hiển thị thông báo
                   if (msg.type === "notification") {
@@ -693,19 +1075,31 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
                     <div
                       key={msg._id || index}
                       className={`message-row ${isMine ? "my-message" : "other-message"}`}
-                      onMouseLeave={() => setShowActionModal(null)} // Đóng modal khi rời chuột
+                      onMouseLeave={() => setShowActionModal(null)}
                     >
                       {!isMine && msg.senderInfo?.avatar && (
-                        <img
-                          src={msg.senderInfo.avatar}
-                          alt="avatar"
-                          className="avatar-small"
-                        />
+                        <img src={msg.senderInfo.avatar} alt="avatar" className="avatar-small" />
                       )}
-                      <div className="message-bubble-wrapper">
+                      <div className="message-bubble-wrapper" style={{ position: "relative" }}>
+                        
                         <div className="message-bubble">
+                        {msg?.replyTo  && (
+                          <div className="reply-to">
+                            <span className="reply-to-sender">
+                              Trả lời 
+                            </span>
+                            <span className="reply-to-content">
+                              {msg.replyTo?.type === "text" ? msg.replyTo?.content
+                                : msg.replyTo?.type === "image" ? "[Image]"
+                                : msg.replyTo?.type === "video" ? "[Video]"
+                                : msg.replyTo?.type === "audio" ? "[Audio]"
+                                : msg.replyTo?.type === "file"  ? "[File]"
+                                : "[Unknown]"}
+                            </span>
+                          </div>
+                        )}
                           {msg.type === "unsend" ? (
-                            <i style={{ color: "gray" }}>Tin nhắn đã được thu hồi</i>
+                            <span className="unsent-message">Tin nhắn đã được thu hồi</span>
                           ) : msg.type === "image" ? (
                             (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((img, i) => (
                               <img
@@ -713,9 +1107,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
                                 src={typeof img === "string" ? img : img.uri}
                                 className="chat-image"
                                 alt="media"
-                                onClick={() =>
-                                  window.open(typeof img === "string" ? img : img.uri, "_blank")
-                                }
+                                onClick={() => window.open(typeof img === "string" ? img : img.uri, "_blank")}
                               />
                             ))
                           ) : msg.type === "video" ? (
@@ -729,23 +1121,14 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
                             ))
                           ) : msg.type === "audio" ? (
                             (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((audio, i) => (
-                              <audio
-                                key={i}
-                                controls
-                                src={typeof audio === "string" ? audio : audio.uri}
-                              />
+                              <audio key={i} controls src={typeof audio === "string" ? audio : audio.uri} />
                             ))
                           ) : msg.type === "file" ? (
                             (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((file, i) => {
                               const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(file)}&embedded=true`;
                               return (
                                 <div key={i} className="file-message">
-                                  <a
-                                    href={viewerUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    download={msg.content}
-                                  >
+                                  <a href={viewerUrl} target="_blank" rel="noopener noreferrer" download={msg.content}>
                                     {msg.content || `file_${i}`}
                                   </a>
                                 </div>
@@ -754,14 +1137,14 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
                           ) : (
                             <span className="message-text">{msg.content}</span>
                           )}
-
                           {isMine && msg.type !== "unsent" && (
                             <div className="status-text">
                               {msg.status === "read" ? "Đã xem" : "Đã gửi"}
                             </div>
                           )}
                         </div>
-                        {isMine && msg.type !== "unsent" && (
+
+                        {msg.type !== "unsent" && (
                           <div className="message-actions">
                             <FaIcons.FaEllipsisH
                               className="action-icon"
@@ -773,38 +1156,38 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
                             />
                             {showActionModal === (msg._id || index) && (
                               <div className="action-modal">
-                                <button
-                                  onClick={() => console.log("Trả lời tin nhắn:", msg)}
-                                >
-                                  Trả lời tin nhắn
-                                </button>
-                                <button
-                                  onClick={() => console.log("Chuyển tiếp tin nhắn:", msg)}
-                                >
-                                  Chuyển tiếp tin nhắn
-                                </button>
-                                <button onClick={() => handleUnsendMessage(msg)}>
-                                  Thu hồi tin nhắn
-                                </button>
+                                <button onClick={() => handleReplyMessage(msg)}>Trả lời tin nhắn</button>
+                                <button onClick={() => handleGhimMessage(msg)}>Ghim tin nhắn</button>
+                                {isMine && <button onClick={() => handleUnsendMessage(msg)}>Thu hồi tin nhắn</button>}
+                                
                               </div>
                             )}
                           </div>
                         )}
                       </div>
                       {isMine && msg.senderInfo?.avatar && (
-                        <img
-                          src={msg.senderInfo.avatar}
-                          alt="avatar"
-                          className="avatar-small"
-                        />
+                        <img src={msg.senderInfo.avatar} alt="avatar" className="avatar-small" />
                       )}
                     </div>
                   );
+
                 })}
                 <div ref={bottomRef} />
               </div>
           </div>
+
           <div className="chat-input">
+            {isReplyModalOpen && replyMessage && (
+            <div className="reply-modal">
+              <div className="reply-header">
+                <span>Trả lời {replyMessage.senderInfo?.name || "Unknown"}</span>
+                <FaIcons.FaTimes className="close-reply" onClick={handleCloseReplyModal} />
+              </div>
+              <div className="reply-content">
+                <span>{replyMessage.content || "Tin nhắn không có nội dung"}</span>
+              </div>
+            </div>
+          )}
             <div className="input-icons left">
               <FaIcons.FaSmile
                 size={24}
@@ -843,7 +1226,11 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
                 )}
                 {audioUrl && (
                   <button
-                    onClick={sendVoiceMessage}
+                    onClick={() => {if(isReplyModalOpen){
+                      sendVoiceMessagee();
+                    }else{
+                      sendVoiceMessage();
+                    }}}
                     className="bg-green-500 text-white px-4 py-2 rounded"
                   >
                     Gửi ghi âm
@@ -854,7 +1241,11 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
             </div>
             {showEmojiPicker && (
               <div className="emoji-picker">
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
+                <EmojiPicker onEmojiClick={() => {if (isAddMemberModalOpen){
+                  handleEmojiClickk();
+                }else{
+                   handleEmojiClick();
+                 } }} />
               </div>
             )}
             {files.length > 0 && (
@@ -907,22 +1298,37 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
             />
             <input
               type="text"
-              placeholder={`Nhập @, tin nhắn tới ${selectedChat.name}`}
+              placeholder={`Nhập @, tin nhắn tới ${selectedChatt.name}`}
               value={messages}
               onChange={(e) => setMessages(e.target.value)}
               onKeyPress={(e) => {
                 if (e.key === "Enter") {
-                  sendMessage();
+                  if (isReplyModalOpen){
+                    sendMessagee();
+                  }else{
+                    sendMessage();
+                  }
                 }
               }}
             />
             <div className="input-icons right">
               {saveImage ? (
-                <button onClick={sendSelectedFiles} disabled={isUploading}>
+                <button onClick={()=>{if (isReplyModalOpen){
+                  sendSelectedFiless();
+                } else{
+                 sendSelectedFiles();
+                }
+                 }} disabled={isUploading}>
                   <FaIcons.FaPaperPlane size={24} />
                 </button>
               ) : (
-                <button onClick={sendMessage}>
+                <button onClick={()=>{if (isReplyModalOpen){
+                  sendMessagee();
+                }
+                else{
+                  sendMessage();  
+                }
+                }}>
                   <FaIcons.FaPaperPlane size={24} />
                 </button>
               )}
@@ -934,7 +1340,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
 
         {isInfoOpen && (
         <ChatInfo
-          selectedChat={selectedChat}
+          selectedChat={selectedChatt}
           
           groupInfo={groupInfo}
           user={user}
@@ -974,7 +1380,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
           isModalOpen={isAddMemberModalOpen}
           handleCloseModal={handleCloseAddMemberModal}
           user={user}
-          chatID={selectedChat.chatID}
+          chatID={selectedChatt.chatID}
           groupInfo={groupInfo}
           onMembersAdded={(updatedGroup) => {
             setGroupInfo(updatedGroup);

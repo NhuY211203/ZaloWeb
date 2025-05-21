@@ -74,6 +74,7 @@ const LeaveGroupModal = ({
     timestamp: new Date().toISOString(),
     media_url: [],
     status: "sent",
+    pinnedInfo: null,
     senderInfo: { name: user.name, avatar: user.anhDaiDien },
   };
   socket.emit("send_message", newNotification);
@@ -164,9 +165,12 @@ const membersExcludingAdmin = memberss?.filter(
               </div>
             ))}
           </div>
-         <button className="leave-group-button" onClick={handleConfirmLeave}>
-          Rời nhóm
-        </button>
+          {leave ?(<button className="leave-group-button" onClick={handleConfirmLeave}>
+          Chuyển Quyền Admin và Rời Nhóm
+        </button>):(<button className="leave-group-button" onClick={handleConfirmLeave}>
+          Chuyển Quyền Admin
+        </button>)}
+         
         </div>
       </div>
     </div>
