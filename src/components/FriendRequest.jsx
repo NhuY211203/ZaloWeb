@@ -3,9 +3,10 @@ import axios from "axios";
 import "../styles/FriendRequest.css"; // Import CSS
 import { FaUserFriends } from "react-icons/fa"; // Import icon from react-icons
 import { io } from "socket.io-client"; // Import socket.io-client
+import { use } from "react";
 
-const socket = io("https://cnm-service.onrender.com"); // Kết nối với server socket
-
+//const socket = io("https://cnm-service.onrender.com"); // Kết nối với server socket  http://localhost:5001
+const socket = io("http://localhost:5000");
 const FriendRequest = ({ user }) => {
   const [friendRequests, setFriendRequests] = useState([]); // Ensure it's an array
   const [errorMessage, setErrorMessage] = useState(""); // For error handling
@@ -53,18 +54,21 @@ const FriendRequest = ({ user }) => {
         setFriendSend((prevRequests) => prevRequests.filter(req => req.userID !== data.recipientID)); // Xóa yêu cầu đã chấp nhận
       }
     });
-    socket.on("friend_request_rejected", (data) => {
+    socket.on("friend_request_recipientID", (data) => {
       if (data.status === "rejected") {
         console.log("Yêu cầu kết bạn đã bị từ chối:", data);
         setFriendRequests((prevRequests) => prevRequests.filter(req => req.contactID !== data.userID)); // Xóa yêu cầu đã từ chối
       }
     });
-    socket.on("friend_request_rejected", (data) => {
+    socket.on("friend_request_senderID", (data) => {
       if (data.status === "rejected") {
         console.log("Yêu cầu kết bạn đã bị từ chối:", data);
         setFriendSend((prevRequests) => prevRequests.filter(req => req.userID !== data.recipientID)); // Xóa yêu cầu đã từ chối
       }
     });
+
+    
+
 
     // Lắng nghe sự kiện lỗi
     socket.on("error", (error) => {
@@ -79,8 +83,8 @@ const FriendRequest = ({ user }) => {
       socket.off("friend_request_accepted");
       socket.off("friend_request_accepted");
       socket.off('friend_request_sent');
-      socket.off("friend_request_rejected");
-      socket.off("friend_request_rejected");
+      socket.off("friend_request_recipientID");
+      socket.off("friend_request_senderID");
       socket.off("error");
     };
   }, [user]); // Khi user thay đổi, gọi lại yêu cầu lấy yêu cầu kết bạn
@@ -100,13 +104,36 @@ const FriendRequest = ({ user }) => {
   };
 
   // Handle reject friend request
-  const handleRejectRequest = async (item) => {
+  // const handleRejectRequest = async (item) => {
+  //       socket.emit("reject_friend_request", {
+  //         senderID: user.userID,// nguoi giui =contactID
+  //         recipientID: item.userID, //nguoi nhan
+  //         senderName: item.name,
+  //         senderImage: item.avatar,
+  //       });
+  //       console.log("Rejecting friend request----:", {
+  //         senderID: user.userID,
+  //         recipientID: item.userID,
+  //         senderName: item.name,
+  //         senderImage: item.avatar,
+  //       });
+  //       console.log("Friend Requests after rejection:", item); // Debugging line
+  // };
+  // thu hoi
+   const handleRejectRequestt = async (item) => {
         socket.emit("reject_friend_request", {
+          senderID: item.contactID,
+          recipientID: item.userID,
+          senderName: item.name,
+          senderImage: item.avatar,
+        });
+        console.log("Rejecting friend request----:", {
           senderID: item.contactID,
           recipientID: user.userID,
           senderName: item.name,
           senderImage: item.avatar,
         });
+        console.log("Friend Requests after rejection:", item); // Debugging line
   };
 
   return (
@@ -124,7 +151,7 @@ const FriendRequest = ({ user }) => {
       ) : (
         friendRequests.map((request) => (
           <div key={request.name} className="friend-item">
-            <img src={request.avatar || "https://example.com/avatar.jpg"} alt="Avatar" />
+            <img src={request?.avatar} alt="Avatar" />
             <div className="info">
               <h4>{request.name}</h4>
             </div>
@@ -137,7 +164,7 @@ const FriendRequest = ({ user }) => {
               </button>
               <button
                 className="reject-btn"
-                onClick={() => handleRejectRequest(request)} // Chuyển vào contactID đúng
+                onClick={() => handleRejectRequestt(request)} // Chuyển vào contactID đúng
               >
                 Từ chối
               </button>
@@ -165,7 +192,7 @@ const FriendRequest = ({ user }) => {
             <div className="btn-group">
               <button
                 className="reject-btn"
-                onClick={() => handleRejectRequest(sentRequest)}
+                onClick={() => handleRejectRequestt(sentRequest)}
               >
                 Thu hồi
               </button>

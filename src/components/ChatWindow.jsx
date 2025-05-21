@@ -18,6 +18,8 @@ const socket = io("https://cnm-service.onrender.com");
 //const socket = io('https://cnm-service.onrender.com');
 
 const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
+  console.log("Selected chat-------------:", selectedChat);
+  
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [messages, setMessages] = useState("");
   const [pinnedMessages, setPinnedMessages] = useState([]);
@@ -48,7 +50,7 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false); // State để mở/đóng giao diện tìm kiếm
   const [searchKeyword, setSearchKeyword] = useState(""); // State để lưu từ khóa tìm kiếm
   const [searchResults, setSearchResults] = useState([]); // State để lưu kết quả tìm kiếm
-  const [selectedChatt,setSelectedChatt]= useState(null);
+  const [selectedChatt,setSelectedChatt]= useState(selectedChat);
   const [member, setMember] = useState(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false); // State cho modal trả lời
   const [replyMessage, setReplyMessage] = useState(null); // Tin nhắn cần trả lời
@@ -57,20 +59,25 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
     setReplyMessage(msg);
     setIsReplyModalOpen(true);
   };
-  
+  console.log("User in chat window:", member);
   const handleCloseReplyModal = () => {
     setIsReplyModalOpen(false);
     setReplyMessage(null);
   };
+  useEffect(() => {
+    setSelectedChatt(selectedChat);
+    setLength(selectedChat?.members?.length);
+  },[selectedChat]);
 
  
-  const handleMember = async(memberID)=>{
+  const handleMember = async()=>{
+    const memberID = selectedChatt.members.find((m) => m.userID !== user.userID)?.userID;
     try{
         const res = await axios.post("https://cnm-service.onrender.com/api/usersID", {
           
           userID: memberID
         });
-          console.log("Member data:", res.data);
+          console.log("Member data--------------:", res.data);
           setMember(res.data);
       }
       catch (error) {
@@ -79,14 +86,20 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   }
 
   useEffect(() => {
-    if (!selectedChatt || selectedChatt.type !== "private") return;
+  if (!selectedChatt || selectedChatt.type !== "private") return;
+  const fetchMember = async () => {
+    
+      await handleMember();
+    
 
-    const memberID = selectedChatt.members.find((m) => m.userID !== user.userID)?.userID;
+  };
+  fetchMember();
+}, [selectedChatt]);
+
+
+
   
-    if (memberID) {
-      handleMember(memberID);
-    }
-  }, [selectedChatt]);
+  
   // Xác định vai trò của người dùng (admin hoặc member)
 
   // Lấy thông tin nhóm từ server
@@ -156,10 +169,6 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [message]);
-  useEffect(() => {
-    setSelectedChatt(selectedChat);
-    setLength(selectedChat?.members?.length);
-  },[selectedChat]);
 
   useEffect(() => {
     setMessage(selectedChatt?.lastMessage || []);
@@ -322,9 +331,6 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const pinned = message.filter((msg) => msg.pinnedInfo);
   setPinnedMessages(pinned);
 }, [message]);
-console.log("Pinned messages:", pinnedMessages);
-
-
   useEffect(() => {
     if (!message) return;
 
@@ -1138,14 +1144,14 @@ const handleEmojiClickk = (emojiObject) => {
                           ) : (
                             <span className="message-text">{msg.content}</span>
                           )}
-                          {isMine && msg.type !== "unsent" && (
+                          {isMine && msg.type !== "unsend" && (
                             <div className="status-text">
                               {msg.status === "read" ? "Đã xem" : "Đã gửi"}
                             </div>
                           )}
                         </div>
 
-                        {msg.type !== "unsent" && (
+                        {msg.type !== "unsend" && (
                           <div className="message-actions">
                             <FaIcons.FaEllipsisH
                               className="action-icon"
