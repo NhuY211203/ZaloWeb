@@ -13,9 +13,12 @@ import axios from "axios";
 import PinnedMessageBar from "./PinnedMessageBar";
 import PinnedMessagesBar from "./PinnedMessageBar";
 import { data } from "autoprefixer";
+import VideoCallModal from "../pages/VideoCallModal";
 
-const socket = io("https://cnm-service.onrender.com");
-//const socket = io('https://cnm-service.onrender.com');
+
+//const socket = io("https://cnm-service.onrender.com");
+const socket = io('https://cnm-service.onrender.com');
+//const socket = io("http://localhost:5000");
 
 const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   console.log("Selected chat-------------:", selectedChat);
@@ -58,6 +61,19 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const [Recommend, setRecommend] = useState(false); // State cho chức năng gợi ý trả lời
   const [messagesToTranslate, setMessagesToTranslate] = useState(null); // Tin nhắn cần dịch
   const [MessTranLate, setMessTranLate] = useState(null); // Danh sách tin nhắn đã dịch
+
+ const [modalOpen, setModalOpen] = useState(false);
+  const [callUserId, setCallUserId] = useState(null);
+
+
+const startCall = (userId) => {
+    setCallUserId(userId);
+    setModalOpen(true);
+  };
+
+
+
+
   const handleReplyMessage = (msg) => {
     console.log("Selected message to reply:", msg);
     setReplyMessage(msg);
@@ -1106,9 +1122,14 @@ const handleEmojiClickk = (emojiObject) => {
             <span className="header-icon">
               <BsIcons.BsTelephoneFill />
             </span>
-            <span className="header-icon">
+            <span className="header-icon" onClick={() => startCall(member?.userID)}>
               <BsIcons.BsCameraVideoFill />
             </span>
+            <VideoCallModal
+              isOpen={modalOpen}
+              onClose={() => setModalOpen(false)}
+              callUserId={callUserId}
+            />
             <span className="header-icon" onClick={() => { setIsSearchOpen(true); setIsInfoOpen(true); }}>
               <FaIcons.FaSearch />
             </span>
