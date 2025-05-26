@@ -1093,7 +1093,7 @@ const handleEmojiClickk = (emojiObject) => {
                         {msg?.replyTo  && (
                           <div className="reply-to">
                             <span className="reply-to-sender">
-                              Trả lời 
+                              Trả lời  {msg.replyTo.senderID === user.userID ? 'Bạn' : msg.replyTo.senderInfo?.name || 'ai đó'}
                             </span>
                             <span className="reply-to-content">
                               {msg.replyTo?.type === "text" ? msg.replyTo?.content
@@ -1101,6 +1101,7 @@ const handleEmojiClickk = (emojiObject) => {
                                 : msg.replyTo?.type === "video" ? "[Video]"
                                 : msg.replyTo?.type === "audio" ? "[Audio]"
                                 : msg.replyTo?.type === "file"  ? "[File]"
+                                : msg.replyTo?.type === "emoji" ? "[Emoji]"
                                 : "[Unknown]"}
                             </span>
                           </div>
