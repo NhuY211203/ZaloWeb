@@ -1,7 +1,5 @@
-// pages/SignUpInfoScreen.jsx
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
 import logo from "../assets/logo.png";
 
 const SignUpInfoScreen = () => {
@@ -17,57 +15,119 @@ const SignUpInfoScreen = () => {
   const [enabled, setEnabled] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    console.log("Email:", email);
-    console.log("Số điện thoại:", sdt);
-  }, [email, sdt]);
+  // Validate tên: ít nhất 2 từ, mỗi từ bắt đầu chữ hoa
+const validateName = (name) => {
+  const nameRegex = /^([A-ZÀ-Ỵ][a-zà-ỹ]+)(\s[A-ZÀ-Ỵ][a-zà-ỹ]+)+$/;
+  return nameRegex.test(name);
+};
+
+
+  // Validate ngày sinh dd/mm/yyyy
+  const validateDateFormat = (date) => {
+    const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d\d$/;
+    return regex.test(date);
+  };
+
+  // Kiểm tra tuổi >= 18 (JS thuần)
+  const validateAge = (dateString) => {
+    if (!validateDateFormat(dateString)) return false;
+    const [day, month, year] = dateString.split("/").map(Number);
+    const birthDate = new Date(year, month - 1, day);
+    if (isNaN(birthDate.getTime())) return false;
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+
+    return age >= 18;
+  };
+
+  // Mật khẩu tối thiểu 8 ký tự, ít nhất 1 chữ và 1 số
+  const isValidPassword = (password) => {
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    return passwordRegex.test(password);
+  };
 
   const handleSignUp = async () => {
     if (!name || !birth || !password || !rePassword) {
       setError("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-
-    if (password.length < 6) {
-      setError("Mật khẩu không hợp lệ! (Tối thiểu 6 ký tự)");
+    if (!validateName(name)) {
+      setError("Họ tên không hợp lệ! Ít nhất 2 từ, mỗi từ bắt đầu chữ hoa.");
       return;
     }
-
+    if (!validateDateFormat(birth)) {
+      setError("Ngày sinh không đúng định dạng dd/mm/yyyy!");
+      return;
+    }
+    if (!validateAge(birth)) {
+      setError("Bạn phải từ 18 tuổi trở lên để đăng ký.");
+      return;
+    }
+    if (!isValidPassword(password)) {
+      setError("Mật khẩu không hợp lệ! Tối thiểu 8 ký tự, có ít nhất 1 chữ và 1 số.");
+      return;
+    }
     if (password !== rePassword) {
       setError("Mật khẩu không khớp!");
       return;
     }
+
+    setError("");
+
     try {
       const response = await fetch("https://cnm-service.onrender.com/api/registerUser", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          sdt: sdt,
-          name: name,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sdt,
+          name,
           ngaySinh: birth,
           matKhau: password,
-          email: email,
-          gioTinh:gender
+          email,
+          gioTinh: gender,
         }),
       });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      
+
+      if (!response.ok) throw new Error("Network response was not ok");
       navigate("/login-password");
     } catch (error) {
       console.error("Error during register:", error);
-      throw error;
+      setError("Đăng ký thất bại. Vui lòng thử lại.");
     }
   };
+
   useEffect(() => {
-    if (name.length > 0 && birth.length > 0 && password.length >= 6 && rePassword.length > 0) {
-      setEnabled(true);
-    } else {
-      setEnabled(false);
-    }
+    const valid =
+      name.length > 0 &&
+      birth.length > 0 &&
+      password.length >= 8 &&
+      rePassword.length > 0 &&
+      validateName(name) &&
+      validateDateFormat(birth) &&
+      validateAge(birth) &&
+      isValidPassword(password) &&
+      password === rePassword;
+
+    setEnabled(valid);
+
+    if (!name) setError("Vui lòng nhập họ tên!");
+    else if (!validateName(name))
+      setError("Họ tên không hợp lệ! Ít nhất 2 từ, mỗi từ bắt đầu chữ hoa.");
+    else if (!birth) setError("Vui lòng nhập ngày sinh!");
+    else if (!validateDateFormat(birth))
+      setError("Ngày sinh không đúng định dạng dd/mm/yyyy!");
+    else if (!validateAge(birth))
+      setError("Bạn phải từ 18 tuổi trở lên để đăng ký.");
+    else if (!password) setError("Vui lòng nhập mật khẩu!");
+    else if (!isValidPassword(password))
+      setError("Mật khẩu không hợp lệ! Tối thiểu 8 ký tự, có ít nhất 1 chữ và 1 số.");
+    else if (!rePassword) setError("Vui lòng nhập lại mật khẩu!");
+    else if (password !== rePassword) setError("Mật khẩu không khớp!");
+    else setError("");
   }, [name, birth, password, rePassword]);
 
   return (
@@ -77,6 +137,7 @@ const SignUpInfoScreen = () => {
 
       <div className="container mt-4">
         <h2 className="text-lg font-bold mb-4">Thông tin bổ sung</h2>
+
         <input
           type="text"
           placeholder="Tên hiển thị"
@@ -84,6 +145,7 @@ const SignUpInfoScreen = () => {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
+
         <input
           type="text"
           placeholder="Ngày sinh (dd/mm/yyyy)"
@@ -91,6 +153,7 @@ const SignUpInfoScreen = () => {
           value={birth}
           onChange={(e) => setBirth(e.target.value)}
         />
+
         <div className="gender-container mb-4">
           <p className="label">Giới tính</p>
           <div className="gender-options">
@@ -108,6 +171,7 @@ const SignUpInfoScreen = () => {
             </button>
           </div>
         </div>
+
         <input
           type="password"
           placeholder="Mật khẩu"
@@ -115,6 +179,7 @@ const SignUpInfoScreen = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+
         <input
           type="password"
           placeholder="Nhập lại mật khẩu"
@@ -126,7 +191,7 @@ const SignUpInfoScreen = () => {
         {error && <p className="text-red-500 text-center mt-2">{error}</p>}
 
         <button
-          className={`btn-primary ${!enabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          className="btn-primary" 
           onClick={handleSignUp}
           disabled={!enabled}
         >

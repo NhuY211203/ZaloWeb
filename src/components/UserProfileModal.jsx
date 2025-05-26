@@ -6,7 +6,7 @@ const socket = io('https://cnm-service.onrender.com');
 
 // Hàm kiểm tra tính hợp lệ của số điện thoại
 const isValidPhoneNumber = (phoneNumber) => {
-  const phoneRegex = /^(0[3|5|7|8|9][0-9]{8}|(\+84)[3|5|7|8|9][0-9]{8})$/;
+  const phoneRegex = /^(0[35789][0-9]{8}|(\+84)[35789][0-9]{8})$/;
   return phoneRegex.test(phoneNumber);
 };
 
@@ -16,10 +16,34 @@ const isValidEmail = (email) => {
   return emailRegex.test(email);
 };
 
-const UserProfileModal = ({ onClose, user,setUser }) => {
-  const [isEditing, setIsEditing] = useState(false);  // Chế độ chỉnh sửa
-  const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
-  const [file, setFile] = useState(null); // Hình ảnh tải lên
+// Hàm kiểm tra tên: ít nhất 2 từ, mỗi từ bắt đầu chữ hoa, cho phép dấu tiếng Việt
+const validateName = (name) => {
+  const cleanName = name.trim().replace(/\s+/g, ' ');
+  const nameRegex = /^([A-ZÀ-Ỵ][a-zà-ỹ]*)(\s[A-ZÀ-Ỵ][a-zà-ỹ]*)+$/;
+  return nameRegex.test(cleanName);
+};
+
+// Hàm kiểm tra tính hợp lệ của ngày sinh và tuổi >= 18
+const isValidDOB = (dob) => {
+  const dobRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dobRegex.test(dob)) return false;
+
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  return age >= 18;
+};
+
+const UserProfileModal = ({ onClose, user, setUser }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [file, setFile] = useState(null);
   const [profile, setProfile] = useState({
     userID: '',
     name: '',
@@ -33,7 +57,6 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
     phone: ''
   });
 
-  // Cập nhật state khi nhận dữ liệu user
   useEffect(() => {
     if (user?.ngaysinh) {
       const dobParts = new Date(user.ngaysinh);
@@ -43,27 +66,26 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
         email: user?.email || "user001@example.com",
         avatar: user?.anhDaiDien || "https://res.cloudinary.com/dgqppqcbd/image/upload/v1741595806/anh-dai-dien-hai-1_b33sa3.jpg",
         anhbia: user?.anhBia || "https://res.cloudinary.com/dgqppqcbd/image/upload/v1741595806/anh-dai-dien-hai-1_b33sa3.jpg",
-        dobDay: dobParts.getDate() < 10 ? `0${dobParts.getDate()}` : dobParts.getDate(),
-        dobMonth: dobParts.getMonth() + 1 < 10 ? `0${dobParts.getMonth() + 1}` : dobParts.getMonth() + 1,
-        dobYear: dobParts.getFullYear(),
+        dobDay: dobParts.getDate() < 10 ? `0${dobParts.getDate()}` : `${dobParts.getDate()}`,
+        dobMonth: dobParts.getMonth() + 1 < 10 ? `0${dobParts.getMonth() + 1}` : `${dobParts.getMonth() + 1}`,
+        dobYear: `${dobParts.getFullYear()}`,
         gender: user?.gioTinh || "Nam",
         phone: user?.sdt || "0977654319",
       });
     }
   }, [user]);
 
-  // Tạo các tùy chọn cho ngày, tháng, năm
   const generateDateOptions = (type) => {
     const options = [];
     if (type === "day") {
       for (let i = 1; i <= 31; i++) {
-        const day = i < 10 ? `0${i}` : `${i}`;  // Thêm số 0 nếu ngày nhỏ hơn 10
+        const day = i < 10 ? `0${i}` : `${i}`;
         options.push(<option key={day} value={day}>{day}</option>);
       }
     }
     if (type === "month") {
       for (let i = 1; i <= 12; i++) {
-        const month = i < 10 ? `0${i}` : `${i}`;  // Thêm số 0 nếu tháng nhỏ hơn 10
+        const month = i < 10 ? `0${i}` : `${i}`;
         options.push(<option key={month} value={month}>{month}</option>);
       }
     }
@@ -76,7 +98,6 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
     return options;
   };
 
-  // Xử lý sự kiện thay đổi thông tin
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProfile((prev) => ({
@@ -84,16 +105,16 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
       [name]: value,
     }));
   };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setFile(file); // Lưu file để sử dụng sau này
-    console.log(file);
-    const imageUrl = URL.createObjectURL(file); // hoặc dùng FileReader nếu muốn base64
+    setFile(file);
+    const imageUrl = URL.createObjectURL(file);
 
     setProfile((prev) => ({
       ...prev,
-      avatar: imageUrl, // cập nhật ảnh preview
+      avatar: imageUrl,
     }));
   };
 
@@ -102,48 +123,59 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
       setErrorMessage("Thiếu thông tin cần thiết!");
       return;
     }
-  
+
+    if (!validateName(profile.name)) {
+      setErrorMessage("Tên không hợp lệ! Ít nhất 2 từ, mỗi từ bắt đầu chữ hoa.");
+      return;
+    }
+
     if (!isValidPhoneNumber(profile.phone)) {
       setErrorMessage("Số điện thoại không hợp lệ!");
       return;
     }
-  
+
     if (!isValidEmail(profile.email)) {
       setErrorMessage("Email không hợp lệ!");
       return;
     }
-  
-    // Chuẩn hóa ngày sinh về yyyy-mm-dd
-    const dob = `${profile.dobYear}-${profile.dobMonth.padStart(2, "0")}-${profile.dobDay.padStart(2, "0")}`;
-  
+
+    // Chuyển sang chuỗi rồi padStart để tránh lỗi
+    const dobDay = profile.dobDay ? String(profile.dobDay).padStart(2, "0") : "01";
+    const dobMonth = profile.dobMonth ? String(profile.dobMonth).padStart(2, "0") : "01";
+    const dobYear = profile.dobYear || new Date().getFullYear();
+
+    const dob = `${dobYear}-${dobMonth}-${dobDay}`;
+
     if (!isValidDOB(dob)) {
       setErrorMessage("Ngày sinh không hợp lệ hoặc bạn chưa đủ 18 tuổi.");
       return;
     }
-    let url =[];
+
+    let url = [];
     if (!file) {
       url.push(user?.anhDaiDien);
-    } else{
-    const imageForm = new FormData();
-    imageForm.append("files",file);
+    } else {
+      const imageForm = new FormData();
+      imageForm.append("files", file);
 
-    const res = await fetch("https://cnm-service.onrender.com/api/upload", {
-          method: "POST",
-          body: imageForm,
-        });
-        const data = await res.json();
-        url.push(data.urls[0]);
-      }
+      const res = await fetch("https://cnm-service.onrender.com/api/upload", {
+        method: "POST",
+        body: imageForm,
+      });
+      const data = await res.json();
+      url.push(data.urls[0]);
+    }
+
     const updateData = {
       name: profile.name,
       email: profile.email,
       sdt: profile.phone,
       ngaysinh: dob,
       gioTinh: profile.gender,
-      anhDaiDien:url[0],
+      anhDaiDien: url[0],
       anhBia: profile.anhbia,
     };
-  
+
     try {
       const response = await fetch(`https://cnm-service.onrender.com/api/users/${profile.userID}`, {
         method: "PUT",
@@ -152,7 +184,7 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
         },
         body: JSON.stringify(updateData),
       });
-  
+
       const data = await response.json();
       if (data.error) {
         setErrorMessage(data.error);
@@ -172,10 +204,8 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
           phone: data.user?.sdt
         });
         sessionStorage.setItem("user", JSON.stringify(data.user));
-      //  window.location.reload(); // Nếu bạn không muốn truyền `setUser`
-        socket.emit("updateUser",data.user);
+        socket.emit("updateUser", data.user);
         setUser(data.user);
-        console.log("Cập nhật thành công:", data.user);
         setIsEditing(false);
         onClose();
       }
@@ -183,24 +213,6 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
       console.error("Lỗi khi gửi yêu cầu:", error);
       setErrorMessage("Lỗi hệ thống khi cập nhật thông tin.");
     }
-  };
-  
-
-  // Hàm kiểm tra tính hợp lệ của ngày sinh và tuổi >= 18
-  const isValidDOB = (dob) => {
-    const dobRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dobRegex.test(dob)) return false;
-
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-
-    return age >= 18;
   };
 
   return (
@@ -213,18 +225,18 @@ const UserProfileModal = ({ onClose, user,setUser }) => {
           </button>
         </div>
         <div className="modal-body profile-info">
-        <div className="avatar-section">
-      <img src={profile.avatar} alt="Avatar" className="avatar-img" />
-      {isEditing && (
-        <input
-          type="file"
-          name="avatar"
-          accept="image/png, image/jpeg, image/jpg, image/webp"
-          className="edit-input"
-          onChange={handleImageChange} // Gắn hàm xử lý
-        />
-      )}
-    </div>
+          <div className="avatar-section">
+            <img src={profile.avatar} alt="Avatar" className="avatar-img" />
+            {isEditing && (
+              <input
+                type="file"
+                name="avatar"
+                accept="image/png, image/jpeg, image/jpg, image/webp"
+                className="edit-input"
+                onChange={handleImageChange}
+              />
+            )}
+          </div>
           <h3>{profile.name}</h3>
           <div className="info-section">
             <h4>Thông tin cá nhân</h4>
