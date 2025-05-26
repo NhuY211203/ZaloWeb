@@ -1170,6 +1170,7 @@ const handleEmojiClickk = (emojiObject) => {
                                 <button onClick={() => handleReplyMessage(msg)}>Trả lời tin nhắn</button>
                                 <button onClick={() => handleGhimMessage(msg)}>Ghim tin nhắn</button>
                                 {isMine && <button onClick={() => handleUnsendMessage(msg)}>Thu hồi tin nhắn</button>}
+                                 <button onClick={() => handleReplyMessage(msg)}>Dịch tin nhắn</button>
                                 
                               </div>
                             )}
