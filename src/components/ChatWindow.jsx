@@ -1132,7 +1132,7 @@ const handleEmojiClickk = (emojiObject) => {
                             ))
                           ) : msg.type === "file" ? (
                             (Array.isArray(msg.media_url) ? msg.media_url : [msg.media_url]).map((file, i) => {
-                              const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(file)}&embedded=true`;
+                              const viewerUrl = `https://docs.google.com/viewer?url=${file}&embedded=true`;
                               return (
                                 <div key={i} className="file-message">
                                   <a href={viewerUrl} target="_blank" rel="noopener noreferrer" download={msg.content}>

@@ -44,6 +44,7 @@ const Sidebar = ({ user, onChangeView,setUser}) => {
 
   return (
     <div className="sidebar">
+      <div className="top-icons">
       {/* Avatar */}
       <div className="avatar" onClick={() => openModal("profile")}>
         <img src={user?.anhDaiDien} alt="Avatar" />
@@ -63,6 +64,7 @@ const Sidebar = ({ user, onChangeView,setUser}) => {
         >
           <FaIcons.FaUser className="iconn" />
         </div>
+      </div>
       </div>
 
       {/* Bottom Icons */}

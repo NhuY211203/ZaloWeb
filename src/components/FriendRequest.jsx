@@ -5,8 +5,8 @@ import { FaUserFriends } from "react-icons/fa"; // Import icon from react-icons
 import { io } from "socket.io-client"; // Import socket.io-client
 import { use } from "react";
 
-//const socket = io("https://cnm-service.onrender.com"); // Kết nối với server socket  http://localhost:5001
-const socket = io("http://localhost:5000");
+const socket = io("https://cnm-service.onrender.com"); // Kết nối với server socket  http://localhost:5001
+//const socket = io("http://localhost:5000");
 const FriendRequest = ({ user }) => {
   const [friendRequests, setFriendRequests] = useState([]); // Ensure it's an array
   const [errorMessage, setErrorMessage] = useState(""); // For error handling

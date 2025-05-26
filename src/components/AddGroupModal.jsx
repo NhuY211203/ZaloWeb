@@ -150,7 +150,7 @@ const AddGroupModal = ({ isModalOpen, handleCloseModal, user, onGroupCreate, onS
       <div className="modal-content-group">
         <div className="modal-header">
           <h2>Tạo nhóm</h2>
-          <button className="close-btn" onClick={handleCloseModal}>
+          <button className="close-btn" onClick={()=>{handleCloseModal(); setSelectedGroupImage(null); setGroupName(""); setSelectedMembers([]); setSearchQuery(""); setFiles(null);}}>
             ✖
           </button>
         </div>

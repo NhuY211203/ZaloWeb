@@ -1,25 +1,47 @@
 .sidebar {
   width: 70px;
   height: 100vh;
-  background-color: #79DFFF; /* Màu xanh của Zalo */
+  background-color: #79DFFF;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 16px 0;
 }
 
+.top-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px; /* 👈 Cách đều avatar và các icon */
+}
+
 .avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background-color: #ddd; /* Placeholder cho avatar */
-  margin-bottom: 40px; /* Tăng khoảng cách giữa avatar và icon */
+  background-color: #ddd;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .icon-group {
   display: flex;
   flex-direction: column;
-  gap: 30px; /* Tăng khoảng cách giữa các icon trong nhóm */
+  gap: 30px; /* Khoảng cách giữa các icon */
+}
+
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .icon {
@@ -492,7 +514,4 @@
   font-size: 14px;
   border-bottom: 1px solid #ddd;
 }
-.Avatar img {
-  border-radius: 50%;
-  object-fit: cover;
-}
+
