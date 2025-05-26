@@ -30,7 +30,7 @@ const LoginPassword = () => {
   
     // Kiểm tra tính hợp lệ của số điện thoại và mật khẩu
     if (!isValidPhoneNumber(sdt)) {
-      setError("Số điện thoại không hợp lệ! (Tối thiểu 8 chữ số)");
+      setError("Số điện thoại không hợp lệ! (Bắt đầu 03, 05, 07, 08, 09 và có 10 chữ số)");
       return;
     }
   

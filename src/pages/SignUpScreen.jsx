@@ -1,4 +1,3 @@
-// pages/SignUpScreen.jsx
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -22,27 +21,37 @@ const SignUpScreen = () => {
       setError("Vui lòng nhập email!");
       return;
     }
-      // Kiểm tra email
-      const responseSDT = await axios.post('https://cnm-service.onrender.com/api/users/checksdt', 
+    if (!sdt) {
+      setError("Vui lòng nhập số điện thoại!");
+      return;
+    }
+
+    try {
+      // Kiểm tra số điện thoại đã đăng ký chưa
+      const responseSDT = await axios.post(
+        "https://cnm-service.onrender.com/api/users/checksdt",
         { sdt },
-        { headers: { 'Content-Type': 'application/json' } }
-      ).catch(err => {
-        throw new Error(`Lỗi kiểm tra email: ${err.message}`);
-      });
-      console.log("Kết quả kiểm tra số điện thoại:");
+        { headers: { "Content-Type": "application/json" } }
+      );
       console.log("Kết quả kiểm tra số điện thoại:", responseSDT.data);
 
       if (responseSDT.data.exists) {
-        console.log("Số điện thoại đã được đăng ký!");
+        setError("Số điện thoại đã được đăng ký!");
+        alert("Số điện thoại đã được đăng ký!");
         return;
       } else {
-        console.log("Đã gửi xác thực về gmail!");
+        alert("Số điện thoại chưa được đăng ký, đang gửi xác thực về email...");
         await sendEmailVerification();
       }
+    } catch (err) {
+      setError("Lỗi kiểm tra số điện thoại: " + err.message);
+      console.error(err);
+    }
   };
-const sendEmailVerification = async () => {
+
+  const sendEmailVerification = async () => {
     const actionCodeSettings = {
-      url: "http://localhost:5173/verify-otp", // Đổi thành URL ứng dụng của bạn
+      url: "http://localhost:5173/verify-otp", // đổi thành URL ứng dụng của bạn
       handleCodeInApp: true,
     };
 
@@ -50,24 +59,37 @@ const sendEmailVerification = async () => {
       await sendSignInLinkToEmail(authentication, email, actionCodeSettings);
       console.log("Email xác thực đã gửi!");
       window.localStorage.setItem("emailForSignIn", email);
-      window.localStorage.setItem("sdt", sdt); 
+      window.localStorage.setItem("sdt", sdt);
       // Đóng trang sau 2 giây
       setTimeout(() => {
         navigate("/");
       }, 2000);
     } catch (error) {
-      setErrorMessage("Lỗi khi gửi email xác thực!");
+      setError("Lỗi khi gửi email xác thực!");
       console.error("Lỗi khi gửi email:", error);
     }
   };
+
   useEffect(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^(0[3,5,7,8,9])[0-9]{8}$/;
+    // Số điện thoại Việt Nam 10 số bắt đầu 0, tiếp 9 số nữa
+    const phoneRegex = /^(0[3|5|7|8|9])[0-9]{8}$/;
 
-    if (emailRegex.test(email) && phoneRegex.test(sdt)) {
-      setEnabled(true);
-    } else {
+    if (!email) {
+      setError("Vui lòng nhập email!");
       setEnabled(false);
+    } else if (!emailRegex.test(email)) {
+      setError("Email không hợp lệ!");
+      setEnabled(false);
+    } else if (!sdt) {
+      setError("Vui lòng nhập số điện thoại!");
+      setEnabled(false);
+    } else if (!phoneRegex.test(sdt)) {
+      setError("Số điện thoại không hợp lệ!");
+      setEnabled(false);
+    } else {
+      setError("");
+      setEnabled(true);
     }
   }, [email, sdt]);
 
@@ -96,7 +118,7 @@ const sendEmailVerification = async () => {
         {error && <p className="text-red-500 text-center mt-2">{error}</p>}
 
         <button
-          className={`btn-primary ${!enabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          className="btn-primary" 
           onClick={handleSignUp}
           disabled={!enabled}
         >
@@ -105,10 +127,7 @@ const sendEmailVerification = async () => {
 
         <div className="flex justify-center mt-4">
           <p className="text-gray-500">Bạn đã có tài khoản? </p>
-          <p
-            className="text-blue-500 ml-1 cursor-pointer"
-            onClick={handleLogin}
-          >
+          <p className="text-blue-500 ml-1 cursor-pointer" onClick={handleLogin}>
             Đăng nhập
           </p>
         </div>
