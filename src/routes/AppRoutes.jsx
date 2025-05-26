@@ -10,6 +10,7 @@ import SignUpInfoScreen from "../pages/SignUpInfoScreen.jsx";
 import VerifyOtpDK from "../pages/VerifyOtpDK.jsx";
 import HomePage from "../components/HomePage.jsx";
 import GroupMembersModal from "../components/GroupMembersModal .jsx";
+import VideoCallModal from "../pages/VideoCallModal.jsx"; // Assuming this is the correct path
 
 const AppRoutes = () => {
   return (
@@ -25,7 +26,8 @@ const AppRoutes = () => {
         <Route path="/verify-otp" element={<VerifyOtpDK />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="*" element={<Navigate to="/" />} />
-        
+        <Route path="/video-call" element={<VideoCallModal />} />
+
       </Routes>
     </Router>
   );
