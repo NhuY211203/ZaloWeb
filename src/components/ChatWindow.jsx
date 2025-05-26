@@ -1248,10 +1248,10 @@ const handleEmojiClickk = (emojiObject) => {
             </div>
             {showEmojiPicker && (
               <div className="emoji-picker">
-                <EmojiPicker onEmojiClick={() => {if (isAddMemberModalOpen){
-                  handleEmojiClickk();
+                <EmojiPicker onEmojiClick={(emojiObject) => {if (isAddMemberModalOpen){
+                  handleEmojiClickk(emojiObject);
                 }else{
-                   handleEmojiClick();
+                   handleEmojiClick(emojiObject);
                  } }} />
               </div>
             )}
