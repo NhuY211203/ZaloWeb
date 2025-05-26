@@ -54,6 +54,10 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const [member, setMember] = useState(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false); // State cho modal trả lời
   const [replyMessage, setReplyMessage] = useState(null); // Tin nhắn cần trả lời
+  const [tranLate, setTransLate] = useState(false); // State cho chức năng dịch
+  const [Recommend, setRecommend] = useState(false); // State cho chức năng gợi ý trả lời
+  const [messagesToTranslate, setMessagesToTranslate] = useState(null); // Tin nhắn cần dịch
+  const [MessTranLate, setMessTranLate] = useState(null); // Danh sách tin nhắn đã dịch
   const handleReplyMessage = (msg) => {
     console.log("Selected message to reply:", msg);
     setReplyMessage(msg);
@@ -63,6 +67,16 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const handleCloseReplyModal = () => {
     setIsReplyModalOpen(false);
     setReplyMessage(null);
+  };
+  const handlecloseTransLate = () => {
+     setTransLate(false);
+    setMessagesToTranslate(null);
+    setMessTranLate(null);
+  };
+  const handlecloseRecommend = () => {
+    setRecommend(false);
+    setMessagesToTranslate(null);
+    setMessTranLate(null);
   };
   useEffect(() => {
     setSelectedChatt(selectedChat);
@@ -95,6 +109,58 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   };
   fetchMember();
 }, [selectedChatt]);
+
+const handleTransLate = async (message) => {
+  setTimeout(async() => {
+  setTransLate(true);
+  setMessagesToTranslate(message);
+  const  st = 'Translate the following message to Vietnamese: ' + message.content;
+  const translatedMessage = await getCohereResponse(st);
+  setMessTranLate(translatedMessage);
+}, 2000);
+}
+
+const handleRecommendAnswer = async (message) => {
+  setTimeout(async() => {
+  setRecommend(true);
+  setMessagesToTranslate(message);
+  const  st = 'Suggest multiple responses to the following message in Vietnamese: ' + message.content;
+  const translatedMessage = await getCohereResponse(st);
+  setMessTranLate(translatedMessage);
+}, 2000);
+}
+
+  const getCohereResponse = async (message) => {
+   // const API_KEY = "3LRgcGf1oXepT31AcVdu0a9L1uQnW8jAaqh8WjSP";
+   const API_KEY="tPbb7S45X5nomcSvNZXEYVGXPpu7axNagROhUb2k";
+    const endpoint = "https://api.cohere.ai/v1/chat";
+    
+
+    try {
+      const response = await axios.post(
+        endpoint,
+        {
+          model: "command-r-plus",
+          message: message,
+          temperature: 0.3,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${API_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const botResponse = response.data.text;
+      return botResponse;
+    } catch (error) {
+      console.error(
+        "Error in Cohere API:",
+        error.response?.data || error.message
+      );
+      return "Sorry, I couldn't process that right now.";
+    }
+  };
 
 
 
@@ -949,8 +1015,6 @@ const handleEmojiClickk = (emojiObject) => {
     setTimeout(() => {
       setShowActionModal(null);
     }, 1000); // không cần delay quá lâu
-
-       
     }
   }
 
@@ -1087,12 +1151,23 @@ const handleEmojiClickk = (emojiObject) => {
                       {!isMine && msg.senderInfo?.avatar && (
                         <img src={msg.senderInfo.avatar} alt="avatar" className="avatar-small" />
                       )}
+                      <div>
+              {/* Tên người gửi nằm trên nội dung tin nhắn */}
+              {selectedChatt.type === "group" && !isMine && (
+                <div
+                  className="sender-name"
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: 12,
+                    marginBottom: 4,
+                    marginLeft:10 ,
+                    color: "#333",
+                  }}
+                >
+                  {msg.senderInfo?.name || msg.senderID}
+                </div>
+              )}
                       <div className="message-bubble-wrapper" style={{ position: "relative" }}>
-                        {selectedChatt.type === "group" && !isMine && (
-                        <div className="sender-name" style={{ fontWeight: "bold", fontSize: 10, marginBottom: 2 }}>
-                          {msg.senderInfo?.name || msg.senderID}
-                        </div>
-                       )}
                         <div className="message-bubble">
                         {msg?.replyTo  && (
                           <div className="reply-to">
@@ -1171,13 +1246,14 @@ const handleEmojiClickk = (emojiObject) => {
                                 <button onClick={() => handleReplyMessage(msg)}>Trả lời tin nhắn</button>
                                 <button onClick={() => handleGhimMessage(msg)}>Ghim tin nhắn</button>
                                 {isMine && <button onClick={() => handleUnsendMessage(msg)}>Thu hồi tin nhắn</button>}
-                                 <button onClick={() => handleReplyMessage(msg)}>Dịch tin nhắn</button>
-                                
+                                {msg.type === 'text' && <button onClick={() => handleTransLate(msg)}>Dịch tin nhắn</button>}
+                                {msg.type === 'text' && <button onClick={() => handleRecommendAnswer(msg)}>Gợi ý trả lời</button>}
                               </div>
                             )}
                           </div>
                         )}
                       </div>
+                     </div>
                       {isMine && msg.senderInfo?.avatar && (
                         <img src={msg.senderInfo.avatar} alt="avatar" className="avatar-small" />
                       )}
@@ -1202,6 +1278,29 @@ const handleEmojiClickk = (emojiObject) => {
               </div>
             </div>
           )}
+          {tranLate && (
+            <div className="reply-modal">
+              <div className="reply-header">
+                <span>Dịch tin nhắn của {messagesToTranslate.senderInfo?.name || "Unknown"}</span>
+                <FaIcons.FaTimes className="close-reply" onClick={handlecloseTransLate} />
+              </div>
+              <div className="reply-content">
+                <span>{MessTranLate}</span>
+              </div>
+            </div>
+          )}
+           {Recommend && (
+            <div className="reply-modal">
+              <div className="reply-header">
+                <span>Gợi ý tin nhắn trả lời của {messagesToTranslate.senderInfo?.name || "Unknown"}</span>
+                <FaIcons.FaTimes className="close-reply" onClick={handlecloseRecommend} />
+              </div>
+              <div className="reply-content">
+                <span>{MessTranLate}</span>
+              </div>
+            </div>
+          )}
+
             <div className="input-icons left">
               <FaIcons.FaSmile
                 size={24}

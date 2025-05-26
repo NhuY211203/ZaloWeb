@@ -99,6 +99,7 @@
 
 /* Khu vực tin nhắn */
 .messages {
+
   flex-grow: 1;
   padding: 15px;
   overflow-y: auto;
@@ -417,6 +418,8 @@
 }
 
 .action-icon {
+  margin-left: 10px;
+  margin-right: 10px;
   cursor: pointer;
   color: #666;
   transition: color 0.2s ease;
