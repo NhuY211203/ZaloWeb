@@ -14,6 +14,7 @@ import PinnedMessageBar from "./PinnedMessageBar";
 import PinnedMessagesBar from "./PinnedMessageBar";
 import { data } from "autoprefixer";
 import VideoCallModal from "../pages/VideoCallModal";
+import CallContainer from "../pages/CallContainer";
 
 
 //const socket = io("https://cnm-service.onrender.com");
@@ -66,12 +67,11 @@ const ChatWindow = ({ selectedChat, user ,onLeaveGroupSuccess}) => {
   const [callUserId, setCallUserId] = useState(null);
 
 
-const startCall = (userId) => {
+const startCall = async(userId) => {
     setCallUserId(userId);
     setModalOpen(true);
+    
   };
-
-
 
 
   const handleReplyMessage = (msg) => {
@@ -126,6 +126,10 @@ const startCall = (userId) => {
   fetchMember();
 }, [selectedChatt]);
 
+ useEffect(() => {
+    // Đăng ký ID khi kết nối
+    socket.emit("register", user.userID);
+  }, [user.userID]);
 const handleTransLate = async (message) => {
   setTimeout(async() => {
   setTransLate(true);
@@ -1125,11 +1129,18 @@ const handleEmojiClickk = (emojiObject) => {
             <span className="header-icon" onClick={() => startCall(member?.userID)}>
               <BsIcons.BsCameraVideoFill />
             </span>
-            <VideoCallModal
+          <VideoCallModal
               isOpen={modalOpen}
               onClose={() => setModalOpen(false)}
               callUserId={callUserId}
+              currentUserId={member?.userID}
+              socket={socket}
             />
+
+
+             <CallContainer socket={socket} currentUserId={user.userID} />
+
+
             <span className="header-icon" onClick={() => { setIsSearchOpen(true); setIsInfoOpen(true); }}>
               <FaIcons.FaSearch />
             </span>

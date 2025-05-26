@@ -27,48 +27,53 @@ const FriendRequest = ({ user }) => {
 
     // Lắng nghe sự kiện "pending_friend_requests" để cập nhật danh sách yêu cầu kết bạn
     socket.on("pending_friend_requests", (friendRequests) => {
+      console.log("Received friend requests:", friendRequests.sentRequests); // Debugging line
       setFriendRequests(friendRequests.receivedRequests); // Cập nhật danh sách yêu cầu kết bạn
       setFriendSend(friendRequests.sentRequests); // Cập nhật danh sách yêu cầu đã gửi
       setIsLoading(false);
     });
 
-    socket.on('new_friend_request', (data) => {
-      console.log("Yêu cầu kết bạn mới:", data);
+    socket.on("new_friend_request", (data) => {
+     
       setFriendRequests((prevRequests) => [...prevRequests, data]); // Cập nhật danh sách yêu cầu kết bạn
     });
+
     socket.on('friend_request_sent', (data) => {
       setFriendSend((prevRequests) => [...prevRequests, data]); // Cập nhật danh sách yêu cầu đã gửi
-      console.log("Yêu cầu kết bạn đã gửi:", data);
+     
     });
 
     socket.on("friend_request_accepted", (data) => {
       if(data.status ==="accepted"){
-        console.log("Yêu cầu kết bạn đã được chấp nhận:", data);
+       
         setFriendRequests((prevRequests) => prevRequests.filter(req => req.contactID !== data.userID)); // Xóa yêu cầu đã chấp nhận
       }
 
     });
     socket.on("friend_request_accepted", (data) => {
       if (data.status === "accepted") {
-        console.log("Yêu cầu kết bạn đã được chấp nhận:", data);
+       
         setFriendSend((prevRequests) => prevRequests.filter(req => req.userID !== data.recipientID)); // Xóa yêu cầu đã chấp nhận
       }
     });
     socket.on("friend_request_recipientID", (data) => {
       if (data.status === "rejected") {
-        console.log("Yêu cầu kết bạn đã bị từ chối:", data);
+        
         setFriendRequests((prevRequests) => prevRequests.filter(req => req.contactID !== data.userID)); // Xóa yêu cầu đã từ chối
       }
     });
     socket.on("friend_request_senderID", (data) => {
       if (data.status === "rejected") {
-        console.log("Yêu cầu kết bạn đã bị từ chối:", data);
         setFriendSend((prevRequests) => prevRequests.filter(req => req.userID !== data.recipientID)); // Xóa yêu cầu đã từ chối
       }
     });
-
-    
-
+    socket.on("updatee_user", (updatedUser) => {
+      setFriendRequests((prevRequests) =>
+        prevRequests.map((request) =>
+          request.contactID === updatedUser.userID ? { ...request, avatar: updatedUser.avatar, name: updatedUser.name } : request
+        )
+      );
+    });
 
     // Lắng nghe sự kiện lỗi
     socket.on("error", (error) => {
@@ -85,12 +90,11 @@ const FriendRequest = ({ user }) => {
       socket.off('friend_request_sent');
       socket.off("friend_request_recipientID");
       socket.off("friend_request_senderID");
+      socket.off("updatee_user");
       socket.off("error");
     };
   }, [user]); // Khi user thay đổi, gọi lại yêu cầu lấy yêu cầu kết bạn
 
-
-  console.log("Friend Requests:", friendRequests); // Debugging line
   
 
 
@@ -127,13 +131,7 @@ const FriendRequest = ({ user }) => {
           senderName: item.name,
           senderImage: item.avatar,
         });
-        console.log("Rejecting friend request----:", {
-          senderID: item.contactID,
-          recipientID: user.userID,
-          senderName: item.name,
-          senderImage: item.avatar,
-        });
-        console.log("Friend Requests after rejection:", item); // Debugging line
+        console.log("Friend Requests after rejection:----------", item);
   };
 
   return (
@@ -164,7 +162,7 @@ const FriendRequest = ({ user }) => {
               </button>
               <button
                 className="reject-btn"
-                onClick={() => handleRejectRequestt(request)} // Chuyển vào contactID đúng
+                onClick={() => {handleRejectRequestt(request);}} // Chuyển vào contactID đúng
               >
                 Từ chối
               </button>

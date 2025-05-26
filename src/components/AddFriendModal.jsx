@@ -76,6 +76,10 @@ const AddFriendModal = ({ isModalOpen, handleCloseModal,user }) => {
       senderImage: userData.avatar,
       recipientPhone: userData.phoneNumber,
     };
+    console.log("Gửi yêu cầu kết bạn với dữ liệu:", data);
+     // Gửi yêu cầu kết bạn qua socket
+     //socket.emit("send_friend_request", data); // Gửi yêu cầu kết bạn qua socket
+     // Cập nhật trạng thái kết bạn
     setFriendStatus("pending");
      socket.emit("send_friend_request", data); // Gửi yêu cầu kết bạn qua socket
     

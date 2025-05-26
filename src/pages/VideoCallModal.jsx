@@ -4,47 +4,96 @@ const servers = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
-export default function VideoCallModal({ isOpen, onClose, callUserId }) {
+export default function VideoCallModal({ isOpen, onClose, callUserId, currentUserId, socket }) {
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
   const peerConnection = useRef(null);
+  const localStream = useRef(null);
+  const [hasReceivedAnswer, setHasReceivedAnswer] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !socket || !callUserId) return;
 
-    let stream;
+    const startCall = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream.current = stream;
+        if (localVideo.current) localVideo.current.srcObject = stream;
 
-    async function startCall() {
-      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      if (localVideo.current) localVideo.current.srcObject = stream;
+        peerConnection.current = new RTCPeerConnection(servers);
 
-      peerConnection.current = new RTCPeerConnection(servers);
-      stream.getTracks().forEach((track) => peerConnection.current.addTrack(track, stream));
+        // Gửi track
+        stream.getTracks().forEach(track => peerConnection.current.addTrack(track, stream));
 
-      peerConnection.current.ontrack = (event) => {
-        if (remoteVideo.current) {
-          remoteVideo.current.srcObject = event.streams[0];
-        }
-      };
+        // Nhận track
+        peerConnection.current.ontrack = (event) => {
+          if (remoteVideo.current) {
+            remoteVideo.current.srcObject = event.streams[0];
+          }
+        };
 
-      // TODO: Tạo offer, gửi offer, nhận answer, ice candidates qua signaling server...
+        // Gửi ICE
+        peerConnection.current.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit("ice-candidate", {
+              to: callUserId,
+              candidate: event.candidate,
+            });
+          }
+        };
 
-      // Đây là ví dụ demo nên chưa kết nối thật.
-    }
+        // Tạo offer và gửi đi
+        const offer = await peerConnection.current.createOffer();
+        await peerConnection.current.setLocalDescription(offer);
+
+        socket.emit("call-user", {
+          offer,
+          to: callUserId,
+          from: currentUserId,
+        });
+
+      } catch (error) {
+        console.error("Error starting call:", error);
+      }
+    };
 
     startCall();
 
+    // Lắng nghe answer
+    socket.on("answer-made", async ({ answer }) => {
+      if (!hasReceivedAnswer && peerConnection.current) {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
+        setHasReceivedAnswer(true);
+      }
+    });
+
+    // Lắng nghe ICE candidate
+    socket.on("ice-candidate", async ({ candidate }) => {
+      if (peerConnection.current) {
+        try {
+          await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.error("Error adding ice candidate", err);
+        }
+      }
+    });
+
     return () => {
-      // Dọn dẹp khi đóng modal
+      // Dọn dẹp
+      socket.off("answer-made");
+      socket.off("ice-candidate");
+
       if (peerConnection.current) {
         peerConnection.current.close();
         peerConnection.current = null;
       }
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
+
+      if (localStream.current) {
+        localStream.current.getTracks().forEach(track => track.stop());
+        localStream.current = null;
       }
     };
-  }, [isOpen]);
+  }, [isOpen, socket, callUserId, currentUserId, hasReceivedAnswer]);
 
   if (!isOpen) return null;
 
