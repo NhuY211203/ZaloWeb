@@ -557,3 +557,12 @@
   margin-top: 4px;
   word-break: break-word;
 }
+
+.sender-name {
+  margin-left: 40px; /* Đẩy tên sang phải, thẳng hàng với khung tin nhắn */
+  margin-bottom: 2px;
+  font-weight: bold;
+  font-size: 13px;
+  color: #617487;
+  display: block;
+}

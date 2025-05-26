@@ -1088,7 +1088,11 @@ const handleEmojiClickk = (emojiObject) => {
                         <img src={msg.senderInfo.avatar} alt="avatar" className="avatar-small" />
                       )}
                       <div className="message-bubble-wrapper" style={{ position: "relative" }}>
-                        
+                        {selectedChatt.type === "group" && !isMine && (
+                        <div className="sender-name" style={{ fontWeight: "bold", fontSize: 10, marginBottom: 2 }}>
+                          {msg.senderInfo?.name || msg.senderID}
+                        </div>
+                       )}
                         <div className="message-bubble">
                         {msg?.replyTo  && (
                           <div className="reply-to">
@@ -1176,6 +1180,7 @@ const handleEmojiClickk = (emojiObject) => {
                         <img src={msg.senderInfo.avatar} alt="avatar" className="avatar-small" />
                       )}
                     </div>
+                    // kt
                   );
 
                 })}
