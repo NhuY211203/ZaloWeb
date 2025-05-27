@@ -75,23 +75,23 @@ const SignUpScreen = () => {
     // Số điện thoại Việt Nam 10 số bắt đầu 0, tiếp 9 số nữa
     const phoneRegex = /^(0[3|5|7|8|9])[0-9]{8}$/;
 
-    if (!email) {
-      setError("Vui lòng nhập email!");
-      setEnabled(false);
-    } else if (!emailRegex.test(email)) {
-      setError("Email không hợp lệ!");
-      setEnabled(false);
-    } else if (!sdt) {
-      setError("Vui lòng nhập số điện thoại!");
+    if (!sdt) {
+      setError(""); // Không hiển thị lỗi khi chưa nhập sdt
       setEnabled(false);
     } else if (!phoneRegex.test(sdt)) {
       setError("Số điện thoại không hợp lệ!");
       setEnabled(false);
+    } else if (!email) {
+      setError(""); // Không hiển thị lỗi khi chưa nhập email
+      setEnabled(false);
+    } else if (!emailRegex.test(email)) {
+      setError("Email không hợp lệ!");
+      setEnabled(false);
     } else {
-      setError("");
-      setEnabled(true);
+      setError(""); // Reset lỗi nếu đúng định dạng
+      setEnabled(true); // Nếu tất cả hợp lệ
     }
-  }, [email, sdt]);
+  }, [sdt, email]);
 
   return (
     <div className="layout-container">
@@ -118,7 +118,7 @@ const SignUpScreen = () => {
         {error && <p className="text-red-500 text-center mt-2">{error}</p>}
 
         <button
-          className="btn-primary" 
+          className="btn-primary"
           onClick={handleSignUp}
           disabled={!enabled}
         >
@@ -137,3 +137,4 @@ const SignUpScreen = () => {
 };
 
 export default SignUpScreen;
+ 
