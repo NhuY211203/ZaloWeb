@@ -73,7 +73,14 @@ const FriendRequest = ({ user }) => {
           request.contactID === updatedUser.userID ? { ...request, avatar: updatedUser.avatar, name: updatedUser.name } : request
         )
       );
+      setFriendSend((prevRequests) =>
+        prevRequests.map((request) =>
+          request.userID === updatedUser.userID ? { ...request, avatar: updatedUser.avatar, name: updatedUser.name } : request
+        )
+      );
+      
     });
+    
 
     // Lắng nghe sự kiện lỗi
     socket.on("error", (error) => {
