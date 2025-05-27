@@ -46,32 +46,14 @@ const ForgotPassword = () => {
       throw new Error(`Lỗi kiểm tra số điện thoại: ${err.message}`);
     });
 
-    // Kiểm tra email
-    const responseEmail = await axios.post('https://cnm-service.onrender.com/api/users/email', 
-      { email },
-      { headers: { 'Content-Type': 'application/json' } }
-    ).catch(err => {
-      throw new Error(`Lỗi kiểm tra email: ${err.message}`);
-    });
-    console.log("Kết quả kiểm tra số điện thoại:");
-    console.log("Kết quả kiểm tra số điện thoại:", responseSDT.data);
-    console.log("Kết quả kiểm tra email:", responseEmail.data);
-
-    if (responseSDT.data.exists && responseEmail.data.exists) {
-      console.log("Đã gửi xác thực về gmail!");
+    if (responseSDT.data.exists) {
+      alert("Đã gửi xác thực về gmail!");
       await sendEmailVerification();
-
       return;
-    } else if (responseSDT.data.exists && !responseEmail.data.exists) {
-      console.log("Email không tồn tại nhưng Số điện thoại đã đăng ký!");
+    } else if (!responseSDT.data.exists) {
+      alert("Số điện thoại đã đăng ký!");
       return;
-    } else if (!responseSDT.data.exists && responseEmail.data.exists) {
-      console.log("Số điện thoại không tồn tại nhưng Gmail đã đăng ký!");
-      return;
-    } else {
-      console.log("Số điện thoại và email không tồn tại!");
-      return;
-    }
+    } 
   };
 
   const sendEmailVerification = async () => {
