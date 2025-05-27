@@ -16,11 +16,10 @@ const SignUpInfoScreen = () => {
   const [error, setError] = useState("");
 
   // Validate tên: ít nhất 2 từ, mỗi từ bắt đầu chữ hoa
-const validateName = (name) => {
-  const nameRegex = /^([A-ZÀ-Ỵ][a-zà-ỹ]+)(\s[A-ZÀ-Ỵ][a-zà-ỹ]+)+$/;
-  return nameRegex.test(name);
-};
-
+  const validateName = (name) => {
+    const nameRegex = /^([A-ZÀ-Ỵ][a-zà-ỹ]*)(\s[A-ZÀ-Ỵ][a-zà-ỹ]*)+$/;
+    return nameRegex.test(name);
+  };
 
   // Validate ngày sinh dd/mm/yyyy
   const validateDateFormat = (date) => {
@@ -51,6 +50,7 @@ const validateName = (name) => {
   };
 
   const handleSignUp = async () => {
+    // Kiểm tra nếu các trường không được nhập
     if (!name || !birth || !password || !rePassword) {
       setError("Vui lòng nhập đầy đủ thông tin!");
       return;
@@ -76,7 +76,7 @@ const validateName = (name) => {
       return;
     }
 
-    setError("");
+    setError(""); // Xóa lỗi nếu tất cả hợp lệ
 
     try {
       const response = await fetch("https://cnm-service.onrender.com/api/registerUser", {
@@ -101,6 +101,7 @@ const validateName = (name) => {
   };
 
   useEffect(() => {
+    // Kiểm tra điều kiện hợp lệ chỉ khi có thay đổi trong các trường dữ liệu
     const valid =
       name.length > 0 &&
       birth.length > 0 &&
@@ -114,20 +115,14 @@ const validateName = (name) => {
 
     setEnabled(valid);
 
-    if (!name) setError("Vui lòng nhập họ tên!");
-    else if (!validateName(name))
-      setError("Họ tên không hợp lệ! Ít nhất 2 từ, mỗi từ bắt đầu chữ hoa.");
-    else if (!birth) setError("Vui lòng nhập ngày sinh!");
-    else if (!validateDateFormat(birth))
-      setError("Ngày sinh không đúng định dạng dd/mm/yyyy!");
-    else if (!validateAge(birth))
-      setError("Bạn phải từ 18 tuổi trở lên để đăng ký.");
-    else if (!password) setError("Vui lòng nhập mật khẩu!");
-    else if (!isValidPassword(password))
-      setError("Mật khẩu không hợp lệ! Tối thiểu 8 ký tự, có ít nhất 1 chữ và 1 số.");
-    else if (!rePassword) setError("Vui lòng nhập lại mật khẩu!");
-    else if (password !== rePassword) setError("Mật khẩu không khớp!");
-    else setError("");
+    // Chỉ hiển thị lỗi khi các trường đã nhập
+    if (name && !validateName(name)) setError("Họ tên không hợp lệ! Ít nhất 2 từ, mỗi từ bắt đầu chữ hoa.");
+    else if (birth && !validateDateFormat(birth)) setError("Ngày sinh không đúng định dạng dd/mm/yyyy!");
+    else if (birth && !validateAge(birth)) setError("Bạn phải từ 18 tuổi trở lên để đăng ký.");
+    else if (password && !isValidPassword(password)) setError("Mật khẩu không hợp lệ! Tối thiểu 8 ký tự, có ít nhất 1 chữ và 1 số.");
+    else if (password && rePassword && password !== rePassword) setError("Mật khẩu không khớp!");
+    else setError(""); // Không hiển thị lỗi khi chưa có thông tin
+
   }, [name, birth, password, rePassword]);
 
   return (
@@ -191,7 +186,7 @@ const validateName = (name) => {
         {error && <p className="text-red-500 text-center mt-2">{error}</p>}
 
         <button
-          className="btn-primary" 
+          className="btn-primary"
           onClick={handleSignUp}
           disabled={!enabled}
         >
